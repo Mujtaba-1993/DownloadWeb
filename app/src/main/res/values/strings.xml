@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">DownloadWeb</string>
+    <string name="downloader">downloader</string>
+    <string name="youtube_logo_downloader">youtube_logo_downloader</string>
+</resources>
