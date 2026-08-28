@@ -8135,9 +8135,30 @@ function flatten(src, gain){
 }
 
 /* ================= 2) الحالة ================= */
-const PROF_DEF={ name:'كشف المقاسات', cols:null, hints:'', wMin:20, wMax:600, hMin:20, hMax:400,
-                 unit:'cm', enhance:true };
-let PROF=Object.assign({}, PROF_DEF, store.read(K_FR,{})||{});
+const HINTS_NB =
+`الكشف مقسوم إلى بلوكين متجاورين بنفس الأعمدة. اقرأ البلوكين كليهما.
+أعمدة كل بلوك بالترتيب من اليسار: no ثم width ثم s ثم height ثم s ثم ملاحظات.
+- width و height بالسنتيمتر دائماً، وبأرقام إنجليزية بخط اليد.
+- عمود s الأول يكون فاضياً عادةً — تجاهله.
+- عمود s الثاني يحمل اسم الموقع بالعربي (صالة · مجلس · مطبخ · نوم · ماستر روم · منور · ريان) — ضعه في title.
+- عمود ملاحظات فيه أحياناً رقم تسلسلي للغرفة — ضعه في note، ولا تعتبره عدداً أبداً.
+- ما في عمود للعدد: كل صف = فتحة واحدة، فاجعل q=1 دائماً.
+- السهم ↓ أو علامة تكرار في عمود الموقع تعني نفس موقع الصف الذي فوقه.
+- الصفوف الفاضية (رقمها موجود وخاناتها فارغة) لا تُرجعها إطلاقاً.
+- الخطوط الأفقية الفاصلة تعني مجموعات/أدوار ولا تؤثر على القراءة.
+- ما في عمود للنوع في هذا الكشف — اترك type فاضياً.`;
+const PROF_DEF={ name:'كشف النبراس', v:2, cols:null, hints:HINTS_NB,
+                 wMin:40, wMax:450, hMin:50, hMax:350, unit:'cm', enhance:true };
+/* الترقية تُفحص على المحفوظ نفسه لا على المدموج:
+   Object.assign يورّث v من الافتراضي فيبدو النموذج القديم محدَّثاً وهو ليس كذلك. */
+const RAW = store.read(K_FR, null);
+let PROF;
+if(!RAW || !(RAW.v>=2)){
+  PROF = Object.assign({}, PROF_DEF, {enhance: RAW ? RAW.enhance!==false : true});
+  try{ store.write(K_FR, PROF); }catch(e){}
+}else{
+  PROF = Object.assign({}, PROF_DEF, RAW);
+}
 const profSave=()=>{ try{ store.write(K_FR,PROF); }catch(e){} };
 
 const FR={ shots:[], idx:0, rows:[], meta:{}, cols:[], notes:[], busy:false, quad:[], stage:'pick' };
@@ -8362,11 +8383,14 @@ function prompt_(){
 - العدد إن لم يُذكر = 1.
 - لا تدمج الصفوف ولا ترتّبها — أعدها بنفس ترتيب الورقة.
 - لا تضع أسعاراً إطلاقاً.
+- لكل صف أعد block (رقم البلوك: 1 للأيسر و2 للأيمن) و no (رقم الصف كما هو مكتوب في عمود no).
+  الترقيم يبدأ من 1 في كل بلوك. هذا الرقم يُستعمل للتأكد أنه ما ضاع صف — فاقرأه بدقة.
+- لو خانة الموقع فيها سهم أو علامة تكرار، اترك title فاضياً وسنكمله نحن من الصف الذي فوقه.
 ${PROF.hints ? '\nوصف هذا الكشف من صاحبه — التزم به:\n'+PROF.hints+'\n' : ''}
 أعد JSON فقط بهذا الشكل:
 {"meta":{"cname":"","cphone":"","ccity":"","date":""},
  "columns":["رقم","الموقع","العرض","الارتفاع","العدد","النوع"],
- "rows":[{"raw":"1 | المجلس | 150 | 120 | 3 | سحاب","title":"المجلس","w":150,"h":120,"q":3,"type":"سحاب درفتين","color":"white","conf":0.95}],
+ "rows":[{"block":1,"no":1,"raw":"1 | 150 | | 120 | المجلس |","title":"المجلس","w":150,"h":120,"q":1,"type":"","note":"","color":"white","conf":0.95}],
  "issues":["الصف ٧ الرقم مشطوب"],
  "totalsOnSheet":{"count":null,"area":null}}
 
@@ -8420,7 +8444,9 @@ async function runRead(){
 }
 
 function normRow(r,i){
-  const o={ i, raw:String(r.raw||''), title:String(r.title||'').trim(),
+  const o={ i, block:Math.max(1,Math.round(numOf(r.block)||1)), no:numOf(r.no),
+            note:String(r.note||'').trim(),
+            raw:String(r.raw||''), title:String(r.title||'').trim(),
             type:String(r.type||'').trim(), color:String(r.color||'white').trim(),
             w:numOf(r.w), h:numOf(r.h), q:numOf(r.q),
             conf: (r.conf==null?0.8:Math.max(0,Math.min(1,+r.conf||0))),
@@ -8430,8 +8456,19 @@ function normRow(r,i){
 }
 
 /* ================= 5) الفحص المنطقي ================= */
+const DITTO=/^[\s\u2193\u2191\u02ba\u201d"'\-_.·،,]*$/;   /* سهم أو علامة تكرار أو فراغ */
 function validate(){
   const seen={};
+  /* لو الكشف مرقّم، فحص التسلسل هو الأصدق لكشف التكرار.
+     مقارنة القيم تُنتج إنذاراً كاذباً: شباكان متطابقان في نفس الغرفة أمر طبيعي. */
+  const haveNos = FR.rows.some(r=>r.no>0);
+  /* السهم في عمود الموقع = نفس موقع الصف اللي فوقه داخل نفس البلوك */
+  let lastTitle='', lastBlock=null;
+  FR.rows.forEach(r=>{
+    if(r.block!==lastBlock){ lastBlock=r.block; lastTitle=''; }
+    if(DITTO.test(r.title)){ if(lastTitle){ r.title=lastTitle; r.ditto=true; } }
+    else { lastTitle=r.title; r.ditto=false; }
+  });
   FR.rows.forEach(r=>{
     r.flags=[];
     /* الوحدة: رقم صغير جداً غالباً بالأمتار */
@@ -8444,14 +8481,29 @@ function validate(){
     else if(r.h<PROF.hMin || r.h>PROF.hMax) r.flags.push('h:range');
     if(r.q==null || r.q<1 || r.q!==Math.round(r.q)) r.flags.push('q:bad');
     if(r.conf<0.75) r.flags.push('conf');
-    const key=[r.w,r.h,r.q,r.title].join('|');
-    if(seen[key]) r.flags.push('dup'); else seen[key]=1;
+    if(!haveNos){
+      const key=[r.w,r.h,r.q,r.title].join('|');
+      if(seen[key]) r.flags.push('dup'); else seen[key]=1;
+    }
   });
   const live=FR.rows.filter(r=>!r.drop);
   const cnt=live.reduce((a,r)=>a+(r.q||0),0);
   const area=live.reduce((a,r)=>a+((r.w||0)/100)*((r.h||0)/100)*(r.q||0),0);
   const t=FR.totals||{};
   const out={cnt, area, rows:live.length, mismatch:[]};
+  /* فحص تسلسل أرقام الصفوف — يكشف صفاً ضاع في القراءة، وهو أخطر خطأ في كشف طويل */
+  const byBlock={};
+  FR.rows.forEach(r=>{ if(r.no>0){ (byBlock[r.block]=byBlock[r.block]||[]).push(Math.round(r.no)); } });
+  Object.keys(byBlock).forEach(bk=>{
+    const nos=byBlock[bk], mx=Math.max.apply(null,nos), set={};
+    nos.forEach(n=>{ set[n]=(set[n]||0)+1; });
+    const miss=[], dup=[];
+    for(let i=1;i<=mx;i++){ if(!set[i]) miss.push(i); }
+    Object.keys(set).forEach(n=>{ if(set[n]>1) dup.push(n); });
+    const bl = Object.keys(byBlock).length>1 ? ('البلوك '+bk+': ') : '';
+    if(miss.length) out.mismatch.push(bl+'صفوف مفقودة في القراءة برقم '+miss.join(' · ')+' — راجع الورقة.');
+    if(dup.length)  out.mismatch.push(bl+'رقم الصف مكرر: '+dup.join(' · '));
+  });
   if(n0(t.count)>0 && Math.abs(n0(t.count)-cnt)>0.5)
     out.mismatch.push('الكشف مكتوب فيه إجمالي '+n0(t.count)+' فتحة، والمقروء '+cnt+'.');
   if(n0(t.area)>0 && Math.abs(n0(t.area)-area)/n0(t.area)>0.05)
@@ -8488,6 +8540,9 @@ function paintRows(b){
       ? '<div class="frIssue"><b>ملاحظات القارئ</b>'+FR.notes.map(esc).join('<br>')+'</div>' : '')
    + (!V.bad && !V.mismatch.length
       ? '<div class="frOk"><b>كل الصفوف مقروءة وضمن النطاق.</b> راجعها بسرعة قبل الاعتماد.</div>' : '')
+   + (FR.rows.some(r=>!r.drop && !r.type)
+      ? '<div class="frHint" style="background:#FBF3E8;border:1px solid #D9B98C;border-radius:9px;padding:8px 11px">'
+        + 'كشفكم ما فيه عمود للنوع — نزّلنا البنود بنوع افتراضي، حدّد نوع كل بند بعد التنزيل.</div>' : '')
    + '<div class="frWrapT"><table class="frTab"><tr>'
    +   '<th>#</th><th>الوصف</th><th>عرض</th><th>ارتفاع</th><th>عدد</th><th>النوع</th><th></th></tr>'
    +   FR.rows.map((r,i)=>rowHTML(r,i)).join('')
@@ -8525,11 +8580,12 @@ function paintRows(b){
 /* أسباب التعليم مكتوبة صراحةً — التلميح بالمرور ما يشتغل على الجوال */
 function reasons(){
   const list=FR.rows.map((r,i)=>({i, drop:r.drop,
+      tag:(r.no>0 ? (r.block>1 ? r.block+'·'+Math.round(r.no) : String(Math.round(r.no))) : String(i+1)),
       why:r.flags.map(f=>FLAG_MSG[f]).filter(Boolean)}))
     .filter(x=>!x.drop && x.why.length);
   if(!list.length) return '';
   return '<div class="frIssue" style="margin-top:9px"><b>صفوف تحتاج مراجعة ('+list.length+')</b>'
-    + list.map(x=>'صف '+(x.i+1)+': '+esc(x.why.join(' · '))).join('<br>')
+    + list.map(x=>'صف '+esc(x.tag)+': '+esc(x.why.join(' · '))).join('<br>')
     + '</div>';
 }
 function rowHTML(r,i){
@@ -8538,8 +8594,9 @@ function rowHTML(r,i){
   const inp=(k,v,extra)=>'<td class="'+(extra||'')+' '+cls(k)+'"><input data-cell="'+i+'|'+k+'" value="'
     + esc(v==null?'':v)+'"></td>';
   const warn=r.flags.filter(x=>FLAG_MSG[x]).map(x=>FLAG_MSG[x]).join(' · ');
+  const tag = (r.no>0 ? (r.block>1 ? r.block+'·'+Math.round(r.no) : String(Math.round(r.no))) : String(i+1));
   return '<tr class="'+(r.drop?'drop':'')+'"'+(warn?' title="'+esc(warn)+'"':'')+'>'
-    + '<td class="act">'+(i+1)+'</td>'
+    + '<td class="act" style="font-family:\'IBM Plex Mono\',monospace;font-size:11.5px;color:var(--soft)">'+esc(tag)+'</td>'
     + inp('title', r.title, 'txt')
     + inp('w', r.w) + inp('h', r.h) + inp('q', r.q)
     + inp('type', r.type, 'txt')
