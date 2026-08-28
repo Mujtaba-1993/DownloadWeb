@@ -8140,8 +8140,11 @@ const HINTS_NB =
 أعمدة كل بلوك بالترتيب من اليسار: no ثم width ثم s ثم height ثم s ثم ملاحظات.
 - width و height بالسنتيمتر دائماً، وبأرقام إنجليزية بخط اليد.
 - عمود s الأول يكون فاضياً عادةً — تجاهله.
-- عمود s الثاني يحمل اسم الموقع بالعربي (صالة · مجلس · مطبخ · نوم · ماستر روم · منور · ريان) — ضعه في title.
-- عمود ملاحظات فيه أحياناً رقم تسلسلي للغرفة — ضعه في note، ولا تعتبره عدداً أبداً.
+- اسم الموقع بالعربي (صالة · مجلس · مطبخ · نوم · ماستر روم · منور · ريان) يكتبه صاحب الكشف
+  أحياناً في عمود s الثاني وأحياناً في عمود ملاحظات — خذه من أي عمود وجدته فيه وضعه في title.
+- إذا كان في عمود ملاحظات رقم مجرّد فهو ترقيم للغرفة — ضعه في note،
+  ولا تعتبره عدداً ولا مقاساً أبداً.
+- الصفوف التي رقمها مطبوع وخاناتها كلها فارغة هي بقية الجدول الفاضية — لا ترجعها.
 - ما في عمود للعدد: كل صف = فتحة واحدة، فاجعل q=1 دائماً.
 - السهم ↓ أو علامة تكرار في عمود الموقع تعني نفس موقع الصف الذي فوقه.
 - الصفوف الفاضية (رقمها موجود وخاناتها فارغة) لا تُرجعها إطلاقاً.
@@ -8466,11 +8469,17 @@ function validate(){
   let lastTitle='', lastBlock=null;
   FR.rows.forEach(r=>{
     if(r.block!==lastBlock){ lastBlock=r.block; lastTitle=''; }
-    if(DITTO.test(r.title)){ if(lastTitle){ r.title=lastTitle; r.ditto=true; } }
+    if(r.drop) return;
+    if(DITTO.test(r.title)){ r.title = lastTitle || ''; r.ditto = !!lastTitle; }
     else { lastTitle=r.title; r.ditto=false; }
+  });
+  /* صف رقمه مطبوع وخاناته فاضية = بقية الجدول الفاضية، لا قراءة ناقصة */
+  FR.rows.forEach(r=>{
+    if(r.w==null && r.h==null && !r.title && !r.type){ r.drop=true; r.empty=true; }
   });
   FR.rows.forEach(r=>{
     r.flags=[];
+    if(r.drop) return;
     /* الوحدة: رقم صغير جداً غالباً بالأمتار */
     ['w','h'].forEach(k=>{
       if(r[k]!=null && r[k]>0 && r[k]<10){ r[k]=Math.round(r[k]*100); r.flags.push(k+':m2cm'); }
@@ -8493,15 +8502,19 @@ function validate(){
   const out={cnt, area, rows:live.length, mismatch:[]};
   /* فحص تسلسل أرقام الصفوف — يكشف صفاً ضاع في القراءة، وهو أخطر خطأ في كشف طويل */
   const byBlock={};
-  FR.rows.forEach(r=>{ if(r.no>0){ (byBlock[r.block]=byBlock[r.block]||[]).push(Math.round(r.no)); } });
+  FR.rows.forEach(r=>{ if(r.no>0 && !r.drop){ (byBlock[r.block]=byBlock[r.block]||[]).push(Math.round(r.no)); } });
   Object.keys(byBlock).forEach(bk=>{
-    const nos=byBlock[bk], mx=Math.max.apply(null,nos), set={};
+    const nos=byBlock[bk], mn=Math.min.apply(null,nos), mx=Math.max.apply(null,nos), set={};
     nos.forEach(n=>{ set[n]=(set[n]||0)+1; });
     const miss=[], dup=[];
-    for(let i=1;i<=mx;i++){ if(!set[i]) miss.push(i); }
+    /* الفجوة الحقيقية هي داخل ما قُرئ فعلاً — ما قبل أول رقم قد يكون ببساطة غير مصوّر */
+    for(let i=mn+1;i<mx;i++){ if(!set[i]) miss.push(i); }
     Object.keys(set).forEach(n=>{ if(set[n]>1) dup.push(n); });
     const bl = Object.keys(byBlock).length>1 ? ('البلوك '+bk+': ') : '';
-    if(miss.length) out.mismatch.push(bl+'صفوف مفقودة في القراءة برقم '+miss.join(' · ')+' — راجع الورقة.');
+    if(miss.length){
+      const show = miss.length>10 ? miss.slice(0,10).join(' · ')+' وغيرها' : miss.join(' · ');
+      out.mismatch.push(bl+'صفوف ضاعت في القراءة بين رقم '+mn+' و'+mx+': '+show+' — راجع الورقة.');
+    }
     if(dup.length)  out.mismatch.push(bl+'رقم الصف مكرر: '+dup.join(' · '));
   });
   if(n0(t.count)>0 && Math.abs(n0(t.count)-cnt)>0.5)
