@@ -8739,10 +8739,10 @@ body.simple .avTab{font-size:14px}
       يُقصّ من لوح جامبو والهدر الحقيقي يوصل ٢٤٪ بينما التسعير بالمتر
       يفترض صفر هدر. التنضيد ينزّله لحدود ٩٪ — والفرق يظهر في جيبك.
 
-   ٢) الألمنيوم بالكيلو.
-      موردو الخليج والعالم يسعّرون السبيكة بالكيلو (٦٠–٧٥٪ من سعر
-      القطاع مربوط بسعر المعدن). الأداة كانت تحسب بالعود فقط، فما كنت
-      تقدر تقارن عرض المورد بالكيلو مع حسابك بالعود.
+   ٢) بواقي الأعواد ومخزونها.
+      الورشة تشتري بالحبة، فثمن العود يُدفع كاملاً مهما استُعمل منه.
+      برامج التنضيد المدفوعة تدير «مخزون البواقي» لأن هذا مكمن الفلوس
+      عند الشراء بالحبة: باقٍ طويل يُحفظ = عود أقل في المشروع القادم.
 
    ٣) حساسية الأسعار.
       كل برنامج تسعير محترم فيه «ماذا لو». هنا: تحرّك أسعار الألمنيوم
@@ -8769,10 +8769,11 @@ const kgmDefault=(id,thick)=>{
 
 const AV_DEF={
   shW:321, shH:225, kerf:0.5, rot:true, glDed:3, glThick:6,
-  alKg:0, glSheetPrice:0, aDelta:0, gDelta:0, cDelta:0, lDelta:0, kgm:{}
+  glSheetPrice:0, aDelta:0, gDelta:0, cDelta:0, lDelta:0, kgm:{}, remMin:100, rem:{}
 };
 let AV=Object.assign({}, AV_DEF, store.read(K_AV,{})||{});
 AV.kgm=Object.assign({}, AV.kgm||{});
+AV.rem=Object.assign({}, AV.rem||{});
 const avSave=()=>{ try{ store.write(K_AV,AV); }catch(e){} };
 
 /* ================= 1) ألواح الزجاج — تنضيد قصّ بالمقصلة ================= */
@@ -8918,6 +8919,89 @@ function weights(r){
   return {rows, kgNet, kgBuy, kgGlass, total:kgBuy+kgGlass, barLen:BL};
 }
 
+/* ================= بواقي الأعواد ================= */
+/* الشراء بالحبة يعني أنك تدفع ثمن العود كامل مهما استعملت منه.
+   فالمهم ليس الوزن بل: كم بقي من كل عود، وهل الباقي طوله يستحق الحفظ. */
+function offcuts(r){
+  const BL=n0(COST&&COST.bar_len)|| (typeof BAR_LEN!=='undefined'?BAR_LEN:5.8);
+  const TH=Math.max(0,n0(AV.remMin))/100;      /* حد الطول القابل للاستفادة، بالأمتار */
+  const rows=[];
+  let reuseM=0, scrapM=0, reuseVal=0, scrapVal=0, reuseCnt=0;
+  ((r&&r.bars)||[]).forEach(b=>{
+    const per=[];
+    if(b.pack && b.pack.bins && b.pack.bins.length)
+      b.pack.bins.forEach(bin=>per.push(Math.max(0,n0(bin.rem))));
+    else per.push(Math.max(0,n0(b.left)));     /* بلا تنضيد: الباقي مجمّع */
+    let rM=0,sM=0,rC=0;
+    per.forEach(L=>{ if(TH>0 && L>=TH){ rM+=L; rC++; } else sM+=L; });
+    const vPerM=n0(b.unitP)/BL;
+    reuseM+=rM; scrapM+=sM; reuseCnt+=rC;
+    reuseVal+=rM*vPerM; scrapVal+=sM*vPerM;
+    rows.push({label:b.label, key:b.key, bars:n0(b.bars), need:n0(b.need),
+               reuseM:rM, scrapM:sM, reuseCnt:rC, unitP:n0(b.unitP),
+               val:(rM+sM)*vPerM, per});
+  });
+  rows.sort((a,b)=>b.val-a.val);
+  return {rows, reuseM, scrapM, reuseVal, scrapVal, reuseCnt,
+          total:reuseVal+scrapVal, TH, BL};
+}
+
+/* إعادة تنضيد مع بواقي موجودة في الورشة — كم عوداً توفّر */
+function packWithStock(pieces, stock, BL, kerf){
+  const P=pieces.slice().filter(x=>x>0).sort((a,b)=>b-a);
+  const bins=stock.slice().sort((a,b)=>b-a).map(L=>({rem:L}));
+  let fresh=0;
+  P.forEach(p=>{
+    let b=null;
+    for(const x of bins){ if(x.rem>=p+kerf-1e-9){ b=x; break; } }
+    if(!b){ b={rem:BL}; bins.push(b); fresh++; }
+    b.rem-=(p+kerf);
+  });
+  return fresh;
+}
+const remList=key=>String(AV.rem[key]||'')
+  .split(/[,،;\s]+/).map(x=>n0(x)/100).filter(v=>v>0.1);
+function withStock(r){
+  const BL=n0(COST&&COST.bar_len)|| (typeof BAR_LEN!=='undefined'?BAR_LEN:5.8);
+  const kerf=Math.max(0,n0(COST&&COST.kerf_mm))/1000;
+  let saved=0, savedVal=0, ready=false;
+  ((r&&r.bars)||[]).forEach(b=>{
+    const stock=remList(b.key);
+    if(!stock.length) return;
+    if(!(b.pack && b.pack.bins && b.pack.bins.length)) return;   /* يحتاج التنضيد مفعّلاً */
+    ready=true;
+    const pieces=b.pack.bins.reduce((a,bin)=>a.concat((bin.cuts||[]).map(n0)),[]);
+    const fresh=packWithStock(pieces, stock, BL, kerf);
+    const d=n0(b.bars)-fresh;
+    if(d>0){ saved+=d; savedVal+=d*n0(b.unitP); }
+  });
+  return {saved, savedVal, ready};
+}
+
+/* ================= التكلفة الحدية ================= */
+/* بالشراء بالحبة تكلفة الوحدة الإضافية غير خطية: أحياناً تقريباً مجانية
+   لأن الباقي يكفيها، وأحياناً تكلّفك عوداً كاملاً. */
+function marginal(){
+  let base=null; try{ base=projectCost(); }catch(e){}
+  if(!base) return [];
+  const out=[];
+  items.forEach((it,i)=>{
+    if(!it || it.unit==='pc') return;
+    const row=(it.rows||[]).find(x=>n0(x.w)>0 && n0(x.h)>0);
+    if(!row) return;
+    const q0=row.q;
+    row.q=n0(q0)+1;
+    let r2=null; try{ r2=projectCost(); }catch(e){}
+    row.q=q0;
+    if(!r2) return;
+    let lbl=it.title||''; if(!lbl){ try{ lbl=styleOf(it).label; }catch(e){ lbl='بند '+(i+1); } }
+    const m2=(n0(row.w)/100)*(n0(row.h)/100);
+    out.push({i, label:lbl, w:n0(row.w), h:n0(row.h), m2,
+              delta:r2.grand-base.grand, perM2: m2>0 ? (r2.grand-base.grand)/m2 : 0});
+  });
+  return out;
+}
+
 /* ================= 3) تقسيم التكلفة للحساسية ================= */
 function split(r){
   const alu=((r&&r.bars)||[]).reduce((a,b)=>a+n0(b.cost),0);
@@ -8955,7 +9039,7 @@ function paint(){
   const box=$('#advOut'); if(!box) return;
   let r=null; try{ r=projectCost(); }catch(e){}
   if(!r){ box.innerHTML='<p class="hint" style="margin:0">أدخل مقاسات البنود أولاً.</p>'; return; }
-  box.innerHTML = secGlass(r) + secWeight(r) + secWhatIf(r);
+  box.innerHTML = secGlass(r) + secOffcut(r) + secMarginal() + secWhatIf(r);
   wire(r);
 }
 
@@ -9025,41 +9109,72 @@ function secGlass(r){
     + '</div>';
 }
 
-/* ---------- ب) الوزن ---------- */
-function secWeight(r){
-  const W=weights(r);
-  const kgPrice=n0(AV.alKg);
-  const byKg=W.kgBuy*kgPrice;
-  const byBar=W.rows.reduce((a,x)=>a+n0(x.cost),0);
-  const diff=byKg-byBar;
-  return '<div class="avSec"><div class="bzsub">وزن الألمنيوم والتسعير بالكيلو'
-    + '<em>موردو السبائك يبيعون بالكيلو</em></div>'
-    + '<div class="avNote">وزن المتر الافتراضي محسوب من العرض المنشور للقطاع × السماكة × كثافة الألمنيوم ٢.٧٠. '
-    + 'عدّله من كتالوج موردك ليصير الرقم دقيقاً.</div>'
-    + '<div class="avGrid">' + fld('alKg','سعر الكيلو <u>ر.س/كجم</u>') + '</div>'
-    + '<div class="avWrapT"><table class="avTab">'
-    + '<tr><th>القطاع</th><th>كجم/م</th><th>أمتار</th><th>وزن صافي</th><th>وزن مشترى</th></tr>'
-    + W.rows.map(x=>`<tr><td>${esc(x.label)}</td>
-        <td class="n"><input data-kgm="${esc(kgmKey(x.id,x.thick))}" value="${x.kgm}"></td>
-        <td class="n">${x.m.toFixed(1)}</td>
-        <td class="n">${x.kgNet.toFixed(1)}</td>
-        <td class="n">${x.kgBuy.toFixed(1)}</td></tr>`).join('')
-    + `<tr class="tot"><td>الإجمالي</td><td class="n">—</td><td class="n">—</td>
-        <td class="n">${W.kgNet.toFixed(1)} كجم</td><td class="n">${W.kgBuy.toFixed(1)} كجم</td></tr>`
-    + '</table></div>'
-    + (kgPrice>0 && byBar>0
-       ? `<div class="avWin ${diff>0?'bad':'good'}">
-           بالكيلو: <b>${sar(byKg)}</b> ر.س · بالعود: <b>${sar(byBar)}</b> ر.س —
-           ${Math.abs(diff)<1 ? 'متطابقان تقريباً.'
-             : (diff>0 ? 'الشراء بالعود أرخص بـ '+sar(-diff)+' ر.س.'
-                       : 'الشراء بالكيلو أرخص بـ '+sar(-diff)+' ر.س.')}</div>`
-       : '<div class="avNote">'+(byBar>0
-           ? 'اكتب سعر الكيلو فوق لتقارن عرض المورد بالكيلو مع حسابك بالعود.'
-           : 'الوزن يُحسب من الحصر مباشرة ولا يحتاج أسعاراً. أدخل أسعار الأعواد لتقارن الكيلو بالعود.')+'</div>')
-    + `<div class="avWin mid">وزن الشحنة التقديري: <b>${W.total.toFixed(0)}</b> كجم
-        (ألمنيوم ${W.kgBuy.toFixed(0)} + زجاج ${W.kgGlass.toFixed(0)} بسماكة ${n0(AV.glThick)} مم) —
-        يفيدك في تحديد السيارة وعدد النقلات.</div>`
+/* ---------- ب) بواقي الأعواد ---------- */
+function secOffcut(r){
+  const O=offcuts(r), W=weights(r), St=withStock(r);
+  const nested = ((r&&r.bars)||[]).some(x=>x.pack&&x.pack.bins&&x.pack.bins.length);
+  return '<div class="avSec"><div class="bzsub">بواقي الأعواد وقيمتها'
+    + '<em>تشتري العود كامل — فالباقي فلوسك</em></div>'
+    + '<div class="avNote">لأنك تشتري بالحبة، ثمن العود يُدفع كاملاً سواء استعملته كله أو نصّه. '
+    + 'هنا نفصل الباقي الصالح للحفظ عن الخردة الحقيقية، ونحسب قيمة كل منهما.</div>'
+    + '<div class="avGrid">' + fld('remMin','أقل طول باقٍ يستحق الحفظ <u>سم</u>') + '</div>'
+    + (O.rows.length
+      ? '<div class="avWrapT"><table class="avTab">'
+        + '<tr><th>القطاع</th><th>أعواد</th><th>مستخدم م</th><th>باقٍ صالح</th><th>خردة م</th><th>قيمة الباقي</th></tr>'
+        + O.rows.map(x=>`<tr><td>${esc(x.label)}</td>
+            <td class="n">${x.bars}</td><td class="n">${x.need.toFixed(1)}</td>
+            <td class="n">${x.reuseCnt? x.reuseCnt+' × '+(x.reuseM/x.reuseCnt).toFixed(2)+' م' : '—'}</td>
+            <td class="n">${x.scrapM.toFixed(1)}</td>
+            <td class="n">${sar(x.val)}</td></tr>`).join('')
+        + `<tr class="tot"><td>الإجمالي</td>
+            <td class="n">${O.rows.reduce((a,x)=>a+x.bars,0)}</td><td class="n">—</td>
+            <td class="n">${O.reuseCnt} قطعة</td><td class="n">${O.scrapM.toFixed(1)}</td>
+            <td class="n">${sar(O.total)}</td></tr>`
+        + '</table></div>'
+        + (!nested
+           ? '<div class="avWin mid">التنضيد غير مفعّل، فالباقي محسوب مجمّعاً لا لكل عود. '
+             + 'فعّل «تنضيد القص على مستوى المشروع» في الإعدادات العامة ليصير التفصيل دقيقاً.</div>'
+           : '')
+        + `<div class="avWin ${O.reuseVal>O.scrapVal?'good':'mid'}">
+            باقٍ صالح للحفظ: <b>${sar(O.reuseVal)}</b> ر.س (${O.reuseCnt} قطعة، ${O.reuseM.toFixed(1)} م) ·
+            خردة: <b>${sar(O.scrapVal)}</b> ر.س (${O.scrapM.toFixed(1)} م).
+            ${O.reuseVal>0 ? 'احفظ القطع الطويلة ورقّمها — تنفعك في المشروع القادم.' : ''}</div>`
+        + '<div class="bzsub" style="margin-top:14px">استفد من بواقي مشاريعك السابقة'
+        + '<em>اكتب الأطوال المتوفرة عندك</em></div>'
+        + '<div class="avNote">اكتب أطوال البواقي الموجودة في الورشة لكل قطاع بالسنتيمتر مفصولة بفاصلة '
+        + '(مثال: ٢٤٠، ١٨٠، ٩٥). المحرك يعيد التنضيد مستفيداً منها ويحسب كم عوداً توفّر.</div>'
+        + '<div class="avWrapT"><table class="avTab">'
+        + '<tr><th>القطاع</th><th>البواقي المتوفرة (سم)</th></tr>'
+        + O.rows.map(x=>`<tr><td>${esc(x.label)}</td>
+            <td><input data-rem="${esc(x.key||'')}" placeholder="٢٤٠، ١٨٠"
+                 value="${esc(AV.rem[x.key]||'')}" style="text-align:start;font-family:inherit"></td></tr>`).join('')
+        + '</table></div>'
+        + (St.saved>0
+           ? `<div class="avWin good">بواقيك توفّر <b>${St.saved}</b> عود =
+               <b>${sar(St.savedVal)}</b> ر.س من هذا المشروع.</div>`
+           : (St.ready ? '<div class="avNote">البواقي المكتوبة ما كفت لتوفير عود كامل.</div>' : ''))
+      : '<p class="hint" style="margin:0">أدخل أسعار القطاعات ليظهر حصر الأعواد وبواقيها.</p>')
+    + `<div class="avWin mid" style="margin-top:12px">وزن الشحنة التقديري:
+        <b>${W.total.toFixed(0)}</b> كجم (ألمنيوم ${W.kgBuy.toFixed(0)} + زجاج ${W.kgGlass.toFixed(0)}
+        بسماكة ${n0(AV.glThick)} مم) — يفيدك في تحديد السيارة وعدد النقلات.</div>`
     + '</div>';
+}
+
+/* ---------- التكلفة الحدية ---------- */
+function secMarginal(){
+  const M=marginal();
+  if(!M.length) return '';
+  return '<div class="avSec"><div class="bzsub">تكلفة الوحدة الإضافية'
+    + '<em>لو زاد العميل فتحة واحدة</em></div>'
+    + '<div class="avNote">بالشراء بالحبة الزيادة ليست خطية: أحياناً الفتحة الإضافية تكاد تكون '
+    + 'مجانية لأن بواقي الأعواد تكفيها، وأحياناً تكلّفك عوداً كاملاً. هذا رقمك الحقيقي عند التفاوض.</div>'
+    + '<div class="avWrapT"><table class="avTab">'
+    + '<tr><th>البند</th><th>المقاس</th><th>تكلفة الإضافة</th><th>ر.س/م²</th></tr>'
+    + M.map(x=>`<tr><td>${esc(x.label)}</td>
+        <td class="n">${x.w}×${x.h}</td>
+        <td class="n">${sar(x.delta)} ر.س</td>
+        <td class="n">${sar(x.perM2)}</td></tr>`).join('')
+    + '</table></div></div>';
 }
 
 /* ---------- ج) الحساسية ---------- */
@@ -9129,14 +9244,15 @@ function wire(r){
     else if(el.type==='checkbox') el.onchange=h;
     else el.oninput=h;
   });
-  $$('[data-kgm]',box).forEach(el=>el.oninput=()=>{
-    AV.kgm[el.dataset.kgm]=n0(el.value); avSave();
-    clearTimeout(window.__avT); window.__avT=setTimeout(paint,500);
+  $$('[data-rem]',box).forEach(el=>el.oninput=()=>{
+    AV.rem[el.dataset.rem]=el.value; avSave();
+    clearTimeout(window.__avT); window.__avT=setTimeout(paint,600);
   });
 }
 
 build();
-window.__nbAdv={paint, packSheets, glassPanes, weights, split, whatIf, kgmDefault, AV,
+window.__nbAdv={paint, packSheets, glassPanes, weights, split, whatIf, kgmDefault,
+  offcuts, packWithStock, withStock, marginal, AV,
   set(o){ Object.assign(AV,o); avSave(); }};
 
 })();
