@@ -10398,6 +10398,23 @@ else build();
 .rxFieldNote{background:var(--bronze-l);border:1px solid #E4D3BC;border-radius:9px;
   padding:8px 10px;font-size:12.5px;color:#6B4A22;line-height:1.8;margin:8px 0}
 .rxFieldNote b{display:block;font-size:11.5px;opacity:.8;margin-bottom:1px}
+.rxPh{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+.rxPh img{width:54px;height:54px;object-fit:cover;border-radius:8px;
+  border:1px solid var(--hair);cursor:zoom-in;display:block}
+.rxLink{border:1px solid var(--hair);border-radius:11px;padding:11px 12px;margin-bottom:11px;background:#FAFBFB}
+.rxLink .t{font-size:13px;font-weight:600;margin-bottom:3px}
+.rxLink .s{font-size:11.5px;color:var(--soft);line-height:1.75;margin-bottom:8px}
+.rxLB{position:fixed;inset:0;z-index:90;background:rgba(12,15,17,.92);display:none;
+  align-items:center;justify-content:center;padding:16px}
+.rxLB.on{display:flex}
+.rxLB img{max-width:100%;max-height:90vh;border-radius:10px}
+.rxAuto{position:fixed;inset-inline:12px;top:12px;z-index:80;max-width:620px;margin:0 auto;
+  background:#fff;border:1px solid var(--bronze);border-radius:13px;padding:13px 14px;
+  box-shadow:0 8px 28px rgba(0,0,0,.18);font-size:13.5px;line-height:1.8}
+.rxAuto b{color:var(--bronze)}
+.rxAuto .row{display:flex;gap:8px;margin-top:10px}
+.rxAuto button{flex:1;border-radius:9px;padding:10px;font-family:inherit;font-size:13.5px;
+  font-weight:600;cursor:pointer}
 body.simple .rxIn{font-size:12.5px}
 </style>
 
@@ -10435,7 +10452,11 @@ function b64bytes(s){
 async function inflate(u){
   if(typeof DecompressionStream==='undefined') throw new Error('no-ds');
   const ds=new DecompressionStream('deflate-raw');
-  const w=ds.writable.getWriter(); w.write(u); w.close();
+  const w=ds.writable.getWriter();
+  /* رفضُ جانب الكتابة يخرج خارج try/catch لو تُرك بلا معالج،
+     فيظهر كخطأ صفحة غير ملتقط عند وصول رمز تالف. */
+  w.write(u).catch(()=>{});
+  w.close().catch(()=>{});
   return new TextDecoder().decode(await new Response(ds.readable).arrayBuffer());
 }
 function ub64(s){
@@ -10513,6 +10534,7 @@ function apply(D){
     if(o.c) it.color=o.c;
     it.rows=[{w:String(n0(o.w)), h:String(n0(o.h)), q:String(Math.max(1,Math.round(n0(o.q))))}];
     it.fieldNote = o.n || '';
+    it.fieldPhotos = Array.isArray(o.p) ? o.p.slice(0,3) : [];
     it.fieldMesh = !!o.m;
     items.push(it); itemsEl.appendChild(build(it)); refresh(it);
     if(o.n) notes.push(it.title+': '+o.n);
@@ -10532,9 +10554,26 @@ function paintNotes(job, notes){
   if(job.tech) parts.push({t:'رفع المقاسات', v:job.tech + (job.d?' · '+job.d:'')});
   if(job.gps) parts.push({t:'موقع المعاينة', v:job.gps});
   notes.forEach(n=>parts.push({t:'ملاحظة على بند', v:n}));
-  if(!parts.length) return;
-  const html=parts.map(p=>`<div class="rxFieldNote"><b>${esc(p.t)}</b>${esc(p.v)}</div>`).join('');
+  const shots=[];
+  items.forEach(it=>{ (it.fieldPhotos||[]).forEach(src=>shots.push({t:it.title, src})); });
+  if(!parts.length && !shots.length) return;
+  let html=parts.map(p=>`<div class="rxFieldNote"><b>${esc(p.t)}</b>${esc(p.v)}</div>`).join('');
+  if(shots.length){
+    html += `<div class="rxFieldNote"><b>صور الفني (${shots.length})</b>`
+      + `<span class="rxPh">` + shots.map(s2=>
+          `<img src="${s2.src}" alt="${esc(s2.t)}" title="${esc(s2.t)}" data-big="1">`).join('')
+      + `</span></div>`;
+  }
   box.insertAdjacentHTML('beforeend', html);
+  wireZoom();
+}
+
+function wireZoom(){
+  let lb=$('#rxLB');
+  if(!lb){ lb=document.createElement('div'); lb.id='rxLB'; lb.className='rxLB';
+    lb.innerHTML='<img alt="">'; document.body.appendChild(lb);
+    lb.onclick=()=>lb.classList.remove('on'); }
+  $$('[data-big]').forEach(im=>{ im.onclick=()=>{ lb.querySelector('img').src=im.src; lb.classList.add('on'); }; });
 }
 
 /* ================= المعاينة ================= */
@@ -10548,7 +10587,10 @@ function preview(D){
     return `<tr><td class="n">${i+1}</td>`
       + `<td>${esc(titleOf(o))}`
       + (o.n ? `<span class="rxNb">${esc(o.n)}</span>` : '')
-      + (o.m ? `<span class="rxNb">مع سلك</span>` : '') + `</td>`
+      + (o.m ? `<span class="rxNb">مع سلك</span>` : '')
+      + ((o.p||[]).length ? `<span class="rxPh">`
+          + o.p.map(src=>`<img src="${src}" alt="" data-big="1">`).join('') + `</span>` : '')
+      + `</td>`
       + `<td class="n"><bdi dir="ltr">${w}×${h}</bdi></td><td class="n">${q}</td>`
       + `<td>${col?`<span class="rxSw" style="background:${col.hex}"></span>${esc(col.label)}`:esc(o.c||'')}</td></tr>`;
   }).join('');
@@ -10565,13 +10607,41 @@ function preview(D){
     + `<tbody>${rows}</tbody></table></div></div>`;
 }
 
+/* ================= رابط الفني =================
+   نضع عنوان هذا المسعّر داخل رابط أداة الفني (#to)، فيرجع الفني
+   النتيجة كرابط يفتح المسعّر محمَّلاً بها. لا خادم بينهما — الرابط
+   نفسه هو القناة، والواتساب هو الناقل. */
+function b64uEnc(str){
+  const b=new TextEncoder().encode(str);
+  let x=''; b.forEach(c=>x+=String.fromCharCode(c));
+  return btoa(x).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function techURL(){
+  const here=location.href.split('#')[0];
+  const dir=here.slice(0, here.lastIndexOf('/')+1);
+  return dir + 'nibras-field.html#to=' + b64uEnc(here);
+}
+const isLocal = ()=> location.protocol==='file:';
+
 /* ================= الواجهة ================= */
 let PENDING=null;
 
 function paint(){
   const box=$('#rxOut'); if(!box) return;
   box.innerHTML =
-      '<div class="rxNote">الفني يرفع المقاسات في <b>أداة الفني</b> — أداة مستقلة بلا أسعار، '
+      '<div class="rxLink"><div class="t">رابط الفني</div>'
+    + '<div class="s">أرسل هذا الرابط للفني مرة واحدة. يفتح له <b>أداة الفني فقط</b> — '
+    + 'بلا أسعار ولا تكاليف — ويحمل داخله عنوان مسعّرك. لما يخلّص ويضغط «إرسال» '
+    + 'يوصلك رابط، تضغط عليه فيفتح المسعّر والعميل جاهز فيه.'
+    + (isLocal()
+        ? '<br><b>ملاحظة:</b> أنت تفتح الملف من جهازك مباشرة (file://)، والروابط لا تعمل '
+          + 'بين الأجهزة في هذه الحالة. ارفع الملفين على أي استضافة أو استخدم اللصق أدناه.'
+        : '')
+    + '</div><div class="rxRow" style="margin-top:0">'
+    +   '<button class="rxGo" id="rxCopyLink">انسخ رابط الفني</button>'
+    +   '<button class="rxAlt" id="rxWaLink">أرسله بالواتساب</button>'
+    + '</div></div>'
+    + '<div class="rxNote">الفني يرفع المقاسات في <b>أداة الفني</b> — أداة مستقلة بلا أسعار، '
     + 'عربي وإنجليزي، تشتغل بدون إنترنت. يضغط «إرسال» فيوصلك رمز بالواتساب أو كملف. '
     + 'الصق الرمز هنا أو افتح الملف، وراجع المقاسات قبل ما تعتمدها.</div>'
     + '<textarea class="rxIn" id="rxIn" placeholder="الصق رسالة الفني أو الرمز الذي يبدأ بـ NBFZ1. …"></textarea>'
@@ -10608,9 +10678,22 @@ function show(res){
     const first=$('#items .item'); if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
   };
   $('#rxCancel').onclick=()=>{ PENDING=null; msg.innerHTML=''; };
+  wireZoom();
 }
 
 function wire(){
+  const cl=$('#rxCopyLink'), wl=$('#rxWaLink');
+  if(cl) cl.onclick=async ()=>{
+    const u=techURL();
+    try{ await navigator.clipboard.writeText(u); cl.textContent='تم النسخ ✓';
+         setTimeout(()=>cl.textContent='انسخ رابط الفني', 1800); }
+    catch(e){ prompt('انسخ الرابط:', u); }
+  };
+  if(wl) wl.onclick=()=>{
+    const msg='رابط أداة المقاسات — افتحه وارفع المقاسات ثم اضغط «إرسال»:\n'+techURL();
+    window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank');
+  };
+
   const read=$('#rxRead'), fb=$('#rxFile'), fi=$('#rxFileIn'), pb=$('#rxPaste');
   if(read) read.onclick=async ()=>show(await decode($('#rxIn').value));
   if(fb && fi){
@@ -10647,10 +10730,50 @@ function build_(){
   d.addEventListener('toggle', e=>{ if(e.target.open && !$('#rxIn')) paint(); });
 }
 
-window.__RX = {decode, mapKind, titleOf, apply, preview, ub64, inflate, b64bytes};
+/* ================= الفتح المباشر من رابط الفني ================= */
+async function autoOpen(){
+  const m=String(location.hash||'').match(/[#&]rx=(NBFZ?1\.[A-Za-z0-9\-_]+)/);
+  if(!m) return;
+  history.replaceState(null, '', location.href.split('#')[0]);   /* لا يتكرر عند التحديث */
+  const res=await decode(m[1]);
+  const bar=document.createElement('div'); bar.className='rxAuto';
+  if(res.err){
+    bar.innerHTML=`<b>رابط مقاسات غير صالح</b><br>${esc(res.err)}`
+      + '<div class="row"><button class="rxAlt" id="rxaX">إغلاق</button></div>';
+    document.body.appendChild(bar);
+    $('#rxaX').onclick=()=>bar.remove();
+    return;
+  }
+  const D=res.data, j=D.job||{};
+  const hasWork = items.some(it=>it.rows.some(r=>n0(r.w)>0 && n0(r.h)>0));
+  bar.innerHTML = `وصلتك مقاسات من الفني — <b>${esc(j.c||'بدون اسم')}</b> · `
+    + `${D.op.length} فتحة${j.tech?` · رفعها ${esc(j.tech)}`:''}.`
+    + (hasWork ? '<br><b>تنبيه:</b> عندك بنود في الشاشة الآن، والفتح يستبدلها. احفظ عرضك أولاً لو تحتاجه.' : '')
+    + '<div class="row">'
+    +   '<button class="rxGo" id="rxaGo">افتح العميل الجديد</button>'
+    +   '<button class="rxAlt" id="rxaNo">لاحقاً</button>'
+    + '</div>';
+  document.body.appendChild(bar);
+  $('#rxaNo').onclick=()=>{
+    bar.remove();
+    const d=$('#rxPanel');
+    if(d){ d.open=true; if(!$('#rxIn')) paint(); const t=$('#rxIn'); if(t) t.value=m[1]; }
+  };
+  $('#rxaGo').onclick=()=>{
+    const job=D.job||{};
+    const r=apply(D);
+    bar.remove();
+    const d=$('#rxPanel');
+    if(d){ d.open=true; if(!$('#rxIn')) paint(); paintNotes(job, r.notes); }
+    const first=$('#items .item'); if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
+  };
+}
 
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', build_);
-else build_();
+window.__RX = {decode, mapKind, titleOf, apply, preview, ub64, inflate, b64bytes, techURL, autoOpen, b64uEnc};
+
+function boot(){ build_(); setTimeout(autoOpen, 400); }
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
 
 })();
 </script>

@@ -86,6 +86,28 @@ input[inputmode="numeric"]{font-variant-numeric:tabular-nums;text-align:center;f
 .tog[aria-pressed="true"] s{background:var(--bronze)}
 .tog[aria-pressed="true"] s::after{inset-inline-start:20px}
 
+/* ===== الصور ===== */
+.phRow{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
+.phThumb{position:relative;width:84px;height:84px;border-radius:11px;overflow:hidden;
+  border:1px solid var(--hair);background:#EDEFF0;flex:0 0 auto}
+.phThumb img{width:100%;height:100%;object-fit:cover;display:block}
+.phThumb button{position:absolute;top:3px;inset-inline-end:3px;width:26px;height:26px;
+  border:0;border-radius:50%;background:rgba(20,24,26,.72);color:#fff;
+  font-size:16px;line-height:1;cursor:pointer;padding:0;display:grid;place-items:center}
+.phAdd{width:84px;height:84px;border-radius:11px;border:1.5px dashed var(--hair);background:#fff;
+  color:var(--soft);font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;flex:0 0 auto}
+.phAdd svg{width:24px;height:24px;stroke:var(--soft);fill:none;stroke-width:1.7}
+.phAdd:disabled{opacity:.4;cursor:default}
+.phBusy{font-size:12px;color:var(--soft);align-self:center}
+.lb{position:fixed;inset:0;z-index:70;background:rgba(12,15,17,.92);display:none;
+  align-items:center;justify-content:center;padding:16px}
+.lb.on{display:flex}
+.lb img{max-width:100%;max-height:88vh;border-radius:10px;display:block}
+.lb button{position:absolute;top:calc(12px + env(safe-area-inset-top));inset-inline-end:14px;
+  width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.9);
+  font-size:22px;line-height:1;cursor:pointer}
+
 /* ===== قائمة الفتحات ===== */
 .opHead{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:10px}
 .opNo{background:var(--bronze);color:#fff;border-radius:9px;font-size:13px;font-weight:700;
@@ -165,6 +187,9 @@ ar:{
   room:'الغرفة / المكان', kind:'نوع الفتحة', leaves:'عدد الدرف',
   w:'العرض', h:'الارتفاع', q:'العدد', cm:'سم',
   color:'اللون', mesh:'سلك (منّة)', notes:'ملاحظات على هذه الفتحة',
+  photos:'صور الفتحة', addPhoto:'صورة', photoBusy:'جاري المعالجة…',
+  photoMax:'الحد ٣ صور لكل فتحة.', photoErr:'تعذّرت قراءة الصورة.',
+  noPhotoLink:'الصور لا تُرسل بالرابط — أرسل الملف لتصل معها.',
   jnotes:'ملاحظات عامة على المشروع',
   del:'حذف', ops:'فتحة', send:'إرسال المقاسات',
   k_slide:'سحاب', k_swing:'مفصلي', k_flap:'قلاب', k_fixed:'ثابت', k_door:'باب',
@@ -177,7 +202,7 @@ ar:{
   needOps:'أضف فتحة واحدة على الأقل بمقاسات صحيحة.',
   badOp:'الفتحة رقم {n}: العرض والارتفاع لازم يكونان أكبر من صفر.',
   sendT:'إرسال المقاسات', sendS:'اختر طريقة الإرسال — كلها ترسل نفس الرمز.',
-  wa:'إرسال بالواتساب', share:'مشاركة', file:'تنزيل ملف', copy:'نسخ الرمز',
+  wa:'إرسال بالواتساب', waLink:'إرسال رابط بالواتساب', share:'مشاركة', file:'تنزيل ملف', copy:'نسخ الرمز',
   copied:'تم نسخ الرمز', close:'إغلاق',
   summ:'{o} فتحة · {p} قطعة · {a} م²',
   waMsg:'مقاسات {c} — {o} فتحة\nمن: {t}\n\nالرمز (الصقه في المسعّر):',
@@ -197,6 +222,9 @@ en:{
   room:'Room / location', kind:'Opening type', leaves:'Leaves',
   w:'Width', h:'Height', q:'Qty', cm:'cm',
   color:'Colour', mesh:'Insect mesh', notes:'Notes on this opening',
+  photos:'Photos', addPhoto:'Photo', photoBusy:'Processing…',
+  photoMax:'Maximum 3 photos per opening.', photoErr:'Could not read the image.',
+  noPhotoLink:'Photos are not sent by link — send the file so they travel with it.',
   jnotes:'General project notes',
   del:'Delete', ops:'openings', send:'Send measurements',
   k_slide:'Sliding', k_swing:'Casement', k_flap:'Top-hung', k_fixed:'Fixed', k_door:'Door',
@@ -209,7 +237,7 @@ en:{
   needOps:'Add at least one opening with valid dimensions.',
   badOp:'Opening {n}: width and height must be greater than zero.',
   sendT:'Send measurements', sendS:'Pick any method — all send the same code.',
-  wa:'Send on WhatsApp', share:'Share', file:'Download file', copy:'Copy code',
+  wa:'Send on WhatsApp', waLink:'Send link on WhatsApp', share:'Share', file:'Download file', copy:'Copy code',
   copied:'Code copied', close:'Close',
   summ:'{o} openings · {p} units · {a} m²',
   waMsg:'Measurements for {c} — {o} openings\nBy: {t}\n\nCode (paste into the pricer):',
@@ -237,24 +265,105 @@ const COLORS = [
 const ROOMS = ['hall','majlis','kitchen','bed','bath','stair','roof','other'];
 
 const KEY = 'nibras_field_v1';
-const blankOp = ()=>({r:'', k:'slide', l:2, w:'', h:'', q:1, c:'white', m:0, n:''});
+const blankOp = ()=>({r:'', k:'slide', l:2, w:'', h:'', q:1, c:'white', m:0, n:'', p:[]});
 const blankJob= ()=>({c:'', p:'', city:'', addr:'', tech:'', d:today(), gps:'', n:''});
 function today(){ const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
 let S = load() || {job:blankJob(), ops:[blankOp()]};
 
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify({lang:LANG, job:S.job, ops:S.ops})); }catch(e){} }
-function load(){
+/* ---- التخزين ----
+   الصور تتجاوز حد localStorage (٥ ميجا) بسرعة، فنستخدم IndexedDB
+   للحالة كاملة. لو تعذّر، نرجع إلى localStorage بلا صور حتى لا
+   تضيع المقاسات نفسها — وهي الأهم. */
+let DB=null;
+function idb(){
+  if(DB) return Promise.resolve(DB);
+  return new Promise(res=>{
+    let rq; try{ rq=indexedDB.open('nibras_field', 1); }catch(e){ return res(null); }
+    rq.onupgradeneeded=()=>{ try{ rq.result.createObjectStore('s'); }catch(e){} };
+    rq.onsuccess=()=>{ DB=rq.result; res(DB); };
+    rq.onerror=()=>res(null);
+  });
+}
+async function idbPut(v){
+  const db=await idb(); if(!db) return false;
+  return new Promise(res=>{
+    try{ const tx=db.transaction('s','readwrite');
+      tx.objectStore('s').put(v, KEY);
+      tx.oncomplete=()=>res(true); tx.onerror=()=>res(false);
+    }catch(e){ res(false); }
+  });
+}
+async function idbGet(){
+  const db=await idb(); if(!db) return null;
+  return new Promise(res=>{
+    try{ const tx=db.transaction('s','readonly');
+      const r=tx.objectStore('s').get(KEY);
+      r.onsuccess=()=>res(r.result||null); r.onerror=()=>res(null);
+    }catch(e){ res(null); }
+  });
+}
+
+let saveT=null;
+function save(){
+  const snap={lang:LANG, job:S.job, ops:S.ops};
+  clearTimeout(saveT);
+  saveT=setTimeout(()=>{ idbPut(snap); }, 180);
   try{
-    const raw=localStorage.getItem(KEY); if(!raw) return null;
-    const d=JSON.parse(raw); if(!d || !Array.isArray(d.ops)) return null;
-    if(d.lang==='en'||d.lang==='ar') LANG=d.lang;
-    return {job:Object.assign(blankJob(), d.job||{}), ops:d.ops.map(o=>Object.assign(blankOp(), o))};
-  }catch(e){ return null; }
+    /* نسخة خفيفة بلا صور تبقى في localStorage كشبكة أمان */
+    const light={lang:LANG, job:S.job, ops:S.ops.map(o=>Object.assign({}, o, {p:[]}))};
+    localStorage.setItem(KEY, JSON.stringify(light));
+  }catch(e){}
+}
+function shape(d){
+  if(!d || !Array.isArray(d.ops)) return null;
+  if(d.lang==='en'||d.lang==='ar') LANG=d.lang;
+  return {job:Object.assign(blankJob(), d.job||{}),
+          ops:d.ops.map(o=>{ const x=Object.assign(blankOp(), o);
+                             x.p=Array.isArray(o.p)?o.p:[]; return x; })};
+}
+function load(){
+  try{ const raw=localStorage.getItem(KEY); return raw ? shape(JSON.parse(raw)) : null; }
+  catch(e){ return null; }
+}
+/* الصور تُسترجع بعد الإقلاع لأن IndexedDB غير متزامن */
+async function loadPhotos(){
+  const d=await idbGet(); if(!d || !Array.isArray(d.ops)) return;
+  let any=false;
+  d.ops.forEach((o,i)=>{
+    if(S.ops[i] && Array.isArray(o.p) && o.p.length){ S.ops[i].p=o.p; any=true; }
+  });
+  if(any) render();
 }
 
 const n0 = v => { const x=parseFloat(v); return isFinite(x)?x:0; };
+
+/* ---- ضغط الصورة ----
+   صورة جوال حديثة ٤ ميجابكسل ≈ ٣ ميجابايت. نحن نحتاج صورة تفاهم
+   لا صورة أرشيف: ٩٠٠ بكسل بأطول ضلع بجودة ٠٫٥٥ تعطي ~٧٠ كيلو،
+   وتكفي تماماً لتمييز الفتحة والعمود والمنسوب. */
+const PH_MAX = 900, PH_Q = 0.55, PH_PER_OP = 3;
+function shrink(file){
+  return new Promise((res, rej)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const s=Math.min(1, PH_MAX/Math.max(img.naturalWidth, img.naturalHeight));
+        const w=Math.max(1, Math.round(img.naturalWidth*s));
+        const h=Math.max(1, Math.round(img.naturalHeight*s));
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        res(cv.toDataURL('image/jpeg', PH_Q));
+      }catch(e){ rej(e); }
+      finally{ URL.revokeObjectURL(url); }
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error('img')); };
+    img.src=url;
+  });
+}
+const photoBytes = ()=> S.ops.reduce((a,o)=>a+(o.p||[]).reduce((b,d)=>b+d.length*0.75,0), 0);
 const esc = v => String(v==null?'':v).replace(/[&<>"']/g, c=>
   ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -347,6 +456,14 @@ function opCard(o, i){
         ? `<div class="fld"><button class="tog" data-m="${i}" aria-pressed="${o.m?'true':'false'}">`
           + `<span>${esc(T('mesh'))}</span><s></s></button></div>` : '')
 
+    + `<div class="fld"><label class="f">${esc(T('photos'))}</label><div class="phRow" data-ph="${i}">`
+    +   (o.p||[]).map((src,j)=>`<span class="phThumb"><img src="${src}" alt="" data-big="${i}|${j}">`
+          + `<button data-rmph="${i}|${j}" aria-label="x">×</button></span>`).join('')
+    +   ((o.p||[]).length < PH_PER_OP
+          ? `<button class="phAdd" data-addph="${i}">`
+            + `<svg viewBox="0 0 24 24"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.1-2h8.4l1.1 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/>`
+            + `<circle cx="12" cy="13" r="3.4"/></svg><span>${esc(T('addPhoto'))}</span></button>` : '')
+    + `</div></div>`
     + fld(T('notes'), `<textarea data-b="ops.${i}.n">${esc(o.n)}</textarea>`)
     + `</div>`;
 }
@@ -429,6 +546,18 @@ function wire(){
     b.onclick=()=>{ S.ops.splice(+b.dataset.del,1); render(); };
   });
 
+  document.querySelectorAll('[data-addph]').forEach(b=>{
+    b.onclick=()=>pickPhoto(+b.dataset.addph, b);
+  });
+  document.querySelectorAll('[data-rmph]').forEach(b=>{
+    b.onclick=()=>{ const [i,j]=b.dataset.rmph.split('|');
+      const o=S.ops[+i]; if(o && o.p){ o.p.splice(+j,1); render(); } };
+  });
+  document.querySelectorAll('[data-big]').forEach(im=>{
+    im.onclick=()=>{ const [i,j]=im.dataset.big.split('|');
+      const src=(S.ops[+i]&&S.ops[+i].p)?S.ops[+i].p[+j]:null; if(src) lightbox(src); };
+  });
+
   const add=document.getElementById('addOp');
   if(add) add.onclick=()=>{
     const last=S.ops[S.ops.length-1];
@@ -454,6 +583,42 @@ function wire(){
 
   const sb=document.getElementById('sendBtn');
   if(sb) sb.onclick=openSend;
+}
+
+/* ---- التقاط صورة ----
+   capture="environment" يفتح الكاميرا الخلفية مباشرة على الجوال،
+   ومع ذلك يسمح باختيار من المعرض على الأجهزة التي لا كاميرا لها. */
+function pickPhoto(i, btn){
+  const o=S.ops[i]; if(!o) return;
+  o.p=o.p||[];
+  if(o.p.length>=PH_PER_OP){ alert(T('photoMax')); return; }
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*'; inp.capture='environment';
+  inp.multiple=true; inp.style.display='none';
+  document.body.appendChild(inp);
+  inp.onchange=async ()=>{
+    const files=Array.from(inp.files||[]).slice(0, PH_PER_OP-o.p.length);
+    inp.remove();
+    if(!files.length) return;
+    if(btn){ btn.disabled=true; btn.querySelector('span').textContent=T('photoBusy'); }
+    for(const f of files){
+      try{ o.p.push(await shrink(f)); }
+      catch(e){ alert(T('photoErr')); }
+    }
+    render();
+  };
+  inp.click();
+}
+
+function lightbox(src){
+  let lb=document.getElementById('lb');
+  if(!lb){ lb=document.createElement('div'); lb.id='lb'; lb.className='lb';
+    lb.innerHTML='<img alt=""><button aria-label="x">×</button>';
+    document.body.appendChild(lb);
+    lb.onclick=e=>{ if(e.target!==lb.querySelector('img')) lb.classList.remove('on'); };
+  }
+  lb.querySelector('img').src=src;
+  lb.classList.add('on');
 }
 
 /* تحديث العدّاد وملخّص البطاقة دون إعادة رسم الحقل الجاري تعبئته */
@@ -493,31 +658,48 @@ async function deflate(str){
   try{
     const cs=new CompressionStream('deflate-raw');
     const w=cs.writable.getWriter();
-    w.write(new TextEncoder().encode(str)); w.close();
+    w.write(new TextEncoder().encode(str)).catch(()=>{});
+    w.close().catch(()=>{});
     return new Uint8Array(await new Response(cs.readable).arrayBuffer());
   }catch(e){ return null; }
 }
 
-async function encode(){
-  const json=payload();
+async function encode(withPhotos){
+  const json=payload(withPhotos);
   const z=await deflate(json);
   if(z && z.length) return 'NBFZ1.' + bytes64u(z);
   return 'NBF1.' + b64u(json);
 }
 
-function payload(){
+function payload(withPhotos){
   const ops=S.ops.filter(o=>n0(o.w)>0 && n0(o.h)>0 && Math.round(n0(o.q))>0)
     .map(o=>{
       const x={k:o.k, l:+o.l||1, w:n0(o.w), h:n0(o.h), q:Math.max(1,Math.round(n0(o.q))), c:o.c};
       if(o.r) x.r=o.r;
       if(o.m) x.m=1;
       if(o.n && o.n.trim()) x.n=o.n.trim();
+      if(withPhotos && (o.p||[]).length) x.p=o.p.slice(0, PH_PER_OP);
       return x;
     });
   const j=S.job, job={};
   ['c','p','city','addr','tech','d','gps','n'].forEach(k=>{ if(j[k] && String(j[k]).trim()) job[k]=String(j[k]).trim(); });
   return JSON.stringify({t:'nbf', v:1, job, op:ops});
 }
+
+/* ================= عنوان العودة =================
+   المسعّر يولّد رابطاً للفني يحمل عنوانه هو داخل #to، فتعرف هذه
+   الأداة إلى أين ترجع النتيجة. لا يوجد خادم: الرابط نفسه هو
+   القناة، والفني يرسله بالواتساب فيفتحه صاحب المسعّر بضغطة. */
+function returnURL(){
+  try{
+    const m=String(location.hash||'').match(/[#&]to=([A-Za-z0-9\-_%.]+)/);
+    if(!m) return '';
+    const u=decodeURIComponent(atob(m[1].replace(/-/g,'+').replace(/_/g,'/')));
+    if(/^https?:\/\//i.test(u) || /^file:\/\//i.test(u)) return u;
+  }catch(e){}
+  return '';
+}
+const RET = returnURL();
 
 /* ================= الإرسال ================= */
 function validate(){
@@ -536,9 +718,13 @@ function validate(){
 async function openSend(){
   const err=validate();
   const t=totals();
-  const code=await encode();
+  const nPh=S.ops.reduce((a,o)=>a+(o.p||[]).length, 0);
+  const code   = await encode(false);          /* بلا صور — للرابط والنص */
+  const codeP  = nPh ? await encode(true) : code;   /* بالصور — للملف */
   const j=S.job;
-  const msg=TF('waMsg',{c:j.c||'—', o:t.ops, t:j.tech||'—'})+'\n'+code;
+  const link = RET ? RET.split('#')[0] + '#rx=' + code : '';
+  const msg = TF('waMsg',{c:j.c||'—', o:t.ops, t:j.tech||'—'}) + '\n'
+            + (link ? link : code);
 
   const inner=document.getElementById('sheetIn');
   inner.innerHTML =
@@ -546,11 +732,12 @@ async function openSend(){
     + `<h2>${esc(T('sendT'))}</h2>`
     + `<div class="note" style="margin-bottom:11px">${esc(T('sendS'))}<br>`
     +   esc(TF('summ',{o:t.ops, p:t.pcs, a:t.m2.toFixed(2)})) + `</div>`
+    + (err ? '' : (nPh ? `<div class="note" style="margin-bottom:9px">${esc(T('noPhotoLink'))}</div>` : ''))
     + (err ? '' : (waTooLong(msg, j)
         ? `<div class="note" style="margin-bottom:9px">${esc(T('longCode'))}</div>` : ''))
     + (err ? '' :
         (waTooLong(msg, j) ? ''
-          : `<button class="big" id="sWa" style="margin-bottom:9px">${esc(T('wa'))}</button>`)
+          : `<button class="big" id="sWa" style="margin-bottom:9px">${esc(link?T('waLink'):T('wa'))}</button>`)
       + `<button class="big ghost" id="sShare" style="margin-bottom:9px">${esc(T('share'))}</button>`
       + `<button class="big ghost" id="sFile" style="margin-bottom:9px">${esc(T('file'))}</button>`
       + `<button class="big ghost" id="sCopy" style="margin-bottom:11px">${esc(T('copy'))}</button>`
@@ -572,7 +759,7 @@ async function openSend(){
     window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg), '_blank');
   };
   document.getElementById('sShare').onclick=async ()=>{
-    const file=new File([msg], fname, {type:'text/plain'});
+    const file=new File([fileText()], fname, {type:'text/plain'});
     try{
       if(navigator.canShare && navigator.canShare({files:[file]})){
         await navigator.share({files:[file], title:T('appT')});
@@ -581,14 +768,19 @@ async function openSend(){
       }else{ dl(msg, fname); }
     }catch(e){}
   };
-  document.getElementById('sFile').onclick=()=>dl(msg, fname);
+  document.getElementById('sFile').onclick=()=>dl(fileText(), fname);
   document.getElementById('sCopy').onclick=async ()=>{
-    try{ await navigator.clipboard.writeText(code); }
+    try{ await navigator.clipboard.writeText(link||code); }
     catch(e){ const r=document.createRange(); r.selectNode(document.getElementById('sCode'));
       const s=getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand('copy'); s.removeAllRanges(); }
     const b=document.getElementById('sCopy'); const o=b.textContent;
     b.textContent=T('copied'); setTimeout(()=>b.textContent=o, 1600);
   };
+
+  /* الملف يحمل الصور، والرابط لا */
+  function fileText(){
+    return TF('waMsg',{c:j.c||'—', o:t.ops, t:j.tech||'—'}) + '\n' + codeP;
+  }
 }
 
 /* رابط wa.me يُقصّ عند أطوال كبيرة على بعض الأجهزة — عندها نوجّه للملف */
@@ -605,10 +797,11 @@ function dl(text, name){
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 800);
 }
 
-window.__FIELD = {encode, payload, validate, totals, deflate, get S(){return S}, set S(v){S=v}, KINDS, COLORS,
+window.__FIELD = {encode, payload, validate, totals, deflate, shrink, returnURL, loadPhotos, L, get S(){return S}, set S(v){S=v}, KINDS, COLORS,
                   get LANG(){return LANG}, set LANG(v){LANG=v}, render, b64u};
 
 render();
+loadPhotos();
 </script>
 </body>
 </html>
