@@ -9741,6 +9741,20 @@ window.__nbAuto={run, autoPrice, fromNeighbour, fromCatalog, fromWeight, fitKg, 
   margin-top:14px;padding-top:10px}
 body.simple .egGrid input,body.simple .egGrid select{font-size:15px;padding:10px}
 </style>
+<style>
+/* شهادة الفحص داخل عرض السعر — على الشاشة وعند الطباعة */
+#sheet .egCert{border:1px solid #C8CFD3;border-radius:6px;padding:9px 11px;margin-top:14px;
+  font-size:8.5pt;line-height:1.85;background:#FAFBFB;page-break-inside:avoid}
+#sheet .egCert h4{font-family:"Zain",sans-serif;font-size:11pt;margin:0 0 3px;color:#6B4A22}
+#sheet .egCert .egcSub{font-size:7.5pt;color:#5A666E;margin-bottom:6px}
+#sheet .egCert ul{margin:0;padding:0;list-style:none}
+#sheet .egCert li{padding-inline-start:16px;position:relative;margin-bottom:2px}
+#sheet .egCert li::before{content:"✓";position:absolute;inset-inline-start:0;color:#1E7A45;font-weight:700}
+#sheet .egCert .egcAsk{border-top:1px dashed #C8CFD3;margin-top:7px;padding-top:6px;font-size:8pt;color:#3A4348}
+#sheet .egCert .egcAsk b{color:#6B4A22}
+#sheet .egCert .egcNum{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+@media print{ #sheet .egCert{background:#FAFBFB} }
+</style>
 <script>
 /* ==================================================================
    مسعّر النبراس — الحزمة 9.6 «الفحص الهندسي»
@@ -9992,7 +10006,7 @@ window.__EG = {kz, qz, gcp, pressure, plateCoef, glassCheck, nextNom, defGlass,
 
 /* ================= الإعدادات ================= */
 const EG_DEF = {v:2, city:'jeddah', V:40, expo:'C', z:6, kzt:1, corner:false,
-                nom:6, gtype:'tem', ded:1.2, defLim:175, fy:110, cap:1500, maxSp:60,
+                nom:6, gtype:'tem', ded:1.2, defLim:175, fy:110, cap:1500, maxSp:60, cert:true,
                 upPrice:0};
 let EG = Object.assign({}, EG_DEF, store.read(K_ENG,{})||{});
 const egSave = ()=>store.write(K_ENG, EG);
@@ -10166,7 +10180,15 @@ function paint(){
     + fld('fy','إجهاد خضوع الألمنيوم <u>م.ب</u>','1')
     + fld('cap','تحمّل المثبت الواحد <u>نيوتن</u>','1')
     + fld('maxSp','أقصى تباعد للمثبتات <u>سم</u>','1')
-    + '</div>';
+    + '</div>'
+    + `<label class="chk" style="margin-bottom:11px"><input type="checkbox" data-eg="cert"${EG.cert!==false?' checked':''}>`
+    + '<span>أضف <b>شهادة الفحص</b> إلى عرض السعر المطبوع — تشرح للعميل أن الاختيار محسوب، '
+    + 'وتعطيه السؤال الصحيح ليقارن به أي عرض أرخص</span></label>'
+    + (EG.cert!==false && R.fails>0
+        ? '<div class="egCard bad" style="margin-bottom:11px">الشهادة <b>موقوفة</b> عن هذا العرض لأن '
+          + `<b>${R.fails}</b> من البنود غير مطابق. الشهادة ادّعاء أمام العميل — عدّل السماكة أو النوع أولاً، `
+          + 'وترجع تلقائياً أول ما تصير كل البنود مطابقة.</div>'
+        : '');
 
   const per = '<div class="egWrapT"><table class="egTab"><thead><tr>'
     + '<th>البند</th><th>السماكة</th><th>النوع</th><th>الحكم</th></tr></thead><tbody>'
@@ -10213,6 +10235,8 @@ function wire(){
         const [f,id]=k.split('@');
         EG.per=EG.per||{}; EG.per[id]=EG.per[id]||{};
         EG.per[id][f] = f==='nom' ? n0(el.value) : el.value;
+      }else if(k==='cert'){
+        EG.cert = el.checked;
       }else if(k==='corner'){
         EG.corner = el.value==='1';
       }else if(k==='city'){
@@ -10228,6 +10252,94 @@ function wire(){
     };
     if(el.tagName==='INPUT') el.oninput=()=>{};
   });
+}
+
+
+/* ================= شهادة الفحص داخل عرض السعر =================
+   الهدف: العميل يشوف أن الاختيار محسوب لا مُقدَّر، ويعرف السؤال
+   الصحيح اللي يقارن به أي عرض ثاني. لا ندّعي شيئاً عن غيرنا —
+   نعرض ما فحصناه، ونعطيه المقارنة بالرقم من مشروعه هو. */
+
+/* السماكة الاسمية الأدنى مباشرة */
+function prevNom(nom){
+  const k=Object.keys(TMIN).map(Number).sort((a,b)=>a-b);
+  let out=null; k.forEach(x=>{ if(x<nom) out=x; });
+  return out;
+}
+
+function certHTML(){
+  if(EG.cert===false) return '';
+  let R=null; try{ R=analyse(); }catch(e){ return ''; }
+  if(!R || !R.rows.length) return '';
+
+  const city=(CITY.find(c=>c.id===EG.city)||{}).label || '';
+  const S=R.S;
+
+  /* أسوأ بند — منه نأخذ الأرقام المعروضة والمقارنة */
+  let w=null;
+  R.rows.forEach(r=>{ const m=Math.max(r.worst.sigR, r.worst.delR);
+    if(!w || m>Math.max(w.worst.sigR, w.worst.delR)) w=r; });
+  const g=w.worst;
+
+  /* الشهادة ادّعاء أمام العميل — لا تخرج إلا إذا كل بند مطابق فعلاً.
+     لو فيه بند راسب، الصح أن تعدّل المواصفة لا أن تطبع علامة صح على رقم راسب. */
+  if(R.fails>0) return '';
+  const sigPct = Math.round(g.sigR*100), delPct = Math.round(g.delR*100);
+
+  const li=[];
+  li.push(`سماكة الزجاج ونوعه مختارة على أساس حِمل الرياح — لا بالعادة. `
+    + `أعلى إجهاد في المشروع وصل إلى <span class="egcNum">${sigPct}٪</span> من المسموح.`);
+  li.push(`انحناء الزجاج تحت الرياح محسوب — أعلى قيمة <span class="egcNum">${g.del.toFixed(1)}</span> مم `
+    + `من <span class="egcNum">${g.delLim.toFixed(0)}</span> مم مسموح.`);
+  if(w.mc) li.push(`القواطع مختارة بعزم قصور ذاتي لا يقل عن `
+    + `<span class="egcNum">${w.mc.Ireq.toFixed(0)}</span> سم⁴ للبحر الأطول في المشروع.`);
+  if(w.an) li.push(`التثبيت محسوب — عدد المثبتات لكل قائم: `
+    + `<span class="egcNum">${w.an.nV}</span>، بتباعد لا يزيد عن `
+    + `<span class="egcNum">${Math.round(EG.maxSp)}</span> سم.`);
+
+  /* المقارنة: وش يصير لو رقّقنا السماكة درجة واحدة */
+  let ask='';
+  const pn=prevNom(w.nom);
+  if(pn){
+    const thin=glassCheck(g.a, g.b, pn, w.type, g.p);
+    const risk = !thin.pass;
+    ask = `<div class="egcAsk"><b>قبل أن تقارن بعرض أرخص:</b> `
+      + `أكبر لوح في مشروعكم <span class="egcNum">${g.a.toFixed(2)}×${g.b.toFixed(2)}</span> م. `
+      + `بسماكة <span class="egcNum">${w.nom}</span> مم ينحني `
+      + `<span class="egcNum">${g.del.toFixed(1)}</span> مم تحت رياح الموقع. `
+      + `لو رُقِّق إلى <span class="egcNum">${pn}</span> مم ينحني `
+      + `<span class="egcNum">${thin.del.toFixed(1)}</span> مم — `
+      + (risk ? `أي <b>خارج الحد الآمن</b>. ` : `وهو داخل الحد لكن بهامش أقل. `)
+      + `فرق السماكة يخفّض السعر ولا يظهر في العرض. `
+      + `اسألوا أي عرض تقارنونه عن: <b>سماكة الزجاج ونوعه</b>، و<b>سرعة الرياح المحسوبة للموقع</b>.</div>`;
+  }
+
+  return `<div class="egCert"><h4>فُحص هندسياً قبل التسعير</h4>`
+    + `<div class="egcSub">الموقع: ${esc(city)} · سرعة رياح التصميم `
+    + `<span class="egcNum">${S.V}</span> م/ث · ارتفاع التركيب `
+    + `<span class="egcNum">${S.z}</span> م · ${EXPO[S.expo].label}</div>`
+    + '<ul>' + li.map(x=>`<li>${x}</li>`).join('') + '</ul>'
+    + ask + '</div>';
+}
+
+/* نلحق الشهادة بعرض السعر دون المساس بمنطق بنائه */
+if(typeof buildSheet==='function'){
+  const _bs = buildSheet;
+  window.buildSheet = function(){
+    const out=_bs.apply(this, arguments);
+    try{
+      const sh=document.getElementById('sheet');
+      const t=sh && sh.querySelector('.terms');
+      const c=certHTML();
+      if(sh && c){
+        const box=document.createElement('div');
+        box.innerHTML=c;
+        const node=box.firstChild;
+        if(t) t.parentNode.insertBefore(node, t); else sh.appendChild(node);
+      }
+    }catch(e){}
+    return out;
+  };
 }
 
 /* ================= التركيب ================= */
