@@ -10398,6 +10398,8 @@ else build();
 .rxFieldNote{background:var(--bronze-l);border:1px solid #E4D3BC;border-radius:9px;
   padding:8px 10px;font-size:12.5px;color:#6B4A22;line-height:1.8;margin:8px 0}
 .rxFieldNote b{display:block;font-size:11.5px;opacity:.8;margin-bottom:1px}
+.rxFieldNote.warn{background:#FBEDEC;border-color:#E2C9C9;color:#8A2B2B}
+.rxPhoto{display:block;font-size:10.5px;line-height:1.6;margin-top:2px;color:#8A2B2B;font-weight:600}
 .rxPh{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
 .rxPh img{width:54px;height:54px;object-fit:cover;border-radius:8px;
   border:1px solid var(--hair);cursor:zoom-in;display:block}
@@ -10535,6 +10537,7 @@ function apply(D){
     it.rows=[{w:String(n0(o.w)), h:String(n0(o.h)), q:String(Math.max(1,Math.round(n0(o.q))))}];
     it.fieldNote = o.n || '';
     it.fieldPhotos = Array.isArray(o.p) ? o.p.slice(0,3) : [];
+    it.fromPhoto = !!o.ms;
     it.fieldMesh = !!o.m;
     items.push(it); itemsEl.appendChild(build(it)); refresh(it);
     if(o.n) notes.push(it.title+': '+o.n);
@@ -10554,10 +10557,14 @@ function paintNotes(job, notes){
   if(job.tech) parts.push({t:'رفع المقاسات', v:job.tech + (job.d?' · '+job.d:'')});
   if(job.gps) parts.push({t:'موقع المعاينة', v:job.gps});
   notes.forEach(n=>parts.push({t:'ملاحظة على بند', v:n}));
+  const est=items.filter(it=>it.fromPhoto).map(it=>it.title);
+  if(est.length) parts.push({t:'مقاسات مأخوذة من صورة — ثبّتها بالمتر قبل القصّ',
+                             v:est.join(' · '), warn:true});
   const shots=[];
   items.forEach(it=>{ (it.fieldPhotos||[]).forEach(src=>shots.push({t:it.title, src})); });
   if(!parts.length && !shots.length) return;
-  let html=parts.map(p=>`<div class="rxFieldNote"><b>${esc(p.t)}</b>${esc(p.v)}</div>`).join('');
+  let html=parts.map(p=>`<div class="rxFieldNote${p.warn?' warn':''}">`
+    + `<b>${esc(p.t)}</b>${esc(p.v)}</div>`).join('');
   if(shots.length){
     html += `<div class="rxFieldNote"><b>صور الفني (${shots.length})</b>`
       + `<span class="rxPh">` + shots.map(s2=>
@@ -10588,6 +10595,7 @@ function preview(D){
       + `<td>${esc(titleOf(o))}`
       + (o.n ? `<span class="rxNb">${esc(o.n)}</span>` : '')
       + (o.m ? `<span class="rxNb">مع سلك</span>` : '')
+      + (o.ms ? `<span class="rxPhoto">مقاس من صورة — يحتاج تثبيت بالمتر</span>` : '')
       + ((o.p||[]).length ? `<span class="rxPh">`
           + o.p.map(src=>`<img src="${src}" alt="" data-big="1">`).join('') + `</span>` : '')
       + `</td>`
@@ -10922,6 +10930,47 @@ body.fmOn{--fm-bg:#F4F6F7}
   border:8px solid #fff;background:#fff;border-radius:8px}
 #fmRoot .fmHid{display:none!important}
 
+/* ===== قياس الفتحة من الصورة (وضع الفني) ===== */
+#fmRoot .fmMs{position:fixed;inset:0;z-index:75;background:#14181A;display:none;
+  flex-direction:column;direction:inherit}
+#fmRoot .fmMs.on{display:flex}
+#fmRoot .fmMsTop{display:flex;align-items:center;gap:9px;padding:calc(9px + env(safe-area-inset-top)) 12px 9px;
+  background:#1E2427;color:#fff;flex:0 0 auto}
+#fmRoot .fmMsTop b{flex:1;font-size:15px}
+#fmRoot .fmMsTop button{border:0;background:rgba(255,255,255,.16);color:#fff;border-radius:9px;
+  font-family:inherit;font-size:13.5px;font-weight:600;padding:9px 14px;cursor:pointer;min-height:42px}
+#fmRoot .fmMsBody{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+#fmRoot .fmMsPane{position:relative;background:#0E1113;touch-action:none}
+#fmRoot .fmMsPane canvas{display:block;width:100%;height:auto}
+#fmRoot .fmMsEmpty{padding:44px 18px;text-align:center;color:#8A959B;font-size:14px;line-height:1.95}
+#fmRoot .fmLoupe{position:absolute;width:132px;height:132px;border-radius:50%;overflow:hidden;
+  border:3px solid #F5C86A;box-shadow:0 4px 16px rgba(0,0,0,.55);pointer-events:none;display:none;z-index:5}
+#fmRoot .fmLoupe.on{display:block}
+#fmRoot .fmLoupe canvas{width:132px;height:132px}
+#fmRoot .fmMsCtl{background:#fff;padding:12px;border-radius:16px 16px 0 0;flex:0 0 auto;
+  padding-bottom:calc(12px + env(safe-area-inset-bottom));max-height:56vh;overflow:auto}
+#fmRoot .fmMsHint{background:var(--bronze-l);border:1px solid #E4D3BC;border-radius:9px;
+  padding:9px 11px;font-size:12.5px;color:#6B4A22;line-height:1.75;margin-bottom:10px}
+#fmRoot .fmMsRes{border:1px solid var(--hair);border-radius:11px;padding:11px;margin-bottom:10px;background:#FAFBFB}
+#fmRoot .fmMsBig{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:26px;font-weight:700;
+  text-align:center;letter-spacing:.5px;line-height:1.35}
+#fmRoot .fmMsPm{text-align:center;font-size:12.5px;color:var(--soft);margin-top:2px}
+#fmRoot .fmMsBad{background:var(--bad-l);border:1px solid #E2C9C9;color:#8A2B2B;border-radius:9px;
+  padding:9px 11px;font-size:12.5px;line-height:1.8;margin-bottom:9px}
+#fmRoot .fmMsWarn{background:#FBF3E8;border:1px solid #D9B98C;color:#6B4A22;border-radius:9px;
+  padding:8px 11px;font-size:12px;line-height:1.75;margin-bottom:8px}
+#fmRoot .fmMsSeg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#EEF1F3;
+  border-radius:11px;padding:4px;margin-bottom:10px}
+#fmRoot .fmMsSeg button{border:0;background:transparent;font-family:inherit;font-size:13.5px;
+  font-weight:600;padding:10px 6px;border-radius:9px;cursor:pointer;color:var(--soft)}
+#fmRoot .fmMsSeg button[aria-pressed="true"]{background:#fff;color:var(--bronze);
+  box-shadow:0 1px 3px rgba(0,0,0,.12)}
+#fmRoot .fmMsSteps{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+#fmRoot .fmMsStep{border:1.5px solid var(--hair);background:#fff;border-radius:999px;
+  padding:7px 13px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ink)}
+#fmRoot .fmMsStep[aria-pressed="true"]{border-color:var(--bronze);background:var(--bronze-l);color:var(--bronze)}
+#fmRoot .fmMsStep s{text-decoration:none;font-family:"IBM Plex Mono",monospace;opacity:.7;margin-inline-start:5px}
+
 </style>
 
 <script>
@@ -10991,6 +11040,22 @@ ar:{
   room:'الغرفة / المكان', kind:'نوع الفتحة', leaves:'عدد الدرف',
   w:'العرض', h:'الارتفاع', q:'العدد', cm:'سم',
   color:'اللون', mesh:'سلك (منّة)', notes:'ملاحظات على هذه الفتحة',
+  msBtn:'قِس من صورة', msTitle:'قياس الفتحة من صورة', msCam:'صوّر', msUse:'استخدم هذا المقاس',
+  msModeKnown:'مقاس واحد معلوم', msModeRef:'مرجع في الصورة',
+  msShoot:'صوّر الفتحة كاملة من أمامها قدر الإمكان.',
+  msNeedVal:'اكتب المقاس الذي قسته بالمتر أولاً.',
+  msTapOpen:'اضغط ركن الفتحة رقم {n} — بالترتيب: أعلى يسار ثم أعلى يمين ثم أسفل يمين ثم أسفل يسار.',
+  msTapRef:'اضغط ركن المرجع رقم {n} بنفس الترتيب.',
+  msDrag:'اسحب أي نقطة لضبطها — العدسة تكبّر تحت إصبعك.',
+  msCorners:'زوايا الفتحة', msRefPts:'زوايا المرجع', msReset:'امسح النقاط',
+  msWhich:'أي مقاس قسته', msKnownVal:'قيمته',
+  msRef:'المرجع', msRefSize:'مقاسه', msRefW:'عرض', msRefH:'ارتفاع',
+  msAngle:'الصورة مائلة كثيراً عن الفتحة — صوّر من أمامها أكثر ليقل الخطأ.',
+  msSquare:'زوايا المرجع غير متسقة ({v}٪) — تأكد أنه مستوٍ على نفس جدار الفتحة.',
+  msRefSmall:'المرجع صغير جداً مقارنة بالفتحة — استخدم مرجعاً أكبر.',
+  msNoisy:'حساسية النقر عالية هنا (±{v}٪) — كبّر واضبط الزوايا بدقة.',
+  msDisc:'القياس من صورة مساعد وليس بديلاً عن المتر. ثبّت المقاس بالمتر قبل القصّ.',
+  msFrom:'مقاس من صورة',
   photos:'صور الفتحة', addPhoto:'صورة', photoBusy:'جاري المعالجة…',
   photoMax:'الحد ٣ صور لكل فتحة.', photoErr:'تعذّرت قراءة الصورة.',
   noPhotoLink:'الصور لا تُرسل بالرابط — أرسل الملف لتصل معها.',
@@ -11026,6 +11091,23 @@ en:{
   room:'Room / location', kind:'Opening type', leaves:'Leaves',
   w:'Width', h:'Height', q:'Qty', cm:'cm',
   color:'Colour', mesh:'Insect mesh', notes:'Notes on this opening',
+  msBtn:'Measure from photo', msTitle:'Measure opening from photo', msCam:'Camera',
+  msUse:'Use this measurement',
+  msModeKnown:'One known dimension', msModeRef:'Reference in photo',
+  msShoot:'Photograph the whole opening, as square-on as you can.',
+  msNeedVal:'Enter the dimension you measured with the tape first.',
+  msTapOpen:'Tap opening corner {n} — in order: top-left, top-right, bottom-right, bottom-left.',
+  msTapRef:'Tap reference corner {n} in the same order.',
+  msDrag:'Drag any point to adjust — the loupe magnifies under your finger.',
+  msCorners:'Opening corners', msRefPts:'Reference corners', msReset:'Clear points',
+  msWhich:'Which one you measured', msKnownVal:'Its value',
+  msRef:'Reference', msRefSize:'Its size', msRefW:'Width', msRefH:'Height',
+  msAngle:'The photo is at a steep angle — shoot more square-on to reduce error.',
+  msSquare:'Reference corners are inconsistent ({v}%) — make sure it lies flat on the same wall.',
+  msRefSmall:'The reference is very small next to the opening — use a larger one.',
+  msNoisy:'Tap sensitivity is high here (±{v}%) — zoom in and place the corners precisely.',
+  msDisc:'Photo measurement assists, it does not replace the tape. Confirm with a tape before cutting.',
+  msFrom:'measured from photo',
   photos:'Photos', addPhoto:'Photo', photoBusy:'Processing…',
   photoMax:'Maximum 3 photos per opening.', photoErr:'Could not read the image.',
   noPhotoLink:'Photos are not sent by link — send the file so they travel with it.',
@@ -11069,7 +11151,7 @@ const COLORS = [
 const ROOMS = ['hall','majlis','kitchen','bed','bath','stair','roof','other'];
 
 const KEY = 'nibras_field_v1';
-const blankOp = ()=>({r:'', k:'slide', l:2, w:'', h:'', q:1, c:'white', m:0, n:'', p:[]});
+const blankOp = ()=>({r:'', k:'slide', l:2, w:'', h:'', q:1, c:'white', m:0, n:'', p:[], ms:0});
 const blankJob= ()=>({c:'', p:'', city:'', addr:'', tech:'', d:today(), gps:'', n:''});
 function today(){ const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -11250,6 +11332,10 @@ function opCard(o, i){
     +   fld(T('h')+' · '+T('cm'), inp(`ops.${i}.h`, o.h, {mode:'numeric', ph:T('reqH')}))
     +   fld(T('q'),               inp(`ops.${i}.q`, o.q, {mode:'numeric'}))
     + `</div>`
+    + `<div class="fmFld"><button class="fmBig fmGhost" data-msopen="${i}" style="font-size:14px;padding:11px">`
+    +   `${esc(T('msBtn'))}</button>`
+    +   (o.ms ? `<div class="fmOpSum" style="margin-top:5px">${esc(T('msFrom'))}</div>` : '')
+    + `</div>`
 
     + `<div class="fmFld"><label class="fmF">${esc(T('color'))}</label><div class="fmChips">`
     + COLORS.map(c=>`<button class="fmChip" data-c="${i}|${c.id}" aria-pressed="${o.c===c.id?'true':'false'}">`
@@ -11307,6 +11393,352 @@ function render(){
   wire(); save();
 }
 
+/* ==================================================================
+   قياس الفتحة من الصورة — داخل أداة الفني
+   ------------------------------------------------------------------
+   المحرك هو نفسه محرك القياس في المسعّر (window.__nbMeasure)، لكن
+   واجهته هناك مربوطة بالمسعّر ولا يراها الفني. هنا واجهة مبسّطة
+   داخل جذر الأداة.
+
+   الوضع الافتراضي «مقاس واحد معلوم»: الفني يقيس بالمتر ضلعاً واحداً
+   — وهو أسرع ما يُقاس وأدقّه — والصورة تعطي نسبة الأضلاع فيُشتق
+   الضلع الآخر. أربع ضغطات ورقم واحد بدل التسلّق مرتين.
+
+   الوضع الثاني «مرجع في الصورة»: بلوك أو بلاطة أو ورقة A4 داخل
+   الكادر، حين يتعذّر الوصول للفتحة أصلاً.
+
+   القياس من صورة ليس بديلاً عن المتر: نعرض مدى الخطأ (±) صراحةً،
+   ونضع علامة «من صورة» على المقاس حتى يعرف صاحب المسعّر أنه يحتاج
+   تثبيتاً قبل القصّ.
+   ================================================================== */
+const MSREF=[
+  {id:'blk', l:{ar:'بلوك ٤٠×٢٠', en:'Block 40×20'}, w:40, h:20},
+  {id:'t60', l:{ar:'بلاطة ٦٠×٦٠', en:'Tile 60×60'}, w:60, h:60},
+  {id:'t30', l:{ar:'بلاطة ٣٠×٣٠', en:'Tile 30×30'}, w:30, h:30},
+  {id:'a4',  l:{ar:'ورقة A4 طولية', en:'A4 portrait'}, w:21, h:29.7},
+  {id:'cst', l:{ar:'مقاس مخصص', en:'Custom'}, w:0, h:0}
+];
+
+let MS={op:-1, img:null, iw:0, ih:0, mode:'known', known:'w', knownVal:'',
+        refId:'blk', refW:40, refH:20, open:[], ref:[], active:'open'};
+let MSFULL=null, MSCTX=null, MSDRAG=null;
+
+const msEng = ()=> window.__nbMeasure || null;
+const msT = k => T(k);
+
+function msOpen(i){
+  MS.op=i; MS.open=[]; MS.ref=[]; MS.active='open';
+  MS.img=null; MSFULL=null; MSCTX=null;
+  msPaint();
+  document.getElementById('fmMs').classList.add('on');
+}
+function msClose(){ document.getElementById('fmMs').classList.remove('on'); }
+
+async function msSetPhoto(file){
+  const url=await new Promise((res,rej)=>{ const r=new FileReader();
+    r.onload=()=>res(String(r.result)); r.onerror=rej; r.readAsDataURL(file); });
+  const im=await new Promise((res,rej)=>{ const g=new Image();
+    g.onload=()=>res(g); g.onerror=rej; g.src=url; });
+  const MAX=1600;
+  const s=Math.min(1, MAX/Math.max(im.naturalWidth, im.naturalHeight));
+  const w=Math.round(im.naturalWidth*s), h=Math.round(im.naturalHeight*s);
+  MSFULL=document.createElement('canvas'); MSFULL.width=w; MSFULL.height=h;
+  MSCTX=MSFULL.getContext('2d', {willReadFrequently:true});
+  MSCTX.drawImage(im,0,0,w,h);
+  MS.img=MSFULL.toDataURL('image/jpeg',0.88); MS.iw=w; MS.ih=h;
+  MS.open=[]; MS.ref=[]; MS.active='open';
+  msPaint();
+}
+
+/* حالة المحرك من حالتنا */
+function msState(){
+  const S={mode:MS.mode==='ref'?'ref':'known', imgW:MS.iw, imgH:MS.ih,
+           open:MS.open.slice(), ref:MS.ref.slice(), chk:[],
+           refW:n0(MS.refW), refH:n0(MS.refH),
+           known:MS.known, knownVal:n0(MS.knownVal)};
+  return S;
+}
+function msResult(){
+  const E=msEng(); if(!E) return null;
+  if(MS.open.length!==4) return null;
+  if(MS.mode==='ref' && MS.ref.length!==4) return null;
+  if(MS.mode==='known' && !(n0(MS.knownVal)>0)) return null;
+  const S=msState();
+  let m=null; try{ m=E.measure(S); }catch(e){ return null; }
+  if(!m) return null;
+  try{ const u=E.uncertainty(S,m); m.dW=u.dW; m.dH=u.dH; }catch(e){ m.dW=0; m.dH=0; }
+  return m;
+}
+
+/* ---- الرسم ---- */
+function msDraw(){
+  const cv=document.getElementById('fmMsCv'); if(!cv || !MSFULL) return;
+  cv.width=MS.iw; cv.height=MS.ih;
+  const g=cv.getContext('2d');
+  g.drawImage(MSFULL,0,0);
+  const R=Math.max(11, MS.iw*0.014), LW=Math.max(2, MS.iw*0.0028);
+  const poly=(arr,col)=>{
+    if(!arr.length) return;
+    g.save(); g.strokeStyle=col; g.lineWidth=LW; g.setLineDash([R,R*0.8]);
+    g.beginPath(); g.moveTo(arr[0].x,arr[0].y);
+    for(let i=1;i<arr.length;i++) g.lineTo(arr[i].x,arr[i].y);
+    if(arr.length===4) g.closePath();
+    g.stroke(); g.setLineDash([]);
+    arr.forEach((p,i)=>{
+      g.beginPath(); g.arc(p.x,p.y,R,0,7);
+      g.fillStyle='rgba(16,20,22,.66)'; g.fill();
+      g.lineWidth=LW; g.strokeStyle=col; g.stroke();
+      g.fillStyle='#fff'; g.font=`700 ${Math.round(R*1.15)}px system-ui,sans-serif`;
+      g.textAlign='center'; g.textBaseline='middle';
+      g.fillText(String(i+1), p.x, p.y+R*0.06);
+    });
+    g.restore();
+  };
+  poly(MS.ref, '#7FC6F0');
+  poly(MS.open,'#F5C86A');
+}
+
+function msPt(e, cv){
+  const r=cv.getBoundingClientRect();
+  return {x:(e.clientX-r.left)*(cv.width/r.width), y:(e.clientY-r.top)*(cv.height/r.height)};
+}
+function msNear(arr, p){
+  let bi=-1, bd=1e18;
+  arr.forEach((q,i)=>{ const d=(q.x-p.x)**2+(q.y-p.y)**2; if(d<bd){bd=d;bi=i;} });
+  const R=Math.max(22, MS.iw*0.034);
+  return bd<=R*R ? bi : -1;
+}
+function msSnap(p){
+  const E=msEng();
+  if(!E || !E.snapCorner || !MSCTX) return p;
+  try{
+    const s=E.snapCorner(MSCTX, p.x, p.y, Math.max(14, Math.round(MS.iw*0.012)));
+    if(s && isFinite(s.x) && isFinite(s.y)) return {x:s.x, y:s.y};
+  }catch(e){}
+  return p;
+}
+
+/* عدسة مكبّرة: النقر بالإصبع يخفي النقطة تماماً، فبدونها القياس تخمين */
+function msLoupe(show, p){
+  const lp=document.getElementById('fmLoupe'); if(!lp) return;
+  if(!show || !MSFULL){ lp.classList.remove('on'); return; }
+  const pane=document.getElementById('fmMsPane');
+  const cv=document.getElementById('fmMsCv');
+  const rect=cv.getBoundingClientRect(), pr=pane.getBoundingClientRect();
+  const sx=rect.width/cv.width;
+  const lc=lp.querySelector('canvas');
+  const D=132, Z=3.2, src=D/Z/sx;
+  lc.width=D; lc.height=D;
+  const g=lc.getContext('2d');
+  g.fillStyle='#0E1113'; g.fillRect(0,0,D,D);
+  g.imageSmoothingEnabled=false;
+  g.drawImage(MSFULL, p.x-src/2, p.y-src/2, src, src, 0,0,D,D);
+  g.strokeStyle='#F5C86A'; g.lineWidth=1.5;
+  g.beginPath(); g.moveTo(D/2-14,D/2); g.lineTo(D/2+14,D/2);
+  g.moveTo(D/2,D/2-14); g.lineTo(D/2,D/2+14); g.stroke();
+  const cx=rect.left-pr.left + p.x*sx, cy=rect.top-pr.top + p.y*sx;
+  lp.style.left=(cx-D/2)+'px';
+  lp.style.top =(cy - D - 26)+'px';
+  if(cy - D - 26 < 4) lp.style.top=(cy+26)+'px';
+  lp.classList.add('on');
+}
+
+/* ---- الواجهة ---- */
+function msPaint(){
+  const box=document.getElementById('fmMsCtl'); if(!box) return;
+  const has=!!MS.img;
+  const need = MS.active==='ref' ? 'ref' : 'open';
+  const nOpen=MS.open.length, nRef=MS.ref.length;
+  const m=msResult();
+
+  document.getElementById('fmMsPane').innerHTML = has
+    ? '<canvas id="fmMsCv"></canvas><div class="fmLoupe" id="fmLoupe"><canvas></canvas></div>'
+    : `<div class="fmMsEmpty">${esc(msT('msShoot'))}</div>`;
+  if(has) msDraw();
+
+  let hint;
+  if(!has) hint=msT('msShoot');
+  else if(MS.mode==='known' && !(n0(MS.knownVal)>0)) hint=msT('msNeedVal');
+  else if(need==='ref' && nRef<4) hint=TF('msTapRef',{n:nRef+1});
+  else if(nOpen<4) hint=TF('msTapOpen',{n:nOpen+1});
+  else hint=msT('msDrag');
+
+  const warn=[];
+  if(m){
+    if(m.frontal!=null && m.frontal<0.35) warn.push(msT('msAngle'));
+    if(m.square>4) warn.push(TF('msSquare',{v:m.square.toFixed(1)}));
+    if(m.refRel!=null && m.refRel<0.18) warn.push(msT('msRefSmall'));
+    const rel=Math.max(m.dW/m.W, m.dH/m.H)*100;
+    if(rel>2.5) warn.push(TF('msNoisy',{v:rel.toFixed(1)}));
+  }
+
+  box.innerHTML =
+      `<div class="fmMsSeg">`
+    + `<button data-msmode="known" aria-pressed="${MS.mode==='known'}">${esc(msT('msModeKnown'))}</button>`
+    + `<button data-msmode="ref" aria-pressed="${MS.mode==='ref'}">${esc(msT('msModeRef'))}</button></div>`
+    + `<div class="fmMsHint">${esc(hint)}</div>`
+    + (has ? `<div class="fmMsSteps">`
+        + `<button class="fmMsStep" data-msact="open" aria-pressed="${MS.active==='open'}">`
+        +   `${esc(msT('msCorners'))}<s>${nOpen}/4</s></button>`
+        + (MS.mode==='ref'
+            ? `<button class="fmMsStep" data-msact="ref" aria-pressed="${MS.active==='ref'}">`
+              + `${esc(msT('msRefPts'))}<s>${nRef}/4</s></button>` : '')
+        + `<button class="fmMsStep" data-msclear="1">${esc(msT('msReset'))}</button></div>` : '')
+
+    + (MS.mode==='known'
+        ? '<div class="fmG2">'
+          + `<div class="fmFld"><label class="fmF">${esc(msT('msWhich'))}</label>`
+          +   `<select data-ms="known"><option value="w"${MS.known==='w'?' selected':''}>${esc(T('w'))}</option>`
+          +   `<option value="h"${MS.known==='h'?' selected':''}>${esc(T('h'))}</option></select></div>`
+          + `<div class="fmFld"><label class="fmF">${esc(msT('msKnownVal'))} <u>${esc(T('cm'))}</u></label>`
+          +   `<input inputmode="numeric" data-ms="knownVal" value="${esc(MS.knownVal)}"></div>`
+          + '</div>'
+        : '<div class="fmG2">'
+          + `<div class="fmFld"><label class="fmF">${esc(msT('msRef'))}</label>`
+          +   `<select data-ms="refId">`
+          +   MSREF.map(r=>`<option value="${r.id}"${MS.refId===r.id?' selected':''}>`
+                + `${esc(r.l[LANG]||r.l.ar)}</option>`).join('')
+          +   `</select></div>`
+          + (MS.refId==='cst'
+              ? `<div class="fmFld"><label class="fmF">${esc(msT('msRefW'))} × ${esc(msT('msRefH'))} <u>${esc(T('cm'))}</u></label>`
+                + `<div class="fmG2"><input inputmode="numeric" data-ms="refW" value="${esc(MS.refW)}">`
+                + `<input inputmode="numeric" data-ms="refH" value="${esc(MS.refH)}"></div></div>`
+              : `<div class="fmFld"><label class="fmF">${esc(msT('msRefSize'))}</label>`
+                + `<input value="${esc(MS.refW+' × '+MS.refH)}" disabled></div>`)
+          + '</div>')
+
+    + (m
+        ? '<div class="fmMsRes">'
+          + `<div class="fmMsBig"><bdi dir="ltr">${m.W.toFixed(1)} × ${m.H.toFixed(1)}</bdi> ${esc(T('cm'))}</div>`
+          + `<div class="fmMsPm">± <bdi dir="ltr">${m.dW.toFixed(1)}</bdi> / `
+          +   `<bdi dir="ltr">${m.dH.toFixed(1)}</bdi> ${esc(T('cm'))}</div></div>`
+          + warn.map(w=>`<div class="fmMsWarn">${esc(w)}</div>`).join('')
+        : '')
+    + `<div class="fmMsHint" style="background:#F1F3F4;border-color:var(--hair);color:var(--soft)">`
+    +   `${esc(msT('msDisc'))}</div>`
+    + `<button class="fmBig" id="fmMsUse"${m?'':' disabled'}>${esc(msT('msUse'))}</button>`;
+
+  msWire();
+}
+
+function msWire(){
+  const file=document.getElementById('fmMsFile');
+  const shoot=document.getElementById('fmMsShoot');
+  if(shoot && file){
+    shoot.onclick=()=>file.click();
+    file.onchange=async ()=>{
+      const f=file.files && file.files[0]; file.value='';
+      if(!f) return;
+      try{ await msSetPhoto(f); }catch(e){ alert(T('photoErr')); }
+    };
+  }
+  const close=document.getElementById('fmMsX');
+  if(close) close.onclick=msClose;
+
+  document.querySelectorAll('#fmMs [data-msmode]').forEach(b=>{
+    b.onclick=()=>{ MS.mode=b.dataset.msmode;
+      if(MS.mode==='known') MS.active='open';
+      msPaint(); };
+  });
+  document.querySelectorAll('#fmMs [data-msact]').forEach(b=>{
+    b.onclick=()=>{ MS.active=b.dataset.msact; msPaint(); };
+  });
+  document.querySelectorAll('#fmMs [data-msclear]').forEach(b=>{
+    b.onclick=()=>{ if(MS.active==='ref') MS.ref=[]; else MS.open=[]; msPaint(); };
+  });
+  document.querySelectorAll('#fmMs [data-ms]').forEach(f=>{
+    const set=()=>{
+      const k=f.dataset.ms;
+      if(k==='refId'){
+        MS.refId=f.value;
+        const R=MSREF.find(r=>r.id===f.value);
+        if(R && R.w){ MS.refW=R.w; MS.refH=R.h; }
+        msPaint(); return;
+      }
+      MS[k]=f.value;
+      if(k==='known'){ msPaint(); return; }
+      msPaintResultOnly();
+    };
+    f.oninput=set; f.onchange=set;
+  });
+
+  const cv=document.getElementById('fmMsCv');
+  if(cv){
+    cv.onpointerdown=e=>{
+      const p=msPt(e,cv);
+      const arr = MS.active==='ref' ? MS.ref : MS.open;
+      const hit=msNear(arr,p);
+      if(hit>=0){ MSDRAG={key:MS.active, i:hit}; }
+      else if(arr.length<4){ arr.push(msSnap(p)); MSDRAG={key:MS.active, i:arr.length-1}; }
+      else return;
+      cv.setPointerCapture(e.pointerId);
+      const cur=(MS.active==='ref'?MS.ref:MS.open)[MSDRAG.i];
+      msDraw(); msLoupe(true, cur); e.preventDefault();
+    };
+    cv.onpointermove=e=>{
+      if(!MSDRAG) return;
+      const p=msPt(e,cv);
+      const arr = MSDRAG.key==='ref' ? MS.ref : MS.open;
+      arr[MSDRAG.i]={x:Math.max(0,Math.min(MS.iw,p.x)), y:Math.max(0,Math.min(MS.ih,p.y))};
+      msDraw(); msLoupe(true, arr[MSDRAG.i]); e.preventDefault();
+    };
+    const up=()=>{
+      if(!MSDRAG) return;
+      const arr = MSDRAG.key==='ref' ? MS.ref : MS.open;
+      arr[MSDRAG.i]=msSnap(arr[MSDRAG.i]);
+      MSDRAG=null; msLoupe(false);
+      /* لو اكتملت زوايا المرجع ننتقل للفتحة تلقائياً */
+      if(MS.mode==='ref' && MS.active==='ref' && MS.ref.length===4 && MS.open.length<4) MS.active='open';
+      msPaint();
+    };
+    cv.onpointerup=up; cv.onpointercancel=up;
+  }
+
+  const use=document.getElementById('fmMsUse');
+  if(use) use.onclick=()=>{
+    const m=msResult(); if(!m) return;
+    const o=S.ops[MS.op]; if(!o){ msClose(); return; }
+    o.w=String(Math.round(m.W*10)/10);
+    o.h=String(Math.round(m.H*10)/10);
+    o.ms=1;                                  /* علامة: المقاس من صورة */
+    if(MS.img && (o.p||[]).length<PH_PER_OP){ o.p=o.p||[]; o.p.push(MS.img); }
+    msClose(); render();
+  };
+}
+
+/* تحديث النتيجة وحدها أثناء الكتابة حتى لا يقفز المؤشر */
+function msPaintResultOnly(){
+  const m=msResult();
+  const res=document.querySelector('#fmMsCtl .fmMsRes');
+  const use=document.getElementById('fmMsUse');
+  if(use) use.disabled=!m;
+  if(m && res){
+    res.innerHTML=`<div class="fmMsBig"><bdi dir="ltr">${m.W.toFixed(1)} × ${m.H.toFixed(1)}</bdi> ${esc(T('cm'))}</div>`
+      + `<div class="fmMsPm">± <bdi dir="ltr">${m.dW.toFixed(1)}</bdi> / `
+      + `<bdi dir="ltr">${m.dH.toFixed(1)}</bdi> ${esc(T('cm'))}</div>`;
+  }else if(m && !res){ msPaint(); }
+  else if(!m && res){ res.remove(); }
+}
+
+function msMount(){
+  const R=document.getElementById('fmRoot'); if(!R || document.getElementById('fmMs')) return;
+  const d=document.createElement('div'); d.className='fmMs'; d.id='fmMs';
+  d.innerHTML='<div class="fmMsTop"><b id="fmMsTitle"></b>'
+    + '<button id="fmMsShoot"></button><button id="fmMsX"></button></div>'
+    + '<div class="fmMsBody"><div class="fmMsPane" id="fmMsPane"></div></div>'
+    + '<div class="fmMsCtl" id="fmMsCtl"></div>'
+    + '<input type="file" id="fmMsFile" accept="image/*" capture="environment" style="display:none">';
+  R.appendChild(d);
+}
+function msLabels(){
+  const t=document.getElementById('fmMsTitle');
+  if(t) t.textContent=msT('msTitle');
+  const s=document.getElementById('fmMsShoot');
+  if(s) s.textContent=msT('msCam');
+  const x=document.getElementById('fmMsX');
+  if(x) x.textContent=msT('close');
+}
+
 /* ================= الربط ================= */
 function setPath(path, val){
   const p=path.split('.');
@@ -11319,6 +11751,7 @@ function wire(){
     b.onclick=()=>{ LANG=b.dataset.lang; render(); window.scrollTo(0,0); };
   });
 
+  msMount(); msLabels();
   /* الحقول النصية: نحدّث الحالة بلا إعادة رسم حتى لا يقفز المؤشر */
   document.querySelectorAll('[data-b]').forEach(f=>{
     f.oninput=()=>{ setPath(f.dataset.b, f.value); save(); refreshBar(f); };
@@ -11350,6 +11783,9 @@ function wire(){
     b.onclick=()=>{ S.ops.splice(+b.dataset.del,1); render(); };
   });
 
+  document.querySelectorAll('[data-msopen]').forEach(b=>{
+    b.onclick=()=>msOpen(+b.dataset.msopen);
+  });
   document.querySelectorAll('[data-addph]').forEach(b=>{
     b.onclick=()=>pickPhoto(+b.dataset.addph, b);
   });
@@ -11482,6 +11918,7 @@ function payload(withPhotos){
       const x={k:o.k, l:+o.l||1, w:n0(o.w), h:n0(o.h), q:Math.max(1,Math.round(n0(o.q))), c:o.c};
       if(o.r) x.r=o.r;
       if(o.m) x.m=1;
+      if(o.ms) x.ms=1;
       if(o.n && o.n.trim()) x.n=o.n.trim();
       if(withPhotos && (o.p||[]).length) x.p=o.p.slice(0, PH_PER_OP);
       return x;
@@ -11595,7 +12032,9 @@ function dl(text, name){
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 800);
 }
 
-window.__FIELD = {encode, payload, validate, totals, deflate, shrink, returnURL, loadPhotos, L, get S(){return S}, set S(v){S=v}, KINDS, COLORS,
+window.__FIELD = {encode, payload, validate, totals, deflate, shrink, returnURL, loadPhotos, L,
+                  msOpen, msClose, msResult, msSetPhoto, msPaint,
+                  get MS(){return MS}, set MS(v){MS=v}, get S(){return S}, set S(v){S=v}, KINDS, COLORS,
                   get LANG(){return LANG}, set LANG(v){LANG=v}, render, b64u};
 
 render();
