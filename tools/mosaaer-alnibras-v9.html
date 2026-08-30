@@ -10971,6 +10971,8 @@ body.fmOn{--fm-bg:#F4F6F7}
   padding:7px 13px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ink)}
 #fmRoot .fmMsStep[aria-pressed="true"]{border-color:var(--bronze);background:var(--bronze-l);color:var(--bronze)}
 #fmRoot .fmMsStep s{text-decoration:none;font-family:"IBM Plex Mono",monospace;opacity:.7;margin-inline-start:5px}
+#fmRoot .fmMsSeg3{grid-template-columns:1fr 1fr 1fr}
+#fmRoot .fmMsSeg3 button{font-size:12.5px;padding:10px 3px}
 
 </style>
 
@@ -11042,7 +11044,13 @@ ar:{
   w:'العرض', h:'الارتفاع', q:'العدد', cm:'سم',
   color:'اللون', mesh:'سلك (منّة)', notes:'ملاحظات على هذه الفتحة',
   msBtn:'قِس من صورة', msTitle:'قياس الفتحة من صورة', msCam:'صوّر', msUse:'استخدم هذا المقاس',
-  msModeKnown:'مقاس واحد معلوم', msModeRef:'مرجع في الصورة',
+  msModeKnown:'مقاس معلوم', msModeRef:'مرجع في الصورة', msModeWall:'ارتفاع الجدار',
+  msWallPts:'الأرض والسقف', msWallH:'ارتفاع الجدار', msDepth:'غَور الفتحة (اختياري)',
+  msDist:'بُعدك عن الجدار',
+  msTapFloor:'اضغط نقطة عند التقاء الجدار بالأرض.',
+  msTapCeil:'الآن اضغط فوقها مباشرة عند التقاء الجدار بالسقف.',
+  msWallFace:'مهم: اضغط أركان الفتحة عند وجه الجدار (حافة اللياسة) لا على إطار الشباك القديم الغائر — وهي أصلاً ما تُصنع عليه. لو ضغطت على إطار غائر يطلع المقاس أصغر.',
+  msCorr:'صُحّح للغَور بنسبة {v}٪.',
   msShoot:'صوّر الفتحة كاملة من أمامها قدر الإمكان.',
   msNeedVal:'اكتب المقاس الذي قسته بالمتر أولاً.',
   msTapOpen:'اضغط ركن الفتحة رقم {n} — بالترتيب: أعلى يسار ثم أعلى يمين ثم أسفل يمين ثم أسفل يسار.',
@@ -11097,7 +11105,13 @@ en:{
   color:'Colour', mesh:'Insect mesh', notes:'Notes on this opening',
   msBtn:'Measure from photo', msTitle:'Measure opening from photo', msCam:'Camera',
   msUse:'Use this measurement',
-  msModeKnown:'One known dimension', msModeRef:'Reference in photo',
+  msModeKnown:'Known dimension', msModeRef:'Reference in photo', msModeWall:'Wall height',
+  msWallPts:'Floor & ceiling', msWallH:'Wall height', msDepth:'Recess depth (optional)',
+  msDist:'Your distance to wall',
+  msTapFloor:'Tap a point where the wall meets the floor.',
+  msTapCeil:'Now tap directly above it where the wall meets the ceiling.',
+  msWallFace:'Important: tap the opening corners at the wall face (the plaster edge), not the recessed old frame — the wall face is what you fabricate to. Tapping a recessed frame makes the result too small.',
+  msCorr:'Corrected for recess by {v}%.',
   msShoot:'Photograph the whole opening, as square-on as you can.',
   msNeedVal:'Enter the dimension you measured with the tape first.',
   msTapOpen:'Tap opening corner {n} — in order: top-left, top-right, bottom-right, bottom-left.',
@@ -11736,15 +11750,16 @@ const MSREF=[
   {id:'cst', l:{ar:'مقاس مخصص', en:'Custom'}, w:0, h:0}
 ];
 
-let MS={op:-1, img:null, iw:0, ih:0, mode:'known', known:'w', knownVal:'',
-        refId:'blk', refW:40, refH:20, open:[], ref:[], active:'open', auto:0};
+let MS={op:-1, img:null, iw:0, ih:0, mode:'wall', known:'w', knownVal:'',
+        refId:'blk', refW:40, refH:20, open:[], ref:[], wall:[],
+        wallH:'300', depth:'', dist:'', active:'open', auto:0};
 let MSFULL=null, MSCTX=null, MSDRAG=null;
 
 const msEng = ()=> window.__nbMeasure || null;
 const msT = k => T(k);
 
 function msOpen(i){
-  MS.op=i; MS.open=[]; MS.ref=[]; MS.active='open';
+  MS.op=i; MS.open=[]; MS.ref=[]; MS.wall=[]; MS.active='open';
   MS.img=null; MSFULL=null; MSCTX=null;
   msPaint();
   document.getElementById('fmMs').classList.add('on');
@@ -11763,7 +11778,7 @@ async function msSetPhoto(file){
   MSCTX=MSFULL.getContext('2d', {willReadFrequently:true});
   MSCTX.drawImage(im,0,0,w,h);
   MS.img=MSFULL.toDataURL('image/jpeg',0.88); MS.iw=w; MS.ih=h;
-  MS.open=[]; MS.ref=[]; MS.active='open'; MS.auto=0;
+  MS.open=[]; MS.ref=[]; MS.wall=[]; MS.active='open'; MS.auto=0;
   msAuto();
   msPaint();
 }
@@ -11778,20 +11793,83 @@ function msAuto(){
   return true;
 }
 
+/* ---- وضع «ارتفاع الجدار» ----
+   المرجع هو ارتفاع الجدار من الأرض للسقف: كبير فالخطأ النسبي صغير،
+   وعلى نفس مستوى الفتحة. نسقط نقطتي الأرض والسقف إلى إحداثيات
+   الفتحة، فيعطي طولهما المعلوم المقياس المطلق — تماماً كما يفعل
+   وضع المرجع، لكن بضلع واحد معلوم بدل مستطيل كامل.
+
+   تحذير جوهري: النقطتان على وجه الجدار. لو ضُغطت أركان الفتحة على
+   إطار شباك غائر داخل الجدار فالمستويان مختلفان، والمقاس يخرج
+   أصغر بنسبة تساوي الغَور مقسوماً على مسافة التصوير. لذلك التعليمة
+   صريحة: أركان الفتحة عند وجه الجدار — وهي أصلاً ما يُصنَع عليه. */
+function wallMeasure(S){
+  const E=msEng(); if(!E) return null;
+  if(!S.open || S.open.length!==4) return null;
+  if(!S.wall || S.wall.length!==2) return null;
+  const L=n0(S.wallH); if(!(L>0)) return null;
+  const O=S.open.map(p=>[p.x,p.y]);
+  const asp=E.aspectOfRect(O, S.imgW/2, S.imgH/2);
+  if(!asp) return null;
+  const a=asp.a;
+  const Hs=E.solveH(O, [[0,0],[1,0],[1,1],[0,1]]);
+  if(!Hs) return null;
+  const P=S.wall.map(p=>E.applyH(Hs,[p.x,p.y]));
+  if(P.some(q=>!q)) return null;
+  const du=P[1][0]-P[0][0], dv=(P[1][1]-P[0][1])/a;
+  const k=Math.hypot(du,dv);
+  if(!(k>1e-9)) return null;
+  let W=L/k, H=W/a;
+  /* تصحيح اختياري للغَور — الخطأ ≈ الغَور ÷ مسافة التصوير */
+  const dp=n0(S.depth), ds=n0(S.dist);
+  let corr=0;
+  if(dp>0 && ds>0 && dp<ds*0.5){
+    const c=1/(1-dp/ds);
+    W*=c; H*=c; corr=(c-1)*100;
+  }
+  if(!(W>0&&H>0) || !isFinite(W) || !isFinite(H)) return null;
+  return {W, H, aspect:a, tilt:asp.tilt, frontal:asp.frontal, square:0,
+          refRel:L/Math.max(W,H), corr};
+}
+function wallUncert(S, base){
+  const px=Math.max(1.2, S.imgW/900);
+  let vW=0, vH=0;
+  [['open',S.open],['wall',S.wall]].forEach(([key,arr])=>{
+    if(!arr) return;
+    arr.forEach((p,i)=>{
+      ['x','y'].forEach(ax=>{
+        const S2=Object.assign({},S);
+        S2[key]=arr.map((q,j)=> j===i
+          ? {x:q.x+(ax==='x'?px:0), y:q.y+(ax==='y'?px:0)} : q);
+        const m=wallMeasure(S2);
+        if(m){ vW+=Math.pow(m.W-base.W,2); vH+=Math.pow(m.H-base.H,2); }
+      });
+    });
+  });
+  return {dW:Math.sqrt(vW), dH:Math.sqrt(vH)};
+}
+
 /* حالة المحرك من حالتنا */
 function msState(){
-  const S={mode:MS.mode==='ref'?'ref':'known', imgW:MS.iw, imgH:MS.ih,
-           open:MS.open.slice(), ref:MS.ref.slice(), chk:[],
-           refW:n0(MS.refW), refH:n0(MS.refH),
-           known:MS.known, knownVal:n0(MS.knownVal)};
-  return S;
+  return {mode:MS.mode==='ref'?'ref':'known', imgW:MS.iw, imgH:MS.ih,
+          open:MS.open.slice(), ref:MS.ref.slice(), wall:MS.wall.slice(), chk:[],
+          refW:n0(MS.refW), refH:n0(MS.refH),
+          known:MS.known, knownVal:n0(MS.knownVal),
+          wallH:n0(MS.wallH), depth:n0(MS.depth), dist:n0(MS.dist)};
 }
 function msResult(){
   const E=msEng(); if(!E) return null;
   if(MS.open.length!==4) return null;
+  const S=msState();
+  if(MS.mode==='wall'){
+    if(MS.wall.length!==2 || !(n0(MS.wallH)>0)) return null;
+    let m=null; try{ m=wallMeasure(S); }catch(e){ return null; }
+    if(!m) return null;
+    try{ const u=wallUncert(S,m); m.dW=u.dW; m.dH=u.dH; }catch(e){ m.dW=0; m.dH=0; }
+    return m;
+  }
   if(MS.mode==='ref' && MS.ref.length!==4) return null;
   if(MS.mode==='known' && !(n0(MS.knownVal)>0)) return null;
-  const S=msState();
   let m=null; try{ m=E.measure(S); }catch(e){ return null; }
   if(!m) return null;
   try{ const u=E.uncertainty(S,m); m.dW=u.dW; m.dH=u.dH; }catch(e){ m.dW=0; m.dH=0; }
@@ -11823,6 +11901,7 @@ function msDraw(){
     g.restore();
   };
   poly(MS.ref, '#7FC6F0');
+  poly(MS.wall,'#8FE0A8');
   poly(MS.open,'#F5C86A');
 }
 
@@ -11875,8 +11954,8 @@ function msLoupe(show, p){
 function msPaint(){
   const box=document.getElementById('fmMsCtl'); if(!box) return;
   const has=!!MS.img;
-  const need = MS.active==='ref' ? 'ref' : 'open';
-  const nOpen=MS.open.length, nRef=MS.ref.length;
+  const need = MS.active;
+  const nOpen=MS.open.length, nRef=MS.ref.length, nWall=MS.wall.length;
   const m=msResult();
 
   document.getElementById('fmMsPane').innerHTML = has
@@ -11886,8 +11965,10 @@ function msPaint(){
 
   let hint;
   if(!has) hint=msT('msShoot');
-  else if(need==='ref' && nRef<4) hint=TF('msTapRef',{n:nRef+1});
+  else if(need==='ref'  && nRef<4)  hint=TF('msTapRef',{n:nRef+1});
+  else if(need==='wall' && nWall<2) hint=nWall===0 ? msT('msTapFloor') : msT('msTapCeil');
   else if(nOpen<4) hint=TF('msTapOpen',{n:nOpen+1});
+  else if(MS.mode==='wall' && nWall<2) hint=msT('msTapFloor');
   else if(MS.mode==='known' && !(n0(MS.knownVal)>0)) hint=msT('msNeedVal');
   else if(MS.auto===1) hint=msT('msAutoOk');
   else hint=msT('msDrag');
@@ -11902,7 +11983,8 @@ function msPaint(){
   }
 
   box.innerHTML =
-      `<div class="fmMsSeg">`
+      `<div class="fmMsSeg fmMsSeg3">`
+    + `<button data-msmode="wall" aria-pressed="${MS.mode==='wall'}">${esc(msT('msModeWall'))}</button>`
     + `<button data-msmode="known" aria-pressed="${MS.mode==='known'}">${esc(msT('msModeKnown'))}</button>`
     + `<button data-msmode="ref" aria-pressed="${MS.mode==='ref'}">${esc(msT('msModeRef'))}</button></div>`
     + `<div class="fmMsHint">${esc(hint)}</div>`
@@ -11912,11 +11994,30 @@ function msPaint(){
         + (MS.mode==='ref'
             ? `<button class="fmMsStep" data-msact="ref" aria-pressed="${MS.active==='ref'}">`
               + `${esc(msT('msRefPts'))}<s>${nRef}/4</s></button>` : '')
+        + (MS.mode==='wall'
+            ? `<button class="fmMsStep" data-msact="wall" aria-pressed="${MS.active==='wall'}">`
+              + `${esc(msT('msWallPts'))}<s>${nWall}/2</s></button>` : '')
         + `<button class="fmMsStep" data-msauto="1">${esc(msT('msRedo'))}</button>`
         + `<button class="fmMsStep" data-msclear="1">${esc(msT('msReset'))}</button></div>`
         + (MS.auto===-1
             ? `<div class="fmMsWarn">${esc(msT('msAutoFail'))}</div>` : '') : '')
 
+    + (MS.mode==='wall'
+        ? `<div class="fmMsWarn">${esc(msT('msWallFace'))}</div>`
+          + '<div class="fmG2">'
+          + `<div class="fmFld"><label class="fmF">${esc(msT('msWallH'))} <u>${esc(T('cm'))}</u></label>`
+          +   `<input inputmode="numeric" data-ms="wallH" value="${esc(MS.wallH)}"></div>`
+          + `<div class="fmFld"><label class="fmF">${esc(msT('msDepth'))} <u>${esc(T('cm'))}</u></label>`
+          +   `<input inputmode="numeric" data-ms="depth" value="${esc(MS.depth)}"`
+          +   ` placeholder="0"></div>`
+          + '</div>'
+          + (n0(MS.depth)>0
+              ? '<div class="fmG2">'
+                + `<div class="fmFld"><label class="fmF">${esc(msT('msDist'))} <u>${esc(T('cm'))}</u></label>`
+                +   `<input inputmode="numeric" data-ms="dist" value="${esc(MS.dist)}"></div>`
+                + '<div></div></div>'
+              : '')
+        : '')
     + (MS.mode==='known'
         ? '<div class="fmG2">'
           + `<div class="fmFld"><label class="fmF">${esc(msT('msWhich'))}</label>`
@@ -11925,6 +12026,7 @@ function msPaint(){
           + `<div class="fmFld"><label class="fmF">${esc(msT('msKnownVal'))} <u>${esc(T('cm'))}</u></label>`
           +   `<input inputmode="numeric" data-ms="knownVal" value="${esc(MS.knownVal)}"></div>`
           + '</div>'
+        : MS.mode!=='ref' ? ''
         : '<div class="fmG2">'
           + `<div class="fmFld"><label class="fmF">${esc(msT('msRef'))}</label>`
           +   `<select data-ms="refId">`
@@ -11970,6 +12072,7 @@ function msWire(){
   document.querySelectorAll('#fmMs [data-msmode]').forEach(b=>{
     b.onclick=()=>{ MS.mode=b.dataset.msmode;
       if(MS.mode==='known') MS.active='open';
+      else if(MS.mode==='wall' && MS.wall.length<2 && MS.open.length===4) MS.active='wall';
       msPaint(); };
   });
   document.querySelectorAll('#fmMs [data-msact]').forEach(b=>{
@@ -11979,7 +12082,11 @@ function msWire(){
     b.onclick=()=>{ msAuto(); MS.active='open'; msPaint(); };
   });
   document.querySelectorAll('#fmMs [data-msclear]').forEach(b=>{
-    b.onclick=()=>{ if(MS.active==='ref') MS.ref=[]; else { MS.open=[]; MS.auto=0; } msPaint(); };
+    b.onclick=()=>{
+      if(MS.active==='ref') MS.ref=[];
+      else if(MS.active==='wall') MS.wall=[];
+      else { MS.open=[]; MS.auto=0; }
+      msPaint(); };
   });
   document.querySelectorAll('#fmMs [data-ms]').forEach(f=>{
     const set=()=>{
@@ -11991,7 +12098,7 @@ function msWire(){
         msPaint(); return;
       }
       MS[k]=f.value;
-      if(k==='known'){ msPaint(); return; }
+      if(k==='known' || k==='depth'){ msPaint(); return; }
       msPaintResultOnly();
     };
     f.oninput=set; f.onchange=set;
@@ -12001,29 +12108,36 @@ function msWire(){
   if(cv){
     cv.onpointerdown=e=>{
       const p=msPt(e,cv);
-      const arr = MS.active==='ref' ? MS.ref : MS.open;
+      const key=MS.active;
+      const arr = key==='ref' ? MS.ref : key==='wall' ? MS.wall : MS.open;
+      const cap = key==='wall' ? 2 : 4;
       const hit=msNear(arr,p);
-      if(hit>=0){ MSDRAG={key:MS.active, i:hit}; }
-      else if(arr.length<4){ arr.push(msSnap(p)); MSDRAG={key:MS.active, i:arr.length-1}; }
+      if(hit>=0){ MSDRAG={key, i:hit}; }
+      else if(arr.length<cap){
+        arr.push(key==='wall' ? p : msSnap(p));      /* نقاط الأرض والسقف لا تُشدّ لزاوية */
+        MSDRAG={key, i:arr.length-1};
+      }
       else return;
       cv.setPointerCapture(e.pointerId);
-      const cur=(MS.active==='ref'?MS.ref:MS.open)[MSDRAG.i];
+      const cur=(MSDRAG.key==='ref'?MS.ref:MSDRAG.key==='wall'?MS.wall:MS.open)[MSDRAG.i];
       msDraw(); msLoupe(true, cur); e.preventDefault();
     };
     cv.onpointermove=e=>{
       if(!MSDRAG) return;
       const p=msPt(e,cv);
-      const arr = MSDRAG.key==='ref' ? MS.ref : MS.open;
+      const arr = MSDRAG.key==='ref' ? MS.ref : MSDRAG.key==='wall' ? MS.wall : MS.open;
       arr[MSDRAG.i]={x:Math.max(0,Math.min(MS.iw,p.x)), y:Math.max(0,Math.min(MS.ih,p.y))};
       msDraw(); msLoupe(true, arr[MSDRAG.i]); e.preventDefault();
     };
     const up=()=>{
       if(!MSDRAG) return;
-      const arr = MSDRAG.key==='ref' ? MS.ref : MS.open;
-      arr[MSDRAG.i]=msSnap(arr[MSDRAG.i]);
+      if(MSDRAG.key!=='wall'){
+        const arr = MSDRAG.key==='ref' ? MS.ref : MS.open;
+        arr[MSDRAG.i]=msSnap(arr[MSDRAG.i]);
+      }
       MSDRAG=null; msLoupe(false);
-      /* لو اكتملت زوايا المرجع ننتقل للفتحة تلقائياً */
-      if(MS.mode==='ref' && MS.active==='ref' && MS.ref.length===4 && MS.open.length<4) MS.active='open';
+      if(MS.mode==='ref'  && MS.active==='ref'  && MS.ref.length===4  && MS.open.length<4) MS.active='open';
+      if(MS.mode==='wall' && MS.active==='wall' && MS.wall.length===2 && MS.open.length<4) MS.active='open';
       msPaint();
     };
     cv.onpointerup=up; cv.onpointercancel=up;
