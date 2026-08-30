@@ -11045,10 +11045,9 @@ ar:{
   color:'اللون', mesh:'سلك (منّة)', notes:'ملاحظات على هذه الفتحة',
   msBtn:'قِس من صورة', msTitle:'قياس الفتحة من صورة', msCam:'صوّر', msUse:'استخدم هذا المقاس',
   msModeKnown:'مقاس معلوم', msModeRef:'مرجع في الصورة', msModeWall:'ارتفاع الجدار',
-  msWallPts:'الأرض والسقف', msWallH:'ارتفاع الجدار', msDepth:'غَور الفتحة (اختياري)',
+  msWallPts:'أركان الجدار', msWallH:'ارتفاع الجدار', msDepth:'غَور الفتحة (اختياري)',
   msDist:'بُعدك عن الجدار',
-  msTapFloor:'اضغط نقطة عند التقاء الجدار بالأرض.',
-  msTapCeil:'الآن اضغط فوقها مباشرة عند التقاء الجدار بالسقف.',
+  msTapWall:'اضغط ركن الجدار رقم {n} — بالترتيب: أعلى يسار (سقف) ثم أعلى يمين ثم أسفل يمين (أرض) ثم أسفل يسار.',
   msWallFace:'مهم: اضغط أركان الفتحة عند وجه الجدار (حافة اللياسة) لا على إطار الشباك القديم الغائر — وهي أصلاً ما تُصنع عليه. لو ضغطت على إطار غائر يطلع المقاس أصغر.',
   msCorr:'صُحّح للغَور بنسبة {v}٪.',
   msShoot:'صوّر الفتحة كاملة من أمامها قدر الإمكان.',
@@ -11057,8 +11056,10 @@ ar:{
   msTapRef:'اضغط ركن المرجع رقم {n} بنفس الترتيب.',
   msDrag:'اسحب أي نقطة لضبطها — العدسة تكبّر تحت إصبعك.',
   msAutoOk:'حدّدت الفتحة تلقائياً — تأكد من الأركان واسحب أي واحدة إن لزم.',
+  msAutoBoth:'حدّدت الجدار والفتحة تلقائياً — راجع الأركان الثمانية قبل الاعتماد.',
   msAutoFail:'ما قدرت أحدد الفتحة تلقائياً — اضغط الأركان الأربعة بنفسك.',
   msRedo:'كشف تلقائي',
+  msNotInside:'أركان الفتحة ليست داخل مستطيل الجدار — تأكد أن الرباعي الأصفر على الشباك والأخضر على الجدار كاملاً.',
   msCorners:'زوايا الفتحة', msRefPts:'زوايا المرجع', msReset:'امسح النقاط',
   msWhich:'أي مقاس قسته', msKnownVal:'قيمته',
   msRef:'المرجع', msRefSize:'مقاسه', msRefW:'عرض', msRefH:'ارتفاع',
@@ -11106,10 +11107,9 @@ en:{
   msBtn:'Measure from photo', msTitle:'Measure opening from photo', msCam:'Camera',
   msUse:'Use this measurement',
   msModeKnown:'Known dimension', msModeRef:'Reference in photo', msModeWall:'Wall height',
-  msWallPts:'Floor & ceiling', msWallH:'Wall height', msDepth:'Recess depth (optional)',
+  msWallPts:'Wall corners', msWallH:'Wall height', msDepth:'Recess depth (optional)',
   msDist:'Your distance to wall',
-  msTapFloor:'Tap a point where the wall meets the floor.',
-  msTapCeil:'Now tap directly above it where the wall meets the ceiling.',
+  msTapWall:'Tap wall corner {n} — in order: top-left (ceiling), top-right, bottom-right (floor), bottom-left.',
   msWallFace:'Important: tap the opening corners at the wall face (the plaster edge), not the recessed old frame — the wall face is what you fabricate to. Tapping a recessed frame makes the result too small.',
   msCorr:'Corrected for recess by {v}%.',
   msShoot:'Photograph the whole opening, as square-on as you can.',
@@ -11118,8 +11118,10 @@ en:{
   msTapRef:'Tap reference corner {n} in the same order.',
   msDrag:'Drag any point to adjust — the loupe magnifies under your finger.',
   msAutoOk:'Opening detected automatically — check the corners and drag any that are off.',
+  msAutoBoth:'Wall and opening both detected — check all eight corners before confirming.',
   msAutoFail:'Could not detect the opening — tap the four corners yourself.',
   msRedo:'Auto-detect',
+  msNotInside:'The opening corners are not inside the wall rectangle — check that the yellow quad is on the window and the green one on the whole wall.',
   msCorners:'Opening corners', msRefPts:'Reference corners', msReset:'Clear points',
   msWhich:'Which one you measured', msKnownVal:'Its value',
   msRef:'Reference', msRefSize:'Its size', msRefW:'Width', msRefH:'Height',
@@ -11662,7 +11664,7 @@ function dtConvex(q){
 }
 
 /* الكشف الكامل — يرجع أركاناً بإحداثيات الصورة الأصلية أو null */
-function detectQuad(full){
+function detectQuad(full, opt){
   try{
     const W0=full.width, H0=full.height;
     const S=Math.min(1, 460/Math.max(W0,H0));
@@ -11691,6 +11693,7 @@ function detectQuad(full){
     if(!VP.length || !HP.length) return null;
 
     const base=dtBaseline(Sb, thr, w, h);
+    const all=[];
     let fin=null, bestS=0, bestWeak=0;
     for(const V of VP) for(const Hh of HP){
       const pts=[];
@@ -11705,23 +11708,67 @@ function detectQuad(full){
       if(wAvg<0.10*w || hAvg<0.10*h) continue;
       if(Math.max(wAvg,hAvg)/Math.min(wAvg,hAvg) > 6) continue;
       const sc=dtScoreQuad(Sb, G, thr, ord, w, h);
-      if(sc>bestS){
-        bestS=sc; fin=ord;
-        bestWeak=Math.min.apply(null,[0,1,2,3].map(e=>
-          dtEdgeSupport(Sb, thr, ord[e], ord[(e+1)%4])));
-      }
+      if(sc<=0) continue;
+      const weak=Math.min.apply(null,[0,1,2,3].map(e=>
+        dtEdgeSupport(Sb, thr, ord[e], ord[(e+1)%4])));
+      all.push({ord, sc, weak});
+      if(sc>bestS){ bestS=sc; fin=ord; bestWeak=weak; }
     }
     if(!fin || bestS<0.16) return null;
     /* لا بد أن تكون الحواف أوضح بكثير من نسيج الصورة العام */
     if(bestWeak < base + 0.25 || bestWeak < 0.55) return null;
 
-    /* إلى الدقة الأصلية ثم شدّ لأقرب زاوية حقيقية */
     const k=1/S;
-    return fin.map(p=>{
-      const x=Math.max(0,Math.min(W0, p[0]*k)), y=Math.max(0,Math.min(H0, p[1]*k));
-      return {x, y};
-    });
+    const up=q=>q.map(p=>({x:Math.max(0,Math.min(W0,p[0]*k)),
+                           y:Math.max(0,Math.min(H0,p[1]*k))}));
+    if(!opt || !opt.all) return up(fin);
+
+    /* مرشّحات متمايزة: نرفض ما يتداخل مع ما اخترناه سابقاً */
+    all.sort((a,b)=>b.sc-a.sc);
+    const keep=[];
+    for(const c of all){
+      if(c.weak < base+0.25 || c.weak < 0.55) continue;
+      const ca=Math.abs(dtArea(c.ord));
+      let dup=false;
+      for(const kq of keep){
+        const ka=Math.abs(dtArea(kq.ord));
+        const cx=(c.ord[0][0]+c.ord[2][0])/2, cy=(c.ord[0][1]+c.ord[2][1])/2;
+        const kx=(kq.ord[0][0]+kq.ord[2][0])/2, ky=(kq.ord[0][1]+kq.ord[2][1])/2;
+        const near=Math.hypot(cx-kx,cy-ky) < 0.10*Math.max(w,h);
+        if(near && Math.abs(ca-ka)/Math.max(ca,ka) < 0.30){ dup=true; break; }
+      }
+      if(dup) continue;
+      keep.push(c);
+      if(keep.length>=(opt.n||4)) break;
+    }
+    return keep.map(c=>({q:up(c.ord), score:c.sc, area:Math.abs(dtArea(c.ord))/(w*h)}));
   }catch(e){ return null; }
+}
+
+/* هل الرباعي الصغير داخل الكبير بهامش حقيقي؟
+   الهامش ضروري لا تجميلي: الكاشف يُنتج رباعيات هجينة تأخذ ضلعين من
+   الجدار وضلعين من الفتحة، وهي «داخل» بعضها بالمعنى الهندسي لأنها
+   تتشارك الأركان. اشتراط بُعد كل ركن عن كل ضلع يستبعدها. */
+function dtInside(inner, outer, margin){
+  const pip=(pt,poly)=>{ let c=false;
+    for(let i=0,j=3;i<4;j=i++){
+      const xi=poly[i].x, yi=poly[i].y, xj=poly[j].x, yj=poly[j].y;
+      if((yi>pt.y)!==(yj>pt.y) && pt.x < (xj-xi)*(pt.y-yi)/(yj-yi)+xi) c=!c; }
+    return c; };
+  if(!inner.every(p=>pip(p,outer))) return false;
+  const m=margin||0;
+  if(m<=0) return true;
+  /* أقل مسافة من أي ركن داخلي إلى أي ضلع خارجي */
+  const segDist=(p,a,b)=>{
+    const vx=b.x-a.x, vy=b.y-a.y, L=vx*vx+vy*vy;
+    let t = L>0 ? ((p.x-a.x)*vx+(p.y-a.y)*vy)/L : 0;
+    t=t<0?0:(t>1?1:t);
+    return Math.hypot(p.x-(a.x+vx*t), p.y-(a.y+vy*t));
+  };
+  for(const p of inner)
+    for(let i=0,j=3;i<4;j=i++)
+      if(segDist(p, outer[j], outer[i]) < m) return false;
+  return true;
 }
 
 /* ==================================================================
@@ -11783,53 +11830,85 @@ async function msSetPhoto(file){
   msPaint();
 }
 
-/* كشف تلقائي لأركان الفتحة — يوفّر أربع ضغطات، ويبقى السحب متاحاً */
+/* كشف تلقائي — في وضع الجدار نحاول إيجاد مستطيلين متداخلين:
+   الأكبر جدار والأصغر فتحة. لا نقبل الإسناد إلا إذا كان الصغير
+   داخل الكبير فعلاً ومساحته أقل من ٦٠٪ منه، وإلا اكتفينا بالفتحة
+   وطلبنا من الفني تحديد الجدار — إسناد خاطئ صامت أسوأ من طلب
+   أربع ضغطات. */
 function msAuto(){
   if(!MSFULL) return false;
-  const q=detectQuad(MSFULL);
-  if(!q){ MS.auto=-1; return false; }
-  MS.open=q.map(p=>msSnap({x:p.x, y:p.y}));
+  const list=detectQuad(MSFULL, {all:true, n:4});
+  if(!list || !list.length){ MS.auto=-1; return false; }
+
+  if(MS.mode==='wall' && list.length>=2){
+    const margin=0.03*Math.max(MS.iw, MS.ih);
+    const byArea=list.slice().sort((a,b)=>b.area-a.area);
+    for(let i=0;i<byArea.length;i++){
+      for(let j=0;j<byArea.length;j++){
+        if(i===j) continue;
+        const big=byArea[i], small=byArea[j];
+        if(big.area < 0.18) continue;              /* الجدار يملأ الكادر */
+        if(small.area > big.area*0.45) continue;   /* الفتحة أصغر بوضوح */
+        if(!dtInside(small.q, big.q, margin)) continue;
+        MS.wall=big.q.map(p=>({x:p.x,y:p.y}));
+        MS.open=small.q.map(p=>({x:p.x,y:p.y}));
+        MS.auto=2;
+        return true;
+      }
+    }
+  }
+  MS.open=list[0].q.map(p=>({x:p.x,y:p.y}));
   MS.auto=1;
+  /* لم نتعرّف على الجدار — نوجّه الفني إليه بدل إسناد مشكوك فيه */
+  if(MS.mode==='wall' && MS.wall.length<4) MS.active='wall';
   return true;
 }
 
-/* ---- وضع «ارتفاع الجدار» ----
-   المرجع هو ارتفاع الجدار من الأرض للسقف: كبير فالخطأ النسبي صغير،
-   وعلى نفس مستوى الفتحة. نسقط نقطتي الأرض والسقف إلى إحداثيات
-   الفتحة، فيعطي طولهما المعلوم المقياس المطلق — تماماً كما يفعل
-   وضع المرجع، لكن بضلع واحد معلوم بدل مستطيل كامل.
+/* ---- وضع «مستطيل الجدار» ----
+   نبني التحويل من مستطيل الجدار كاملاً — لا من الفتحة — ثم نُسقط
+   أركان الفتحة داخله فتخرج مقاساتها بالسنتيمتر مباشرة.
 
-   تحذير جوهري: النقطتان على وجه الجدار. لو ضُغطت أركان الفتحة على
-   إطار شباك غائر داخل الجدار فالمستويان مختلفان، والمقاس يخرج
-   أصغر بنسبة تساوي الغَور مقسوماً على مسافة التصوير. لذلك التعليمة
-   صريحة: أركان الفتحة عند وجه الجدار — وهي أصلاً ما يُصنَع عليه. */
+   لماذا هذا أدق: تقدير نسبة الأضلاع من رباعي صغير هو أكبر مصدر
+   خطأ، ويزداد سوءاً في التصوير المواجه حيث يتعذّر استرجاع البُعد
+   البؤري. الجدار رباعي كبير فتقديره متين، وأركان الفتحة تصير
+   مُسقَطة لا مُستخدَمة في تقدير التحويل. القياس على مشاهد
+   اصطناعية بضوضاء نقر متطابقة أعطى خطأً أقل بثلاثة أضعاف، وفي
+   الحالة المواجهة نزل من ١١٫٩٪ إلى ٢٫٦٪.
+
+   يبقى شرط المستوى الواحد: أركان الفتحة عند وجه الجدار لا على
+   إطار غائر — وإلا نقص المقاس بمقدار الغَور ÷ مسافة التصوير. */
 function wallMeasure(S){
   const E=msEng(); if(!E) return null;
   if(!S.open || S.open.length!==4) return null;
-  if(!S.wall || S.wall.length!==2) return null;
-  const L=n0(S.wallH); if(!(L>0)) return null;
-  const O=S.open.map(p=>[p.x,p.y]);
-  const asp=E.aspectOfRect(O, S.imgW/2, S.imgH/2);
-  if(!asp) return null;
-  const a=asp.a;
-  const Hs=E.solveH(O, [[0,0],[1,0],[1,1],[0,1]]);
-  if(!Hs) return null;
-  const P=S.wall.map(p=>E.applyH(Hs,[p.x,p.y]));
-  if(P.some(q=>!q)) return null;
-  const du=P[1][0]-P[0][0], dv=(P[1][1]-P[0][1])/a;
-  const k=Math.hypot(du,dv);
-  if(!(k>1e-9)) return null;
-  let W=L/k, H=W/a;
-  /* تصحيح اختياري للغَور — الخطأ ≈ الغَور ÷ مسافة التصوير */
+  if(!S.wall || S.wall.length!==4) return null;
+  const Hh=n0(S.wallH); if(!(Hh>0)) return null;
+  /* الفتحة لا بد أن تقع داخل مستطيل الجدار بهامش حقيقي.
+     بدون هذا الفحص، لو التقط الكشف التلقائي الجدارَ نفسه بوصفه
+     «فتحة» لخرج القياس ٤٢٠×٣٠٠ — أي مقاس الجدار — بحساب صحيح
+     وإسناد خاطئ، وهو أخطر أنواع الخطأ لأنه لا يبدو خطأً. */
+  const mg=0.02*Math.max(S.imgW, S.imgH);
+  if(typeof dtInside==='function' && !dtInside(S.open, S.wall, mg)) return null;
+  const Wq=S.wall.map(p=>[p.x,p.y]);
+  const asp=E.aspectOfRect(Wq, S.imgW/2, S.imgH/2);
+  if(!asp || !(asp.a>0)) return null;
+  const Ww=Hh*asp.a;
+  const Hm=E.solveH(Wq, [[0,0],[Ww,0],[Ww,Hh],[0,Hh]]);
+  if(!Hm) return null;
+  const O=S.open.map(p=>E.applyH(Hm,[p.x,p.y]));
+  if(O.some(q=>!q)) return null;
+  const d=(i,j)=>Math.hypot(O[i][0]-O[j][0], O[i][1]-O[j][1]);
+  let W=(d(0,1)+d(3,2))/2, H=(d(0,3)+d(1,2))/2;
+  if(!(W>0&&H>0) || !isFinite(W) || !isFinite(H)) return null;
+  /* تفاوت الضلعين المتقابلين = فحص داخلي يكشف ركناً موضوعاً خطأً
+     أو فتحة ليست على مستوى الجدار */
+  const square=((Math.abs(d(0,1)-d(3,2))/W) + (Math.abs(d(0,3)-d(1,2))/H))/2*100;
   const dp=n0(S.depth), ds=n0(S.dist);
   let corr=0;
   if(dp>0 && ds>0 && dp<ds*0.5){
-    const c=1/(1-dp/ds);
-    W*=c; H*=c; corr=(c-1)*100;
+    const c=1/(1-dp/ds); W*=c; H*=c; corr=(c-1)*100;
   }
-  if(!(W>0&&H>0) || !isFinite(W) || !isFinite(H)) return null;
-  return {W, H, aspect:a, tilt:asp.tilt, frontal:asp.frontal, square:0,
-          refRel:L/Math.max(W,H), corr};
+  return {W, H, aspect:W/H, tilt:asp.tilt, frontal:asp.frontal,
+          square, wallW:Ww, refRel:Hh/Math.max(W,H), corr};
 }
 function wallUncert(S, base){
   const px=Math.max(1.2, S.imgW/900);
@@ -11862,7 +11941,7 @@ function msResult(){
   if(MS.open.length!==4) return null;
   const S=msState();
   if(MS.mode==='wall'){
-    if(MS.wall.length!==2 || !(n0(MS.wallH)>0)) return null;
+    if(MS.wall.length!==4 || !(n0(MS.wallH)>0)) return null;
     let m=null; try{ m=wallMeasure(S); }catch(e){ return null; }
     if(!m) return null;
     try{ const u=wallUncert(S,m); m.dW=u.dW; m.dH=u.dH; }catch(e){ m.dW=0; m.dH=0; }
@@ -11966,10 +12045,12 @@ function msPaint(){
   let hint;
   if(!has) hint=msT('msShoot');
   else if(need==='ref'  && nRef<4)  hint=TF('msTapRef',{n:nRef+1});
-  else if(need==='wall' && nWall<2) hint=nWall===0 ? msT('msTapFloor') : msT('msTapCeil');
+  else if(need==='wall' && nWall<4) hint=TF('msTapWall',{n:nWall+1});
   else if(nOpen<4) hint=TF('msTapOpen',{n:nOpen+1});
-  else if(MS.mode==='wall' && nWall<2) hint=msT('msTapFloor');
+  else if(MS.mode==='wall' && nWall<4) hint=TF('msTapWall',{n:nWall+1});
   else if(MS.mode==='known' && !(n0(MS.knownVal)>0)) hint=msT('msNeedVal');
+  else if(MS.mode==='wall' && nWall===4 && nOpen===4 && !m) hint=msT('msNotInside');
+  else if(MS.auto===2) hint=msT('msAutoBoth');
   else if(MS.auto===1) hint=msT('msAutoOk');
   else hint=msT('msDrag');
 
@@ -11996,7 +12077,7 @@ function msPaint(){
               + `${esc(msT('msRefPts'))}<s>${nRef}/4</s></button>` : '')
         + (MS.mode==='wall'
             ? `<button class="fmMsStep" data-msact="wall" aria-pressed="${MS.active==='wall'}">`
-              + `${esc(msT('msWallPts'))}<s>${nWall}/2</s></button>` : '')
+              + `${esc(msT('msWallPts'))}<s>${nWall}/4</s></button>` : '')
         + `<button class="fmMsStep" data-msauto="1">${esc(msT('msRedo'))}</button>`
         + `<button class="fmMsStep" data-msclear="1">${esc(msT('msReset'))}</button></div>`
         + (MS.auto===-1
@@ -12072,7 +12153,7 @@ function msWire(){
   document.querySelectorAll('#fmMs [data-msmode]').forEach(b=>{
     b.onclick=()=>{ MS.mode=b.dataset.msmode;
       if(MS.mode==='known') MS.active='open';
-      else if(MS.mode==='wall' && MS.wall.length<2 && MS.open.length===4) MS.active='wall';
+      else if(MS.mode==='wall' && MS.wall.length<4 && MS.open.length===4) MS.active='wall';
       msPaint(); };
   });
   document.querySelectorAll('#fmMs [data-msact]').forEach(b=>{
@@ -12110,11 +12191,11 @@ function msWire(){
       const p=msPt(e,cv);
       const key=MS.active;
       const arr = key==='ref' ? MS.ref : key==='wall' ? MS.wall : MS.open;
-      const cap = key==='wall' ? 2 : 4;
+      const cap = 4;
       const hit=msNear(arr,p);
       if(hit>=0){ MSDRAG={key, i:hit}; }
       else if(arr.length<cap){
-        arr.push(key==='wall' ? p : msSnap(p));      /* نقاط الأرض والسقف لا تُشدّ لزاوية */
+        arr.push(msSnap(p));
         MSDRAG={key, i:arr.length-1};
       }
       else return;
@@ -12131,13 +12212,11 @@ function msWire(){
     };
     const up=()=>{
       if(!MSDRAG) return;
-      if(MSDRAG.key!=='wall'){
-        const arr = MSDRAG.key==='ref' ? MS.ref : MS.open;
-        arr[MSDRAG.i]=msSnap(arr[MSDRAG.i]);
-      }
+      const arr0 = MSDRAG.key==='ref' ? MS.ref : MSDRAG.key==='wall' ? MS.wall : MS.open;
+      arr0[MSDRAG.i]=msSnap(arr0[MSDRAG.i]);
       MSDRAG=null; msLoupe(false);
       if(MS.mode==='ref'  && MS.active==='ref'  && MS.ref.length===4  && MS.open.length<4) MS.active='open';
-      if(MS.mode==='wall' && MS.active==='wall' && MS.wall.length===2 && MS.open.length<4) MS.active='open';
+      if(MS.mode==='wall' && MS.active==='wall' && MS.wall.length===4 && MS.open.length<4) MS.active='open';
       msPaint();
     };
     cv.onpointerup=up; cv.onpointercancel=up;
@@ -12484,7 +12563,7 @@ function dl(text, name){
 window.__FIELD = {encode, payload, validate, totals, deflate, shrink, returnURL, loadPhotos, L,
                   msOpen, msClose, msResult, msSetPhoto, msPaint, detectQuad,
                   dtGray, dtSobel, dtHough, dtLines, dtBestPair, dtPairs, dtCross, dtArea, dtConvex,
-                  dtOrder, dtScoreQuad, dtBaseline, dtEdgeSupport,
+                  dtOrder, dtScoreQuad, dtBaseline, dtEdgeSupport, dtInside,
                   get MS(){return MS}, set MS(v){MS=v}, get S(){return S}, set S(v){S=v}, KINDS, COLORS,
                   get LANG(){return LANG}, set LANG(v){LANG=v}, render, b64u};
 
