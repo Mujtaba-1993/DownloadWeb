@@ -10973,6 +10973,10 @@ body.fmOn{--fm-bg:#F4F6F7}
 #fmRoot .fmMsStep s{text-decoration:none;font-family:"IBM Plex Mono",monospace;opacity:.7;margin-inline-start:5px}
 #fmRoot .fmMsSeg3{grid-template-columns:1fr 1fr 1fr}
 #fmRoot .fmMsSeg3 button{font-size:12.5px;padding:10px 3px}
+#fmRoot .fmMsBlock{background:#FBF3E8;border:1px solid #D9B98C;color:#6B4A22;
+  border-radius:9px;padding:9px 11px;font-size:12.5px;line-height:1.75;margin-bottom:9px;
+  text-align:center;font-weight:600}
+#fmRoot .fmBig:disabled{font-size:14px;font-weight:600}
 
 </style>
 
@@ -11059,6 +11063,13 @@ ar:{
   msAutoBoth:'حدّدت الجدار والفتحة تلقائياً — راجع الأركان الثمانية قبل الاعتماد.',
   msAutoFail:'ما قدرت أحدد الفتحة تلقائياً — اضغط الأركان الأربعة بنفسك.',
   msRedo:'كشف تلقائي',
+  msNeedPhoto:'صوّر الفتحة أولاً',
+  msNeedOpen:'حدّد أركان الفتحة الأربعة ({n}/4)',
+  msNeedWall:'حدّد أركان الجدار الأربعة ({n}/4) — منها يأتي المقياس',
+  msNeedWallH:'اكتب ارتفاع الجدار',
+  msNeedRef:'حدّد أركان المرجع الأربعة ({n}/4)',
+  msNeedRefSize:'اكتب مقاس المرجع',
+  msNeedMore:'المدخلات غير كافية للحساب',
   msNotInside:'أركان الفتحة ليست داخل مستطيل الجدار — تأكد أن الرباعي الأصفر على الشباك والأخضر على الجدار كاملاً.',
   msCorners:'زوايا الفتحة', msRefPts:'زوايا المرجع', msReset:'امسح النقاط',
   msWhich:'أي مقاس قسته', msKnownVal:'قيمته',
@@ -11121,6 +11132,13 @@ en:{
   msAutoBoth:'Wall and opening both detected — check all eight corners before confirming.',
   msAutoFail:'Could not detect the opening — tap the four corners yourself.',
   msRedo:'Auto-detect',
+  msNeedPhoto:'Take a photo first',
+  msNeedOpen:'Mark the four opening corners ({n}/4)',
+  msNeedWall:'Mark the four wall corners ({n}/4) — the scale comes from these',
+  msNeedWallH:'Enter the wall height',
+  msNeedRef:'Mark the four reference corners ({n}/4)',
+  msNeedRefSize:'Enter the reference size',
+  msNeedMore:'Not enough input to compute',
   msNotInside:'The opening corners are not inside the wall rectangle — check that the yellow quad is on the window and the green one on the whole wall.',
   msCorners:'Opening corners', msRefPts:'Reference corners', msReset:'Clear points',
   msWhich:'Which one you measured', msKnownVal:'Its value',
@@ -12029,6 +12047,30 @@ function msLoupe(show, p){
   lp.classList.add('on');
 }
 
+/* ---- سبب تعطّل زر الاعتماد ----
+   الزر المعطّل بلا سبب ظاهر يوقف العمل: التلميح أعلى اللوحة يختفي
+   بالتمرير، فالسبب يُكتب على الزر نفسه وفوقه مباشرة. */
+function msBlock(){
+  if(!MS.img) return msT('msNeedPhoto');
+  const nO=MS.open.length;
+  if(nO<4) return TF('msNeedOpen',{n:nO});
+  if(MS.mode==='wall'){
+    const nW=MS.wall.length;
+    if(nW<4) return TF('msNeedWall',{n:nW});
+    if(!(n0(MS.wallH)>0)) return msT('msNeedWallH');
+    if(!msResult()) return msT('msNotInside');
+    return '';
+  }
+  if(MS.mode==='ref'){
+    const nR=MS.ref.length;
+    if(nR<4) return TF('msNeedRef',{n:nR});
+    if(!(n0(MS.refW)>0 && n0(MS.refH)>0)) return msT('msNeedRefSize');
+    return msResult() ? '' : msT('msNeedMore');
+  }
+  if(!(n0(MS.knownVal)>0)) return msT('msNeedVal');
+  return msResult() ? '' : msT('msNeedMore');
+}
+
 /* ---- الواجهة ---- */
 function msPaint(){
   const box=document.getElementById('fmMsCtl'); if(!box) return;
@@ -12036,6 +12078,7 @@ function msPaint(){
   const need = MS.active;
   const nOpen=MS.open.length, nRef=MS.ref.length, nWall=MS.wall.length;
   const m=msResult();
+  const block=msBlock();
 
   document.getElementById('fmMsPane').innerHTML = has
     ? '<canvas id="fmMsCv"></canvas><div class="fmLoupe" id="fmLoupe"><canvas></canvas></div>'
@@ -12131,7 +12174,8 @@ function msPaint(){
         : '')
     + `<div class="fmMsHint" style="background:#F1F3F4;border-color:var(--hair);color:var(--soft)">`
     +   `${esc(msT('msDisc'))}</div>`
-    + `<button class="fmBig" id="fmMsUse"${m?'':' disabled'}>${esc(msT('msUse'))}</button>`;
+    + `<button class="fmBig" id="fmMsUse"${m?'':' disabled'}>`
+    +   esc(m ? msT('msUse') : block || msT('msUse')) + `</button>`;
 
   msWire();
 }
@@ -12237,9 +12281,11 @@ function msWire(){
 /* تحديث النتيجة وحدها أثناء الكتابة حتى لا يقفز المؤشر */
 function msPaintResultOnly(){
   const m=msResult();
+  const block=msBlock();
   const res=document.querySelector('#fmMsCtl .fmMsRes');
   const use=document.getElementById('fmMsUse');
-  if(use) use.disabled=!m;
+  if(use){ use.disabled=!m; use.textContent = m ? msT('msUse') : (block || msT('msUse')); }
+
   if(m && res){
     res.innerHTML=`<div class="fmMsBig"><bdi dir="ltr">${m.W.toFixed(1)} × ${m.H.toFixed(1)}</bdi> ${esc(T('cm'))}</div>`
       + `<div class="fmMsPm">± <bdi dir="ltr">${m.dW.toFixed(1)}</bdi> / `
