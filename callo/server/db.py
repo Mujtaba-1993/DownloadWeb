@@ -5,7 +5,8 @@ DB_PATH = Path(__file__).parent / "data" / "contacts.db"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS contacts (
-    apollo_id           TEXT PRIMARY KEY,
+    id                   TEXT PRIMARY KEY,  -- 'email:<lower email>' when known, else '<source>:<hash>'
+    apollo_id            TEXT,              -- Apollo's own contact id, when this record came from Apollo
     first_name          TEXT,
     last_name           TEXT,
     full_name           TEXT,
@@ -20,7 +21,7 @@ CREATE TABLE IF NOT EXISTS contacts (
     state               TEXT,
     country             TEXT,
     label_ids           TEXT,       -- JSON array, Apollo's own list membership
-    source              TEXT DEFAULT 'apollo',
+    source              TEXT DEFAULT 'apollo',  -- comma-separated: apollo, vssr, bfo
     apollo_created_at   TEXT,
     apollo_updated_at   TEXT,
     synced_at           TEXT,
@@ -36,6 +37,15 @@ CREATE INDEX IF NOT EXISTS idx_contacts_email ON contacts(email);
 CREATE INDEX IF NOT EXISTS idx_contacts_title ON contacts(title);
 CREATE INDEX IF NOT EXISTS idx_contacts_favorite ON contacts(is_favorite);
 """
+
+# Fields that get merged non-destructively: a re-sync or a second source
+# fills in a blank, but never blanks out a value that's already known.
+_MERGE_FIELDS = [
+    "apollo_id", "first_name", "last_name", "full_name", "title", "email",
+    "email_status", "phone", "linkedin_url", "organization_name",
+    "organization_domain", "city", "state", "country", "label_ids",
+    "apollo_created_at", "apollo_updated_at", "synced_at",
+]
 
 
 def get_connection():
@@ -54,38 +64,35 @@ def init_db():
 
 
 def upsert_contact(conn, c: dict):
-    """Insert a contact, or update its Apollo-sourced fields while preserving
-    the personal notes/tags/favorite fields already set locally."""
+    """Insert a contact, or merge it into an existing row with the same id
+    (typically the same email seen from a different source). Merging never
+    blanks out a value that's already known, and combines the `source` list
+    instead of overwriting it. Personal notes/tags/favorite are untouched."""
+    merge_sets = ", ".join(
+        f"{field}=CASE WHEN excluded.{field} IS NOT NULL AND excluded.{field} != '' "
+        f"THEN excluded.{field} ELSE contacts.{field} END"
+        for field in _MERGE_FIELDS
+    )
     conn.execute(
-        """
+        f"""
         INSERT INTO contacts (
-            apollo_id, first_name, last_name, full_name, title, email, email_status,
+            id, apollo_id, first_name, last_name, full_name, title, email, email_status,
             phone, linkedin_url, organization_name, organization_domain,
             city, state, country, label_ids, source,
             apollo_created_at, apollo_updated_at, synced_at
         ) VALUES (
-            :apollo_id, :first_name, :last_name, :full_name, :title, :email, :email_status,
+            :id, :apollo_id, :first_name, :last_name, :full_name, :title, :email, :email_status,
             :phone, :linkedin_url, :organization_name, :organization_domain,
             :city, :state, :country, :label_ids, :source,
             :apollo_created_at, :apollo_updated_at, :synced_at
         )
-        ON CONFLICT(apollo_id) DO UPDATE SET
-            first_name=excluded.first_name,
-            last_name=excluded.last_name,
-            full_name=excluded.full_name,
-            title=excluded.title,
-            email=excluded.email,
-            email_status=excluded.email_status,
-            phone=excluded.phone,
-            linkedin_url=excluded.linkedin_url,
-            organization_name=excluded.organization_name,
-            organization_domain=excluded.organization_domain,
-            city=excluded.city,
-            state=excluded.state,
-            country=excluded.country,
-            label_ids=excluded.label_ids,
-            apollo_updated_at=excluded.apollo_updated_at,
-            synced_at=excluded.synced_at
+        ON CONFLICT(id) DO UPDATE SET
+            {merge_sets},
+            source=CASE
+                WHEN instr(','||contacts.source||',', ','||excluded.source||',') > 0
+                THEN contacts.source
+                ELSE contacts.source || ',' || excluded.source
+            END
         """,
         c,
     )

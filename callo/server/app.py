@@ -18,7 +18,8 @@ FILTERABLE = {
     "state": "state",
     "country": "country",
     "email_status": "email_status",
-    "tag": None,  # handled specially (substring match on tags JSON)
+    "tag": None,      # handled specially (substring match on tags JSON)
+    "source": None,   # handled specially (substring match on comma-joined source list)
 }
 
 SORTABLE = {
@@ -49,6 +50,9 @@ def build_filters(args):
         if key == "tag":
             clauses.append("tags LIKE ?")
             params.append(f'%"{value}"%')
+        elif key == "source":
+            clauses.append("(','||source||',') LIKE ?")
+            params.append(f"%,{value},%")
         else:
             clauses.append(f"{column} = ?")
             params.append(value)
@@ -101,18 +105,18 @@ def list_contacts():
     )
 
 
-@app.get("/api/contacts/<apollo_id>")
-def get_contact(apollo_id):
+@app.get("/api/contacts/<contact_id>")
+def get_contact(contact_id):
     conn = get_connection()
-    row = conn.execute("SELECT * FROM contacts WHERE apollo_id = ?", [apollo_id]).fetchone()
+    row = conn.execute("SELECT * FROM contacts WHERE id = ?", [contact_id]).fetchone()
     conn.close()
     if not row:
         return jsonify({"error": "not found"}), 404
     return jsonify(row_to_dict(row))
 
 
-@app.patch("/api/contacts/<apollo_id>")
-def update_contact(apollo_id):
+@app.patch("/api/contacts/<contact_id>")
+def update_contact(contact_id):
     body = request.get_json(force=True) or {}
     fields, params = [], []
 
@@ -129,11 +133,11 @@ def update_contact(apollo_id):
     if not fields:
         return jsonify({"error": "no updatable fields provided"}), 400
 
-    params.append(apollo_id)
+    params.append(contact_id)
     conn = get_connection()
-    conn.execute(f"UPDATE contacts SET {', '.join(fields)} WHERE apollo_id = ?", params)
+    conn.execute(f"UPDATE contacts SET {', '.join(fields)} WHERE id = ?", params)
     conn.commit()
-    row = conn.execute("SELECT * FROM contacts WHERE apollo_id = ?", [apollo_id]).fetchone()
+    row = conn.execute("SELECT * FROM contacts WHERE id = ?", [contact_id]).fetchone()
     conn.close()
     if not row:
         return jsonify({"error": "not found"}), 404
@@ -179,6 +183,14 @@ def stats():
     last_sync = conn.execute(
         "SELECT MAX(synced_at) FROM contacts"
     ).fetchone()[0]
+    by_source = {}
+    for source in ("apollo", "vssr", "bfo"):
+        n = conn.execute(
+            "SELECT COUNT(*) FROM contacts WHERE (','||source||',') LIKE ?",
+            [f"%,{source},%"],
+        ).fetchone()[0]
+        if n:
+            by_source[source] = n
     conn.close()
     return jsonify(
         {
@@ -187,6 +199,7 @@ def stats():
             "with_email": with_email,
             "companies": companies,
             "last_synced_at": last_sync,
+            "by_source": by_source,
         }
     )
 

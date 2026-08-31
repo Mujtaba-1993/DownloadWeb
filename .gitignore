@@ -13,8 +13,8 @@
 .externalNativeBuild
 .cxx
 
-# contact-tool: local personal data, never committed
-contact-tool/server/data/
-contact-tool/server/venv/
-contact-tool/**/__pycache__/
-contact-tool/.env
+# callo: local personal data, never committed
+callo/server/data/
+callo/server/venv/
+callo/**/__pycache__/
+callo/.env

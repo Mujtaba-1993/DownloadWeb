@@ -4,7 +4,7 @@ const state = {
   sort: "name",
   order: "asc",
   q: "",
-  filters: { company: "", title: "", country: "", email_status: "", favorite: "" },
+  filters: { company: "", title: "", country: "", email_status: "", source: "", favorite: "" },
 };
 
 const el = (id) => document.getElementById(id);
@@ -20,8 +20,12 @@ function debounce(fn, ms) {
 async function loadStats() {
   const r = await fetch("/api/stats");
   const s = await r.json();
+  const sources = Object.entries(s.by_source || {})
+    .map(([name, n]) => `${name} ${n.toLocaleString()}`)
+    .join(", ");
   el("stats").textContent =
     `${s.total.toLocaleString()} contacts · ${s.companies.toLocaleString()} companies` +
+    (sources ? ` · ${sources}` : "") +
     (s.last_synced_at ? ` · synced ${s.last_synced_at}` : "");
 }
 
@@ -72,7 +76,7 @@ function renderTable(contacts) {
   for (const c of contacts) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><span class="star ${c.is_favorite ? "" : "inactive"}" data-id="${c.apollo_id}">&#9733;</span></td>
+      <td><span class="star ${c.is_favorite ? "" : "inactive"}" data-id="${c.id}">&#9733;</span></td>
       <td><div class="contact-name">${escapeHtml(c.full_name || "")}</div>
           <div class="contact-sub">${escapeHtml(c.linkedin_url ? "LinkedIn" : "")}</div></td>
       <td>${escapeHtml(c.title || "")}</td>
@@ -85,7 +89,7 @@ function renderTable(contacts) {
       e.stopPropagation();
       toggleFavorite(c);
     });
-    tr.addEventListener("click", () => openDrawer(c.apollo_id));
+    tr.addEventListener("click", () => openDrawer(c.id));
     body.appendChild(tr);
   }
 }
@@ -108,7 +112,7 @@ function renderPagination(total, page, perPage) {
 }
 
 async function toggleFavorite(c) {
-  const r = await fetch(`/api/contacts/${c.apollo_id}`, {
+  const r = await fetch(`/api/contacts/${c.id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ is_favorite: !c.is_favorite }),
@@ -184,7 +188,7 @@ function init() {
     }, 300)
   );
 
-  for (const key of ["company", "title", "country", "email_status"]) {
+  for (const key of ["company", "title", "country", "email_status", "source"]) {
     el(`filter-${key}`).addEventListener("change", (e) => {
       state.filters[key] = e.target.value;
       state.page = 1;
@@ -198,10 +202,10 @@ function init() {
   });
   el("clear-filters").addEventListener("click", () => {
     state.q = "";
-    state.filters = { company: "", title: "", country: "", email_status: "", favorite: "" };
+    state.filters = { company: "", title: "", country: "", email_status: "", source: "", favorite: "" };
     state.page = 1;
     el("search-input").value = "";
-    for (const key of ["company", "title", "country", "email_status"]) el(`filter-${key}`).value = "";
+    for (const key of ["company", "title", "country", "email_status", "source"]) el(`filter-${key}`).value = "";
     el("filter-favorite").checked = false;
     loadContacts();
   });

@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My Contacts</title>
+  <title>Callo</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
     <header class="topbar">
-      <h1>My Contacts</h1>
+      <h1>Callo</h1>
       <div class="stats" id="stats"></div>
       <div class="search">
         <input id="search-input" type="search" placeholder="Search name, email, company, title..." />
@@ -34,6 +34,15 @@
         <div class="filter-group">
           <label>Email status</label>
           <select id="filter-email_status"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Source</label>
+          <select id="filter-source">
+            <option value="">All</option>
+            <option value="apollo">Apollo</option>
+            <option value="vssr">VSSR</option>
+            <option value="bfo">BFO</option>
+          </select>
         </div>
         <div class="filter-group checkbox">
           <label><input type="checkbox" id="filter-favorite" /> Favorites only</label>

@@ -9,17 +9,28 @@ def best_phone(contact: dict) -> str:
     return ""
 
 
+def contact_id(email: str, source: str, fallback_key: str) -> str:
+    """A stable id: contacts sharing an email merge across sources; without
+    an email, fall back to a per-source key so records stay distinct."""
+    email = (email or "").strip().lower()
+    if email:
+        return f"email:{email}"
+    return f"{source}:{fallback_key}"
+
+
 def flatten(contact: dict, synced_at: str) -> dict:
     org = contact.get("organization") or contact.get("account") or {}
+    email = contact.get("email") or ""
     return {
-        "apollo_id": contact.get("id"),
+        "id": contact_id(email, "apollo", contact.get("id") or ""),
+        "apollo_id": contact.get("id") or "",
         "first_name": contact.get("first_name") or "",
         "last_name": contact.get("last_name") or "",
         "full_name": contact.get("name") or " ".join(
             filter(None, [contact.get("first_name"), contact.get("last_name")])
         ),
         "title": contact.get("title") or "",
-        "email": contact.get("email") or "",
+        "email": email,
         "email_status": contact.get("email_status") or "",
         "phone": best_phone(contact),
         "linkedin_url": contact.get("linkedin_url") or "",
