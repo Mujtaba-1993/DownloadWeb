@@ -1,3 +1,4 @@
+import os
 import sqlite3
 from pathlib import Path
 
@@ -50,9 +51,14 @@ _MERGE_FIELDS = [
 
 def get_connection():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    os.chmod(DB_PATH.parent, 0o700)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL;")
+    for suffix in ("", "-wal", "-shm"):
+        path = Path(str(DB_PATH) + suffix)
+        if path.exists():
+            os.chmod(path, 0o600)
     return conn
 
 

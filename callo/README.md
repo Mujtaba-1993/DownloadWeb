@@ -53,7 +53,36 @@ somewhere local before running the importer.
 python app.py
 ```
 
-Open **http://127.0.0.1:5050** in your browser.
+The first time it runs, it prints a password:
+
+```
+Callo password: ZsjGEqqZKpbBX4QP6mkj0egj
+```
+
+Open **http://127.0.0.1:5050** — your browser will prompt for a username
+(anything) and password (the one printed above). Enter it once; the
+browser remembers it for the session.
+
+To set your own password instead of the generated one, set `CALLO_PASSWORD`
+before running `app.py`. Either way it's saved to `server/data/.auth`
+(0600 permissions) so it stays the same across restarts.
+
+## Security — who can reach your contacts
+
+- The server only binds to `127.0.0.1` (localhost) — nothing outside this
+  machine can connect to it, ever. Don't change the `host=` in `app.py` to
+  `0.0.0.0` unless you also put it behind something that adds real
+  encryption (e.g. Tailscale, an SSH tunnel) — plain HTTP + Basic Auth is
+  fine on loopback but not over a real network.
+- Every request — the page itself and every API call — requires the
+  password above. No password, wrong password, and you get a 401 with no
+  data.
+- `server/data/` (the database and the password file) is created with
+  `chmod 700`; the database and password files themselves are `chmod 600`
+  — unreadable by other accounts on a shared machine.
+- The debug server's interactive debugger is off by default. Only enable
+  it (`CALLO_DEBUG=1 python app.py`) while you're actively developing —
+  it lets anyone who can reach the server run arbitrary code.
 
 ## What it does
 

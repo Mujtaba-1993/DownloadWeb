@@ -1,15 +1,30 @@
 import csv
 import io
 import json
+import os
 from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory, Response
 
 from db import get_connection, init_db
+import auth
 
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
 app = Flask(__name__, static_folder=str(FRONTEND_DIR), static_url_path="")
+
+CALLO_PASSWORD = auth.get_or_create_password()
+
+
+@app.before_request
+def require_auth():
+    creds = request.authorization
+    if not creds or not auth.check_password(creds.password, CALLO_PASSWORD):
+        return Response(
+            "Authentication required.",
+            401,
+            {"WWW-Authenticate": 'Basic realm="Callo"'},
+        )
 
 FILTERABLE = {
     "company": "organization_name",
@@ -237,4 +252,9 @@ def index():
 
 if __name__ == "__main__":
     init_db()
-    app.run(host="127.0.0.1", port=5050, debug=True)
+    print(f"Callo password: {CALLO_PASSWORD}")
+    print("(saved to server/data/.auth, 0600 permissions -- keep this local)")
+    debug = os.environ.get("CALLO_DEBUG") == "1"
+    # Bind to localhost only: nothing outside this machine can reach it, and
+    # every request (even from this machine) still needs the password above.
+    app.run(host="127.0.0.1", port=5050, debug=debug)
