@@ -2,13 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Callo" />
   <title>Callo</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
     <header class="topbar">
+      <button class="filters-toggle" id="filters-toggle" aria-label="Toggle filters">&#9776;</button>
       <h1>Callo</h1>
       <div class="stats" id="stats"></div>
       <div class="search">
@@ -18,7 +22,8 @@
     </header>
 
     <div class="body">
-      <aside class="sidebar">
+      <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+      <aside class="sidebar" id="sidebar">
         <div class="filter-group">
           <label>Company</label>
           <select id="filter-company"><option value="">All</option></select>
@@ -51,20 +56,22 @@
       </aside>
 
       <main class="content">
-        <table class="contacts-table">
-          <thead>
-            <tr>
-              <th></th>
-              <th data-sort="name">Name</th>
-              <th data-sort="title">Title</th>
-              <th data-sort="company">Company</th>
-              <th data-sort="email">Email</th>
-              <th>Phone</th>
-              <th>Location</th>
-            </tr>
-          </thead>
-          <tbody id="contacts-body"></tbody>
-        </table>
+        <div class="contacts-table-wrap">
+          <table class="contacts-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th data-sort="name">Name</th>
+                <th data-sort="title">Title</th>
+                <th data-sort="company">Company</th>
+                <th data-sort="email">Email</th>
+                <th>Phone</th>
+                <th>Location</th>
+              </tr>
+            </thead>
+            <tbody id="contacts-body"></tbody>
+          </table>
+        </div>
         <div class="pagination" id="pagination"></div>
       </main>
     </div>

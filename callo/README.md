@@ -67,13 +67,48 @@ To set your own password instead of the generated one, set `CALLO_PASSWORD`
 before running `app.py`. Either way it's saved to `server/data/.auth`
 (0600 permissions) so it stays the same across restarts.
 
+## 3. Use it on your iPhone, from anywhere (Tailscale)
+
+Callo defaults to `127.0.0.1` — only reachable from the computer it's
+running on. To reach it from your iPhone, even away from home, put it on
+your own private [Tailscale](https://tailscale.com) network instead of
+opening it to the public internet:
+
+1. Install Tailscale on the computer running Callo: <https://tailscale.com/download>.
+   Sign in (free for personal use) and turn it on.
+2. Install the **Tailscale** app from the App Store on your iPhone, and
+   sign in with the same account. Turn the VPN toggle on.
+3. On the computer, find its Tailscale address:
+   ```bash
+   tailscale ip -4
+   ```
+   It looks like `100.x.y.z`.
+4. Run Callo bound to that address instead of localhost:
+   ```bash
+   CALLO_HOST=100.x.y.z python app.py
+   ```
+5. On your iPhone (with the Tailscale toggle on), open Safari to
+   `http://100.x.y.z:5050` and enter the Callo password. It works the same
+   whether you're on the same Wi-Fi or on cellular data anywhere else —
+   Tailscale tunnels the connection to your computer either way.
+6. Optional: tap the Share button in Safari → **Add to Home Screen** for a
+   full-screen, app-like icon.
+
+Why this is safe: Tailscale is a private mesh VPN — traffic is end-to-end
+encrypted, and only devices you've signed into *your* Tailscale account can
+even address `100.x.y.z`. It's invisible and unreachable to everyone else,
+including other people on the same Wi-Fi. Callo's own password is still
+required on top of that. Your computer needs to be on and awake for your
+phone to reach it.
+
 ## Security — who can reach your contacts
 
-- The server only binds to `127.0.0.1` (localhost) — nothing outside this
-  machine can connect to it, ever. Don't change the `host=` in `app.py` to
-  `0.0.0.0` unless you also put it behind something that adds real
-  encryption (e.g. Tailscale, an SSH tunnel) — plain HTTP + Basic Auth is
-  fine on loopback but not over a real network.
+- By default the server only binds to `127.0.0.1` (localhost) — nothing
+  outside this machine can connect to it. Setting `CALLO_HOST` to your
+  Tailscale address (above) is the recommended way to widen that, since
+  Tailscale itself is what keeps it private. Don't set it to `0.0.0.0`
+  or your plain LAN IP — that would make it reachable (Basic Auth
+  credentials and all, unencrypted) by anyone else on the same Wi-Fi.
 - Every request — the page itself and every API call — requires the
   password above. No password, wrong password, and you get a 401 with no
   data.

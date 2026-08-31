@@ -188,11 +188,17 @@ function init() {
     }, 300)
   );
 
+  const closeSidebar = () => {
+    el("sidebar").classList.remove("open");
+    el("sidebar-backdrop").classList.remove("open");
+  };
+
   for (const key of ["company", "title", "country", "email_status", "source"]) {
     el(`filter-${key}`).addEventListener("change", (e) => {
       state.filters[key] = e.target.value;
       state.page = 1;
       loadContacts();
+      closeSidebar();
     });
   }
   el("filter-favorite").addEventListener("change", (e) => {
@@ -208,6 +214,7 @@ function init() {
     for (const key of ["company", "title", "country", "email_status", "source"]) el(`filter-${key}`).value = "";
     el("filter-favorite").checked = false;
     loadContacts();
+    closeSidebar();
   });
 
   document.querySelectorAll("th[data-sort]").forEach((th) => {
@@ -221,6 +228,15 @@ function init() {
 
   el("drawer-close").addEventListener("click", closeDrawer);
   el("drawer-backdrop").addEventListener("click", closeDrawer);
+
+  el("filters-toggle").addEventListener("click", () => {
+    el("sidebar").classList.add("open");
+    el("sidebar-backdrop").classList.add("open");
+  });
+  el("sidebar-backdrop").addEventListener("click", () => {
+    el("sidebar").classList.remove("open");
+    el("sidebar-backdrop").classList.remove("open");
+  });
 
   loadStats();
   loadFacets();

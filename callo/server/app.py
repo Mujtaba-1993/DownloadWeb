@@ -255,6 +255,10 @@ if __name__ == "__main__":
     print(f"Callo password: {CALLO_PASSWORD}")
     print("(saved to server/data/.auth, 0600 permissions -- keep this local)")
     debug = os.environ.get("CALLO_DEBUG") == "1"
-    # Bind to localhost only: nothing outside this machine can reach it, and
-    # every request (even from this machine) still needs the password above.
-    app.run(host="127.0.0.1", port=5050, debug=debug)
+    # Defaults to localhost-only: nothing but this machine can reach it.
+    # Set CALLO_HOST to your Tailscale IP (see README) to reach it from your
+    # iPhone anywhere -- every request still needs the password above either way.
+    host = os.environ.get("CALLO_HOST", "127.0.0.1")
+    if host != "127.0.0.1":
+        print(f"Listening on {host} -- reachable by anything that can route to that address.")
+    app.run(host=host, port=5050, debug=debug)

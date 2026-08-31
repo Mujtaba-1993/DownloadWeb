@@ -44,6 +44,16 @@ body {
   background: var(--panel);
 }
 .topbar h1 { font-size: 18px; margin: 0; white-space: nowrap; }
+.filters-toggle {
+  display: none;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 6px;
+  font-size: 16px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
 .stats { color: var(--muted); font-size: 13px; white-space: nowrap; }
 .search { flex: 1; }
 .search input {
@@ -96,9 +106,13 @@ body {
   cursor: pointer;
 }
 
+.sidebar-backdrop { display: none; }
+
 .content { flex: 1; overflow-y: auto; padding: 16px 20px; }
 
-.contacts-table { width: 100%; border-collapse: collapse; background: var(--panel); border-radius: 10px; overflow: hidden; }
+.contacts-table-wrap { overflow-x: auto; border-radius: 10px; }
+
+.contacts-table { width: 100%; min-width: 640px; border-collapse: collapse; background: var(--panel); border-radius: 10px; overflow: hidden; }
 .contacts-table th {
   text-align: left;
   font-size: 12px;
@@ -187,4 +201,37 @@ body {
   color: var(--accent-contrast);
   font-weight: 600;
   cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .topbar { gap: 10px; padding: 10px 12px; flex-wrap: wrap; }
+  .topbar h1 { font-size: 16px; }
+  .stats { display: none; }
+  .search { order: 3; flex-basis: 100%; }
+  .export-btn { padding: 8px 10px; font-size: 12px; }
+
+  .filters-toggle { display: block; }
+
+  .sidebar {
+    position: fixed;
+    top: 0; left: -260px;
+    width: 240px; height: 100%;
+    z-index: 21;
+    transition: left 0.2s ease;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.2);
+  }
+  .sidebar.open { left: 0; }
+
+  .sidebar-backdrop.open {
+    display: block;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 20;
+  }
+
+  .content { padding: 10px; }
+
+  .drawer { width: 100%; right: -100%; }
+
+  .pagination { flex-wrap: wrap; }
 }
