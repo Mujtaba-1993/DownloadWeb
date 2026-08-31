@@ -1,0 +1,36 @@
+import json
+
+
+def best_phone(contact: dict) -> str:
+    for number in contact.get("phone_numbers") or []:
+        value = number.get("sanitized_number") or number.get("raw_number")
+        if value:
+            return value
+    return ""
+
+
+def flatten(contact: dict, synced_at: str) -> dict:
+    org = contact.get("organization") or contact.get("account") or {}
+    return {
+        "apollo_id": contact.get("id"),
+        "first_name": contact.get("first_name") or "",
+        "last_name": contact.get("last_name") or "",
+        "full_name": contact.get("name") or " ".join(
+            filter(None, [contact.get("first_name"), contact.get("last_name")])
+        ),
+        "title": contact.get("title") or "",
+        "email": contact.get("email") or "",
+        "email_status": contact.get("email_status") or "",
+        "phone": best_phone(contact),
+        "linkedin_url": contact.get("linkedin_url") or "",
+        "organization_name": contact.get("organization_name") or org.get("name") or "",
+        "organization_domain": org.get("primary_domain") or org.get("domain") or "",
+        "city": contact.get("city") or "",
+        "state": contact.get("state") or "",
+        "country": contact.get("country") or "",
+        "label_ids": json.dumps(contact.get("label_ids") or []),
+        "source": "apollo",
+        "apollo_created_at": contact.get("created_at") or "",
+        "apollo_updated_at": contact.get("updated_at") or "",
+        "synced_at": synced_at,
+    }

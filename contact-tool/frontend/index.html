@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Contacts</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1>My Contacts</h1>
+      <div class="stats" id="stats"></div>
+      <div class="search">
+        <input id="search-input" type="search" placeholder="Search name, email, company, title..." />
+      </div>
+      <a class="export-btn" id="export-link" href="/api/contacts.csv">Export CSV</a>
+    </header>
+
+    <div class="body">
+      <aside class="sidebar">
+        <div class="filter-group">
+          <label>Company</label>
+          <select id="filter-company"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Title</label>
+          <select id="filter-title"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Country</label>
+          <select id="filter-country"><option value="">All</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Email status</label>
+          <select id="filter-email_status"><option value="">All</option></select>
+        </div>
+        <div class="filter-group checkbox">
+          <label><input type="checkbox" id="filter-favorite" /> Favorites only</label>
+        </div>
+        <button id="clear-filters">Clear filters</button>
+      </aside>
+
+      <main class="content">
+        <table class="contacts-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th data-sort="name">Name</th>
+              <th data-sort="title">Title</th>
+              <th data-sort="company">Company</th>
+              <th data-sort="email">Email</th>
+              <th>Phone</th>
+              <th>Location</th>
+            </tr>
+          </thead>
+          <tbody id="contacts-body"></tbody>
+        </table>
+        <div class="pagination" id="pagination"></div>
+      </main>
+    </div>
+  </div>
+
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  <aside class="drawer" id="drawer">
+    <button class="drawer-close" id="drawer-close">&times;</button>
+    <div id="drawer-content"></div>
+  </aside>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -12,3 +12,9 @@
 /captures
 .externalNativeBuild
 .cxx
+
+# contact-tool: local personal data, never committed
+contact-tool/server/data/
+contact-tool/server/venv/
+contact-tool/**/__pycache__/
+contact-tool/.env
