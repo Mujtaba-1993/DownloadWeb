@@ -67,12 +67,40 @@ To set your own password instead of the generated one, set `CALLO_PASSWORD`
 before running `app.py`. Either way it's saved to `server/data/.auth`
 (0600 permissions) so it stays the same across restarts.
 
-## 3. Use it on your iPhone, from anywhere (Tailscale)
+## 3. Use it on your iPhone
 
 Callo defaults to `127.0.0.1` — only reachable from the computer it's
-running on. To reach it from your iPhone, even away from home, put it on
-your own private [Tailscale](https://tailscale.com) network instead of
-opening it to the public internet:
+running on. There are two ways to open that up to your phone; pick based
+on whether you need it away from home.
+
+### Simplest: same Wi-Fi, no apps to install
+
+Works whenever your iPhone and computer are on the same Wi-Fi network
+(e.g. at home). Nothing to install or sign up for.
+
+1. Find your computer's address on the network:
+   ```bash
+   python find_lan_ip.py
+   ```
+   It prints something like `192.168.1.23`.
+2. Run Callo bound to that address:
+   ```bash
+   CALLO_HOST=192.168.1.23 python app.py
+   ```
+3. On your iPhone, join the same Wi-Fi, then open Safari to
+   `http://192.168.1.23:5050` and enter the Callo password.
+4. Tap the Share button → **Add to Home Screen** for a one-tap icon.
+
+The only tradeoff: it only works while both devices are on that same
+Wi-Fi, and the password travels unencrypted over that network — fine on a
+trusted home network, not something to do on public Wi-Fi. If that's good
+enough, you're done — skip Tailscale entirely.
+
+### Works from anywhere, away from home too (Tailscale)
+
+A bit more setup (installing an app on two devices, once), but then it
+works over cellular data too, anywhere, fully encrypted. Only do this if
+you actually need off-Wi-Fi access:
 
 1. Install Tailscale on the computer running Callo: <https://tailscale.com/download>.
    Sign in (free for personal use) and turn it on.
@@ -105,10 +133,12 @@ phone to reach it.
 
 - By default the server only binds to `127.0.0.1` (localhost) — nothing
   outside this machine can connect to it. Setting `CALLO_HOST` to your
-  Tailscale address (above) is the recommended way to widen that, since
-  Tailscale itself is what keeps it private. Don't set it to `0.0.0.0`
-  or your plain LAN IP — that would make it reachable (Basic Auth
-  credentials and all, unencrypted) by anyone else on the same Wi-Fi.
+  computer's own LAN address (found via `find_lan_ip.py`) opens it to
+  other devices on the *same Wi-Fi only* — fine on a trusted home network,
+  not on public/shared Wi-Fi, since the password isn't encrypted over
+  plain HTTP. Setting it to your Tailscale address instead keeps that
+  encryption regardless of network. Never set it to `0.0.0.0` on a
+  network you don't trust.
 - Every request — the page itself and every API call — requires the
   password above. No password, wrong password, and you get a 401 with no
   data.
