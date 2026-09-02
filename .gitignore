@@ -18,3 +18,4 @@ callo/server/data/
 callo/server/venv/
 callo/**/__pycache__/
 callo/.env
+callo/webapp/dist/

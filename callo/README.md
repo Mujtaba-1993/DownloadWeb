@@ -1,12 +1,16 @@
 # Callo
 
-A small, self-hosted, personal contact tool — a private, unified copy of
-your contacts (Apollo, plus any spreadsheet exports like Salesforce/BFO)
-in a searchable/filterable table, similar to Apollo's contact view, but
-local-only and for your own use.
+A small, personal contact tool — a private, unified copy of your contacts
+(Apollo, plus any spreadsheet exports like Salesforce/BFO) in a
+searchable/filterable view, similar to Apollo's contact view, but for your
+own use only.
 
-It does **not** send your data anywhere. It runs entirely on your own
-machine: a local SQLite database plus a small local web server.
+Two ways to run it, both covered below: as a **standalone web app**
+published privately to your own Claude account (no computer needed —
+just open a link on your phone), or as a **local server** on your own
+computer (a local SQLite database plus a small Flask server, reached from
+your phone over Wi-Fi or Tailscale). Neither sends your data anywhere
+else.
 
 ## Setup
 
@@ -69,11 +73,58 @@ before running `app.py`. Either way it's saved to `server/data/.auth`
 
 ## 3. Use it on your iPhone
 
-Callo defaults to `127.0.0.1` — only reachable from the computer it's
-running on. There are two ways to open that up to your phone; pick based
-on whether you need it away from home.
+There are two fundamentally different ways to run Callo: as a standalone
+web app that lives on Claude's servers (no computer involved, ever), or as
+the local Flask server above, reached from your phone over your network.
 
-### Simplest: same Wi-Fi, no apps to install
+### Recommended: phone-only, no computer needed
+
+This packages the same contact tool as a single self-contained web page —
+your data baked in, no server to keep running. Open a link on your phone
+and it just works, like a normal web app.
+
+```bash
+cd callo/webapp
+python3 build.py
+```
+
+This writes `callo/webapp/dist/callo_app.html` — **your real contact data
+is embedded in that file**, so never commit it or send it anywhere except
+directly to Claude to publish (next step). It's git-ignored already.
+
+To publish it: start a Claude Code or claude.ai conversation (in an
+interactive session under your own account, not a fully-automated one —
+publishing needs your direct approval) and say:
+
+> Publish this file as a Claude Artifact titled "Callo," with capabilities
+> `{"db": {}, "downloads": true}`.
+
+...attaching `callo/webapp/dist/callo_app.html`. Claude will give you back
+a private link. Open it in Safari on your iPhone, then tap the Share
+button → **Add to Home Screen** for a one-tap icon that opens full-screen,
+like any other app.
+
+Why this is private: an Artifact that declares the `db` capability is
+tied to your Claude account and can't be shared publicly — only you (and
+your organization, if you're on a Team/Enterprise plan) can open it.
+Editing a contact's notes, tags, or favorite status saves into that
+private per-artifact database, not anywhere else. There's no password to
+remember, no server to keep running, and no network setup — just the
+link.
+
+Re-run `python3 build.py` and ask Claude to republish the same link
+whenever you want to push a fresh Apollo/VSSR/BFO sync into it (this
+overwrites the underlying contact data; notes/tags/favorites you added
+through the app live in the Artifact's own database, not in this file, so
+review whether you actually want a full resync before doing it).
+
+### Alternative: run it yourself on a computer
+
+If you'd rather keep everything on hardware you control instead of
+Claude's Artifact hosting, use the local Flask server from steps 1-2
+above and reach it from your phone one of these ways:
+
+#### Simplest: same Wi-Fi, no apps to install
 
 Works whenever your iPhone and computer are on the same Wi-Fi network
 (e.g. at home). Nothing to install or sign up for.
@@ -96,7 +147,7 @@ Wi-Fi, and the password travels unencrypted over that network — fine on a
 trusted home network, not something to do on public Wi-Fi. If that's good
 enough, you're done — skip Tailscale entirely.
 
-### Works from anywhere, away from home too (Tailscale)
+#### Works from anywhere, away from home too (Tailscale)
 
 A bit more setup (installing an app on two devices, once), but then it
 works over cellular data too, anywhere, fully encrypted. Only do this if

@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Callo" />
+<title>Callo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F5F1; --panel:#FFFFFF; --border:#E4E1D8; --text:#1E2321; --muted:#6E7268;
+  --accent:#2F6F5E; --accent-contrast:#FFFFFF; --favorite:#C98A2C;
+  --chip-bg:#ECEAE2; --chip-text:#3A3D36; --chip-active-bg:#2F6F5E; --chip-active-text:#FFFFFF;
+  --badge-apollo:#3B6E91; --badge-vssr:#8A5A3B; --badge-bfo:#5E7A3F;
+  --overlay:rgba(20,22,20,0.42);
+  --danger:#B5482F;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14181A; --panel:#1C2123; --border:#2B3234; --text:#E8ECE8; --muted:#93998F;
+    --accent:#5FBFA0; --accent-contrast:#0E1412; --favorite:#E0A94A;
+    --chip-bg:#232928; --chip-text:#C7CDC7; --chip-active-bg:#5FBFA0; --chip-active-text:#0E1412;
+    --badge-apollo:#6FA8CC; --badge-vssr:#C08A63; --badge-bfo:#93B36D;
+    --overlay:rgba(0,0,0,0.55);
+    --danger:#E27C63;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14181A; --panel:#1C2123; --border:#2B3234; --text:#E8ECE8; --muted:#93998F;
+  --accent:#5FBFA0; --accent-contrast:#0E1412; --favorite:#E0A94A;
+  --chip-bg:#232928; --chip-text:#C7CDC7; --chip-active-bg:#5FBFA0; --chip-active-text:#0E1412;
+  --badge-apollo:#6FA8CC; --badge-vssr:#C08A63; --badge-bfo:#93B36D;
+  --overlay:rgba(0,0,0,0.55);
+  --danger:#E27C63;
+}
+
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:"Work Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-variant-numeric:tabular-nums;
+  overscroll-behavior-y:none;
+}
+.wordmark{ font-family:"Fraunces", Georgia, serif; font-weight:600; }
+
+.app{ display:flex; flex-direction:column; height:100vh; height:100dvh; max-width:640px; margin:0 auto; background:var(--bg); }
+
+header.top{
+  position:sticky; top:0; z-index:5;
+  padding:calc(env(safe-area-inset-top) + 14px) 16px 10px;
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+}
+.top-row{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.top-row h1{ font-size:22px; margin:0; }
+.top-row .count{ font-size:12px; color:var(--muted); white-space:nowrap; }
+.search{ position:relative; }
+.search input{
+  width:100%; padding:10px 14px; border-radius:12px; border:1px solid var(--border);
+  background:var(--panel); color:var(--text); font-size:16px; font-family:inherit;
+}
+.search input::placeholder{ color:var(--muted); }
+
+.chips{ display:flex; gap:8px; overflow-x:auto; padding:10px 16px 0; scrollbar-width:none; }
+.chips::-webkit-scrollbar{ display:none; }
+.chip{
+  flex:0 0 auto; padding:7px 14px; border-radius:999px; font-size:13px; font-weight:500;
+  background:var(--chip-bg); color:var(--chip-text); border:1px solid transparent; cursor:pointer;
+  white-space:nowrap;
+}
+.chip.active{ background:var(--chip-active-bg); color:var(--chip-active-text); }
+.chip.more{ border:1px solid var(--border); background:transparent; }
+
+main.list-wrap{ flex:1; overflow-y:auto; padding:6px 10px 90px; }
+.row{
+  display:flex; align-items:center; gap:10px; padding:12px 10px; border-radius:12px; cursor:pointer;
+}
+.row:active{ background:var(--chip-bg); }
+.row .avatar{
+  flex:0 0 auto; width:38px; height:38px; border-radius:50%; background:var(--chip-bg); color:var(--muted);
+  display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px;
+}
+.row .main{ flex:1; min-width:0; }
+.row .name{ font-weight:600; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.row .sub{ font-size:12.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
+.row .meta{ flex:0 0 auto; display:flex; align-items:center; gap:8px; }
+.badge{ font-size:10px; font-weight:600; letter-spacing:0.02em; text-transform:uppercase; padding:2px 6px; border-radius:6px; color:#fff; }
+.badge.apollo{ background:var(--badge-apollo); }
+.badge.vssr{ background:var(--badge-vssr); }
+.badge.bfo{ background:var(--badge-bfo); }
+.star{ font-size:16px; color:var(--border); }
+.star.on{ color:var(--favorite); }
+
+.empty{ text-align:center; color:var(--muted); padding:60px 20px; font-size:14px; }
+.sentinel{ height:1px; }
+
+.fab{
+  position:fixed; right:calc((100vw - min(100vw,640px))/2 + 16px); bottom:calc(env(safe-area-inset-bottom) + 16px);
+  background:var(--accent); color:var(--accent-contrast); border:none; border-radius:999px;
+  padding:12px 18px; font-size:13px; font-weight:600; font-family:inherit; box-shadow:0 6px 18px rgba(0,0,0,0.18);
+  cursor:pointer; z-index:6;
+}
+
+.sheet-backdrop{ position:fixed; inset:0; background:var(--overlay); z-index:10; display:none; }
+.sheet-backdrop.open{ display:block; }
+.sheet{
+  position:fixed; left:0; right:0; bottom:-100%; z-index:11; background:var(--panel);
+  border-radius:18px 18px 0 0; max-height:88vh; max-height:88dvh; overflow-y:auto;
+  transition:bottom 0.25s ease; padding:10px 20px calc(env(safe-area-inset-bottom) + 24px);
+  max-width:640px; margin:0 auto; right:0;
+}
+.sheet.open{ bottom:0; }
+.sheet .grabber{ width:36px; height:4px; border-radius:2px; background:var(--border); margin:6px auto 14px; }
+.sheet h2{ font-size:20px; margin:0 0 2px; }
+.sheet .sub{ color:var(--muted); font-size:13.5px; margin-bottom:14px; }
+.field{ margin:14px 0; }
+.field label{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); margin-bottom:5px; }
+.field .value{ font-size:14.5px; }
+.field .value a{ color:var(--accent); text-decoration:none; }
+.field textarea, .field input[type=text]{
+  width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--bg);
+  color:var(--text); font-family:inherit; font-size:14.5px;
+}
+.tag-list{ display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; }
+.tag-chip{ background:var(--chip-bg); color:var(--chip-text); border-radius:999px; padding:4px 10px; font-size:12.5px; display:flex; align-items:center; gap:6px; }
+.tag-chip button{ border:none; background:none; color:var(--muted); cursor:pointer; font-size:13px; line-height:1; padding:0; }
+.fav-row{ display:flex; align-items:center; justify-content:space-between; margin:16px 0; }
+.fav-toggle{ display:flex; align-items:center; gap:8px; font-size:14.5px; cursor:pointer; }
+.fav-toggle .star{ font-size:20px; }
+.save-btn{
+  width:100%; padding:13px; border-radius:12px; border:none; background:var(--accent); color:var(--accent-contrast);
+  font-weight:600; font-size:15px; font-family:inherit; cursor:pointer; margin-top:6px;
+}
+.close-btn{ position:absolute; top:14px; right:16px; background:var(--chip-bg); color:var(--text); border:none; width:30px; height:30px; border-radius:50%; font-size:16px; cursor:pointer; }
+
+.filters-sheet .field select{
+  width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-family:inherit; font-size:14.5px;
+}
+.filters-actions{ display:flex; gap:10px; margin-top:16px; }
+.filters-actions button{ flex:1; padding:12px; border-radius:12px; font-family:inherit; font-size:14.5px; cursor:pointer; }
+.btn-clear{ border:1px solid var(--border); background:transparent; color:var(--text); }
+.btn-apply{ border:none; background:var(--accent); color:var(--accent-contrast); font-weight:600; }
+
+.seeding{
+  position:fixed; inset:0; background:var(--bg); z-index:20; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:14px; padding:20px; text-align:center;
+}
+.seeding .wordmark{ font-size:28px; }
+.seeding .bar{ width:220px; height:6px; border-radius:3px; background:var(--chip-bg); overflow:hidden; }
+.seeding .bar-fill{ height:100%; width:0%; background:var(--accent); transition:width 0.2s ease; }
+.seeding .msg{ font-size:13px; color:var(--muted); }
+
+.toast{
+  position:fixed; left:50%; transform:translate(-50%, 10px); bottom:calc(env(safe-area-inset-bottom) + 20px);
+  background:var(--text); color:var(--bg); padding:10px 18px; border-radius:999px; font-size:13px;
+  opacity:0; transition:opacity 0.2s ease, transform 0.2s ease; z-index:30; pointer-events:none;
+}
+.toast.show{ opacity:1; transform:translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce){
+  .sheet, .toast{ transition:none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="top-row">
+      <h1 class="wordmark">Callo</h1>
+      <div class="count" id="count-label">Loading…</div>
+    </div>
+    <div class="search">
+      <input id="search-input" type="search" inputmode="search" placeholder="Search name, company, title, email" autocomplete="off" />
+    </div>
+  </header>
+
+  <div class="chips" id="chip-row">
+    <div class="chip active" data-source="">All</div>
+    <div class="chip" data-source="apollo">Apollo</div>
+    <div class="chip" data-source="vssr">VSSR</div>
+    <div class="chip" data-source="bfo">BFO</div>
+    <div class="chip" data-fav="1">★ Favorites</div>
+    <div class="chip more" id="more-filters-btn">More filters</div>
+  </div>
+
+  <main class="list-wrap" id="list-wrap">
+    <div id="list"></div>
+    <div class="empty" id="empty-msg" style="display:none;">No contacts match.</div>
+    <div class="sentinel" id="sentinel"></div>
+  </main>
+
+  <button class="fab" id="export-btn">Export CSV</button>
+</div>
+
+<div class="sheet-backdrop" id="backdrop"></div>
+
+<aside class="sheet" id="detail-sheet">
+  <button class="close-btn" id="detail-close">&times;</button>
+  <div class="grabber"></div>
+  <div id="detail-content"></div>
+</aside>
+
+<aside class="sheet filters-sheet" id="filters-sheet">
+  <button class="close-btn" id="filters-close">&times;</button>
+  <div class="grabber"></div>
+  <h2>More filters</h2>
+  <div class="field">
+    <label>Company</label>
+    <select id="f-company"><option value="">All companies</option></select>
+  </div>
+  <div class="field">
+    <label>Title</label>
+    <select id="f-title"><option value="">All titles</option></select>
+  </div>
+  <div class="field">
+    <label>Country</label>
+    <select id="f-country"><option value="">All countries</option></select>
+  </div>
+  <div class="field">
+    <label>Email status</label>
+    <select id="f-email"><option value="">Any</option></select>
+  </div>
+  <div class="filters-actions">
+    <button class="btn-clear" id="filters-clear">Clear</button>
+    <button class="btn-apply" id="filters-apply">Apply</button>
+  </div>
+</aside>
+
+<div class="seeding" id="seeding-screen">
+  <div class="wordmark">Callo</div>
+  <div class="bar"><div class="bar-fill" id="seed-progress"></div></div>
+  <div class="msg" id="seed-msg">Setting up your contacts…</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SEED_B64 = "__SEED_DATA_B64__";
+const SHARD_SIZE = 500;
+const PAGE_SIZE = 40;
+
+let contacts = [];
+let filtered = [];
+let renderedCount = 0;
+let dbApi = null;
+let downloadsApi = null;
+
+const state = { q: "", source: "", favOnly: false, company: "", title: "", country: "", emailStatus: "" };
+const pendingFilters = {};
+
+const el = (id) => document.getElementById(id);
+
+function b64ToUtf8(b64) {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder("utf-8").decode(bytes);
+}
+
+function decodeSeed() {
+  return JSON.parse(b64ToUtf8(SEED_B64));
+}
+
+function stripTransient(c) {
+  const out = {};
+  for (const k in c) if (k !== "_shard" && k !== "_s") out[k] = c[k];
+  return out;
+}
+
+function makeShards(list) {
+  const shards = [];
+  for (let i = 0; i < list.length; i += SHARD_SIZE) shards.push(list.slice(i, i + SHARD_SIZE));
+  return shards;
+}
+
+async function seedDb(db, rawList) {
+  const withDefaults = rawList.map((r) => Object.assign({ notes: "", tags: [], fav: false }, r));
+  const shards = makeShards(withDefaults);
+  el("seeding-screen").style.display = "flex";
+  for (let i = 0; i < shards.length; i++) {
+    await db.collection("shards").doc("s" + i).set({ items: shards[i] });
+    const pct = Math.round(((i + 1) / shards.length) * 100);
+    el("seed-progress").style.width = pct + "%";
+    el("seed-msg").textContent = `Setting up your contacts… ${pct}%`;
+  }
+  await db.doc("meta/seed_v1").set({ done: true, count: rawList.length, shardCount: shards.length, at: new Date().toISOString() });
+}
+
+async function loadFromDb(db) {
+  const snap = await db.collection("shards").limit(1000).get();
+  const list = [];
+  snap.docs.forEach((docSnap) => {
+    const data = docSnap.data() || {};
+    const items = data.items || [];
+    items.forEach((rec) => list.push(Object.assign({}, rec, { _shard: docSnap.id })));
+  });
+  return list;
+}
+
+function precompute() {
+  for (const c of contacts) {
+    c._s = ((c.n || "") + " " + (c.t || "") + " " + (c.o || "") + " " + (c.e || "")).toLowerCase();
+  }
+}
+
+function hasSource(c, source) {
+  return ("," + (c.so || "") + ",").indexOf("," + source + ",") !== -1;
+}
+
+function distinctCounts(field) {
+  const counts = new Map();
+  for (const c of contacts) {
+    const v = c[field];
+    if (!v) continue;
+    counts.set(v, (counts.get(v) || 0) + 1);
+  }
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+}
+
+function fillFacet(selectId, field, limit) {
+  const sel = el(selectId);
+  const entries = distinctCounts(field).slice(0, limit || 300);
+  for (const [value, count] of entries) {
+    const opt = document.createElement("option");
+    opt.value = value;
+    opt.textContent = `${value} (${count})`;
+    sel.appendChild(opt);
+  }
+}
+
+function applyFilters() {
+  const q = state.q.trim().toLowerCase();
+  filtered = contacts.filter((c) => {
+    if (q && !c._s.includes(q)) return false;
+    if (state.source && !hasSource(c, state.source)) return false;
+    if (state.favOnly && !c.fav) return false;
+    if (state.company && c.o !== state.company) return false;
+    if (state.title && c.t !== state.title) return false;
+    if (state.country && c.co !== state.country) return false;
+    if (state.emailStatus && c.es !== state.emailStatus) return false;
+    return true;
+  });
+  filtered.sort((a, b) => (a.n || "").localeCompare(b.n || ""));
+  renderedCount = 0;
+  el("list").innerHTML = "";
+  renderMore();
+  updateCountLabel();
+}
+
+function updateCountLabel() {
+  const total = contacts.length.toLocaleString();
+  if (filtered.length === contacts.length) {
+    el("count-label").textContent = `${total} contacts`;
+  } else {
+    el("count-label").textContent = `${filtered.length.toLocaleString()} of ${total}`;
+  }
+  el("empty-msg").style.display = filtered.length === 0 ? "block" : "none";
+}
+
+function initials(name) {
+  const parts = (name || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  return (parts[0][0] + (parts[1] ? parts[1][0] : "")).toUpperCase();
+}
+
+function escapeHtml(str) {
+  return String(str == null ? "" : str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function badgeHtml(source) {
+  const primary = (source || "").split(",")[0];
+  if (!primary) return "";
+  return `<span class="badge ${escapeHtml(primary)}">${escapeHtml(primary)}</span>`;
+}
+
+function rowEl(c) {
+  const row = document.createElement("div");
+  row.className = "row";
+  row.innerHTML = `
+    <div class="avatar">${escapeHtml(initials(c.n))}</div>
+    <div class="main">
+      <div class="name">${escapeHtml(c.n || "Unnamed")}</div>
+      <div class="sub">${escapeHtml([c.t, c.o].filter(Boolean).join(" @ "))}</div>
+    </div>
+    <div class="meta">
+      ${badgeHtml(c.so)}
+      <span class="star ${c.fav ? "on" : ""}" data-star="1">&#9733;</span>
+    </div>
+  `;
+  row.querySelector('[data-star]').addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleFavorite(c);
+  });
+  row.addEventListener("click", () => openDetail(c));
+  return row;
+}
+
+function renderMore() {
+  const next = filtered.slice(renderedCount, renderedCount + PAGE_SIZE);
+  const frag = document.createDocumentFragment();
+  for (const c of next) frag.appendChild(rowEl(c));
+  el("list").appendChild(frag);
+  renderedCount += next.length;
+}
+
+async function saveShard(c) {
+  if (!dbApi || c._shard == null) return;
+  const items = contacts.filter((x) => x._shard === c._shard).map(stripTransient);
+  await dbApi.collection("shards").doc(c._shard).set({ items });
+}
+
+function showToast(msg) {
+  const t = el("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove("show"), 1600);
+}
+
+async function toggleFavorite(c) {
+  c.fav = !c.fav;
+  document.querySelectorAll(".row").forEach(() => {});
+  applyFilters();
+  try {
+    await saveShard(c);
+  } catch (e) {
+    showToast("Couldn't save — try again");
+  }
+}
+
+function openDetail(c) {
+  const tags = c.tags ? [...c.tags] : [];
+  el("detail-content").innerHTML = `
+    <h2>${escapeHtml(c.n || "Unnamed")}</h2>
+    <div class="sub">${escapeHtml([c.t, c.o].filter(Boolean).join(" at "))}</div>
+    <div class="fav-row">
+      <div class="fav-toggle" id="detail-fav">
+        <span class="star ${c.fav ? "on" : ""}" id="detail-star">&#9733;</span>
+        <span>${c.fav ? "Favorited" : "Mark as favorite"}</span>
+      </div>
+      ${badgeHtml(c.so)}
+    </div>
+    <div class="field"><label>Email</label><div class="value">${c.e ? escapeHtml(c.e) : "—"}${c.es ? " · " + escapeHtml(c.es) : ""}</div></div>
+    <div class="field"><label>Phone</label><div class="value">${c.p ? escapeHtml(c.p) : "—"}</div></div>
+    <div class="field"><label>Location</label><div class="value">${escapeHtml([c.c, c.st, c.co].filter(Boolean).join(", ")) || "—"}</div></div>
+    <div class="field"><label>LinkedIn</label><div class="value">${c.l ? `<a href="${escapeHtml(c.l)}" target="_blank" rel="noopener">View profile</a>` : "—"}</div></div>
+    <div class="field">
+      <label>Tags</label>
+      <div class="tag-list" id="detail-tags"></div>
+      <input type="text" id="tag-input" placeholder="Add a tag, press enter" />
+    </div>
+    <div class="field">
+      <label>Notes</label>
+      <textarea id="notes-input" rows="4">${escapeHtml(c.notes || "")}</textarea>
+    </div>
+    <button class="save-btn" id="save-detail">Save</button>
+  `;
+
+  const renderTags = () => {
+    el("detail-tags").innerHTML = tags
+      .map((t, i) => `<span class="tag-chip">${escapeHtml(t)}<button data-i="${i}">&times;</button></span>`)
+      .join("");
+    el("detail-tags").querySelectorAll("button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        tags.splice(Number(btn.dataset.i), 1);
+        renderTags();
+      });
+    });
+  };
+  renderTags();
+
+  el("tag-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target.value.trim()) {
+      tags.push(e.target.value.trim());
+      e.target.value = "";
+      renderTags();
+    }
+  });
+
+  let favLocal = c.fav;
+  el("detail-fav").addEventListener("click", () => {
+    favLocal = !favLocal;
+    el("detail-star").classList.toggle("on", favLocal);
+    el("detail-fav").querySelector("span:last-child").textContent = favLocal ? "Favorited" : "Mark as favorite";
+  });
+
+  el("save-detail").addEventListener("click", async () => {
+    c.notes = el("notes-input").value;
+    c.tags = tags;
+    c.fav = favLocal;
+    closeSheet("detail-sheet");
+    applyFilters();
+    try {
+      await saveShard(c);
+      showToast("Saved");
+    } catch (e) {
+      showToast("Couldn't save — try again");
+    }
+  });
+
+  openSheet("detail-sheet");
+}
+
+function openSheet(id) {
+  el(id).classList.add("open");
+  el("backdrop").classList.add("open");
+}
+function closeSheet(id) {
+  el(id).classList.remove("open");
+  const anyOpen = document.querySelectorAll(".sheet.open").length > 0;
+  if (!anyOpen) el("backdrop").classList.remove("open");
+}
+
+function toCsv(rows) {
+  const cols = ["n", "t", "o", "e", "es", "p", "l", "c", "st", "co", "so", "tags", "notes"];
+  const header = ["Name", "Title", "Company", "Email", "Email Status", "Phone", "LinkedIn", "City", "State", "Country", "Source", "Tags", "Notes"];
+  const esc = (v) => {
+    const s = v == null ? "" : String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  const lines = [header.join(",")];
+  for (const r of rows) {
+    lines.push(cols.map((k) => esc(k === "tags" ? (r.tags || []).join("; ") : r[k])).join(","));
+  }
+  return lines.join("\n");
+}
+
+async function exportCsv() {
+  const csv = toCsv(filtered);
+  if (!downloadsApi) {
+    showToast("Export isn't available in this view");
+    return;
+  }
+  try {
+    await downloadsApi.save({ filename: "callo-contacts.csv", data: csv });
+    showToast("Exported");
+  } catch (e) {
+    if (e && e.code === "declined") return;
+    showToast("Export failed");
+  }
+}
+
+function wireChips() {
+  document.querySelectorAll(".chip[data-source], .chip[data-fav]").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      if (chip.dataset.fav) {
+        state.favOnly = !state.favOnly;
+        chip.classList.toggle("active", state.favOnly);
+      } else {
+        const src = chip.dataset.source;
+        if (state.source === src) {
+          state.source = "";
+        } else {
+          state.source = src;
+        }
+        document.querySelectorAll(".chip[data-source]").forEach((c2) => {
+          c2.classList.toggle("active", c2.dataset.source === state.source);
+        });
+      }
+      applyFilters();
+    });
+  });
+}
+
+function wireFilterSheet() {
+  el("more-filters-btn").addEventListener("click", () => {
+    pendingFilters.company = state.company;
+    pendingFilters.title = state.title;
+    pendingFilters.country = state.country;
+    pendingFilters.emailStatus = state.emailStatus;
+    el("f-company").value = state.company;
+    el("f-title").value = state.title;
+    el("f-country").value = state.country;
+    el("f-email").value = state.emailStatus;
+    openSheet("filters-sheet");
+  });
+  el("filters-close").addEventListener("click", () => closeSheet("filters-sheet"));
+  el("filters-apply").addEventListener("click", () => {
+    state.company = el("f-company").value;
+    state.title = el("f-title").value;
+    state.country = el("f-country").value;
+    state.emailStatus = el("f-email").value;
+    closeSheet("filters-sheet");
+    applyFilters();
+  });
+  el("filters-clear").addEventListener("click", () => {
+    state.company = state.title = state.country = state.emailStatus = "";
+    el("f-company").value = el("f-title").value = el("f-country").value = el("f-email").value = "";
+    closeSheet("filters-sheet");
+    applyFilters();
+  });
+}
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), ms);
+  };
+}
+
+function wireGlobal() {
+  el("search-input").addEventListener(
+    "input",
+    debounce((e) => {
+      state.q = e.target.value;
+      applyFilters();
+    }, 200)
+  );
+  el("detail-close").addEventListener("click", () => closeSheet("detail-sheet"));
+  el("backdrop").addEventListener("click", () => {
+    closeSheet("detail-sheet");
+    closeSheet("filters-sheet");
+  });
+  el("export-btn").addEventListener("click", exportCsv);
+
+  const io = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && renderedCount < filtered.length) renderMore();
+  });
+  io.observe(el("sentinel"));
+}
+
+async function useCapability(name) {
+  try {
+    if (typeof window.claude === "undefined" || typeof window.claude.use !== "function") return null;
+    return await window.claude.use(name);
+  } catch (e) {
+    return null;
+  }
+}
+
+async function init() {
+  wireChips();
+  wireFilterSheet();
+  wireGlobal();
+
+  dbApi = await useCapability("db");
+  downloadsApi = await useCapability("downloads");
+
+  if (dbApi) {
+    try {
+      const marker = await dbApi.doc("meta/seed_v1").get();
+      if (!marker.exists) {
+        const raw = decodeSeed();
+        await seedDb(dbApi, raw);
+      }
+      contacts = await loadFromDb(dbApi);
+    } catch (e) {
+      contacts = decodeSeed().map((r) => Object.assign({ notes: "", tags: [], fav: false, _shard: null }, r));
+      showToast("Running without saved changes this session");
+    }
+  } else {
+    contacts = decodeSeed().map((r) => Object.assign({ notes: "", tags: [], fav: false, _shard: null }, r));
+    showToast("Running without saved changes this session");
+  }
+
+  el("seeding-screen").style.display = "none";
+  precompute();
+  fillFacet("f-company", "o", 400);
+  fillFacet("f-title", "t", 400);
+  fillFacet("f-country", "co", 200);
+  fillFacet("f-email", "es", 20);
+  applyFilters();
+}
+
+init();
+</script>
+</body>
+</html>
