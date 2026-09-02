@@ -81,7 +81,7 @@ main.list-wrap{ flex:1; overflow-y:auto; padding:6px 10px 90px; }
   display:flex; align-items:center; gap:10px; padding:12px 10px; border-radius:12px; cursor:pointer;
 }
 .row:active{ background:var(--chip-bg); }
-.row .avatar{
+.avatar{
   flex:0 0 auto; width:38px; height:38px; border-radius:50%; background:var(--chip-bg); color:var(--muted);
   display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px;
 }
@@ -162,6 +162,63 @@ main.list-wrap{ flex:1; overflow-y:auto; padding:6px 10px 90px; }
 }
 .toast.show{ opacity:1; transform:translate(-50%, 0); }
 
+/* Segmented People/Companies control */
+.segmented{ display:flex; gap:4px; margin:10px 16px 0; background:var(--chip-bg); border-radius:11px; padding:3px; }
+.segmented button{
+  flex:1; border:none; background:none; padding:7px 0; border-radius:8px; font-family:inherit; font-size:13.5px;
+  font-weight:500; color:var(--muted); cursor:pointer;
+}
+.segmented button.active{ background:var(--panel); color:var(--text); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.08); }
+
+/* Today / Recent quick-access sections */
+.section-title{ font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); padding:14px 16px 4px; }
+.followup-row{ display:flex; align-items:center; gap:10px; padding:10px 16px; cursor:pointer; }
+.followup-row:active{ background:var(--chip-bg); }
+.followup-row .due{ font-size:11.5px; padding:2px 8px; border-radius:999px; font-weight:600; white-space:nowrap; }
+.followup-row .due.overdue{ background:var(--danger); color:#fff; }
+.followup-row .due.today{ background:var(--favorite); color:#fff; }
+.followup-row .main{ flex:1; min-width:0; }
+.followup-row .name{ font-weight:600; font-size:14.5px; }
+.followup-row .sub{ font-size:12px; color:var(--muted); }
+.followup-row .done-btn{ border:none; background:var(--chip-bg); color:var(--muted); width:26px; height:26px; border-radius:50%; font-size:14px; cursor:pointer; flex:0 0 auto; }
+
+.recent-strip{ display:flex; gap:14px; overflow-x:auto; padding:6px 16px 12px; scrollbar-width:none; }
+.recent-strip::-webkit-scrollbar{ display:none; }
+.recent-item{ flex:0 0 auto; width:56px; text-align:center; cursor:pointer; }
+.recent-item .avatar{ width:44px; height:44px; margin:0 auto 4px; }
+.recent-item .rn{ font-size:10.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* Company-grouped view */
+.company-row{ display:flex; align-items:center; gap:12px; padding:13px 16px; cursor:pointer; border-bottom:1px solid var(--border); }
+.company-row:active{ background:var(--chip-bg); }
+.company-row .cinit{
+  flex:0 0 auto; width:36px; height:36px; border-radius:9px; background:var(--chip-bg); color:var(--muted);
+  display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;
+}
+.company-row .main{ flex:1; min-width:0; }
+.company-row .name{ font-weight:600; font-size:14.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.company-row .n{ font-size:12px; color:var(--muted); }
+.company-row .badges{ display:flex; gap:4px; flex:0 0 auto; }
+
+/* Quick actions on the detail sheet */
+.action-row{ display:flex; gap:10px; margin:14px 0 6px; }
+.action-btn{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 4px;
+  border-radius:12px; background:var(--chip-bg); color:var(--text); text-decoration:none; font-size:11.5px;
+  font-weight:500; border:none; font-family:inherit; cursor:pointer;
+}
+.action-btn .ic{ font-size:19px; }
+.action-btn.disabled{ opacity:0.35; pointer-events:none; }
+.action-btn.whatsapp{ color:#1DA851; }
+.action-btn.call{ color:var(--accent); }
+
+.followup-field{ display:flex; align-items:center; gap:10px; }
+.followup-field input[type=date]{
+  flex:1; padding:9px 10px; border-radius:10px; border:1px solid var(--border); background:var(--bg);
+  color:var(--text); font-family:inherit; font-size:14px;
+}
+.followup-clear{ border:none; background:var(--chip-bg); color:var(--muted); padding:9px 12px; border-radius:10px; font-family:inherit; font-size:13px; cursor:pointer; }
+
 @media (prefers-reduced-motion: reduce){
   .sheet, .toast{ transition:none; }
 }
@@ -179,6 +236,22 @@ main.list-wrap{ flex:1; overflow-y:auto; padding:6px 10px 90px; }
     </div>
   </header>
 
+  <div class="segmented" id="view-toggle">
+    <button class="active" data-view="people">People</button>
+    <button data-view="companies">Companies</button>
+  </div>
+
+  <div id="quick-access">
+    <div id="followup-section" style="display:none;">
+      <div class="section-title" id="followup-title">Follow up</div>
+      <div id="followup-list"></div>
+    </div>
+    <div id="recent-section" style="display:none;">
+      <div class="section-title">Recently viewed</div>
+      <div class="recent-strip" id="recent-list"></div>
+    </div>
+  </div>
+
   <div class="chips" id="chip-row">
     <div class="chip active" data-source="">All</div>
     <div class="chip" data-source="apollo">Apollo</div>
@@ -190,6 +263,7 @@ main.list-wrap{ flex:1; overflow-y:auto; padding:6px 10px 90px; }
 
   <main class="list-wrap" id="list-wrap">
     <div id="list"></div>
+    <div id="company-list" style="display:none;"></div>
     <div class="empty" id="empty-msg" style="display:none;">No contacts match.</div>
     <div class="sentinel" id="sentinel"></div>
   </main>
@@ -249,8 +323,10 @@ let filtered = [];
 let renderedCount = 0;
 let dbApi = null;
 let downloadsApi = null;
+let recents = []; // array of contact ids, most-recent-first
+let contactsById = new Map();
 
-const state = { q: "", source: "", favOnly: false, company: "", title: "", country: "", emailStatus: "" };
+const state = { q: "", source: "", favOnly: false, company: "", title: "", country: "", emailStatus: "", view: "people" };
 const pendingFilters = {};
 
 const el = (id) => document.getElementById(id);
@@ -279,7 +355,7 @@ function makeShards(list) {
 }
 
 async function seedDb(db, rawList) {
-  const withDefaults = rawList.map((r) => Object.assign({ notes: "", tags: [], fav: false }, r));
+  const withDefaults = rawList.map((r) => Object.assign({ notes: "", tags: [], fav: false, followUpAt: "" }, r));
   const shards = makeShards(withDefaults);
   el("seeding-screen").style.display = "flex";
   for (let i = 0; i < shards.length; i++) {
@@ -303,8 +379,91 @@ async function loadFromDb(db) {
 }
 
 function precompute() {
+  contactsById = new Map();
   for (const c of contacts) {
     c._s = ((c.n || "") + " " + (c.t || "") + " " + (c.o || "") + " " + (c.e || "")).toLowerCase();
+    contactsById.set(c.i, c);
+  }
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function digitsOnly(phone) {
+  return (phone || "").replace(/[^\d]/g, "");
+}
+
+async function loadRecents(db) {
+  try {
+    const snap = await db.doc("meta/recents").get();
+    const ids = (snap.exists && snap.data().ids) || [];
+    return ids.filter((id) => contactsById.has(id));
+  } catch (e) {
+    return [];
+  }
+}
+
+async function recordRecent(id) {
+  recents = [id, ...recents.filter((x) => x !== id)].slice(0, 12);
+  renderQuickAccess();
+  if (dbApi) {
+    try {
+      await dbApi.doc("meta/recents").set({ ids: recents });
+    } catch (e) {
+      /* non-critical */
+    }
+  }
+}
+
+function dueBadge(dateStr) {
+  const today = todayStr();
+  if (dateStr < today) return { cls: "overdue", label: "Overdue" };
+  if (dateStr === today) return { cls: "today", label: "Today" };
+  return { cls: "", label: dateStr };
+}
+
+function renderQuickAccess() {
+  const dueContacts = contacts
+    .filter((c) => c.followUpAt && c.followUpAt <= todayStr())
+    .sort((a, b) => a.followUpAt.localeCompare(b.followUpAt));
+
+  el("followup-section").style.display = dueContacts.length ? "block" : "none";
+  el("followup-title").textContent = `Follow up (${dueContacts.length})`;
+  el("followup-list").innerHTML = "";
+  for (const c of dueContacts.slice(0, 8)) {
+    const badge = dueBadge(c.followUpAt);
+    const row = document.createElement("div");
+    row.className = "followup-row";
+    row.innerHTML = `
+      <div class="avatar">${escapeHtml(initials(c.n))}</div>
+      <div class="main">
+        <div class="name">${escapeHtml(c.n || "Unnamed")}</div>
+        <div class="sub">${escapeHtml([c.t, c.o].filter(Boolean).join(" @ "))}</div>
+      </div>
+      <span class="due ${badge.cls}">${escapeHtml(badge.label)}</span>
+      <button class="done-btn" title="Mark done">&#10003;</button>
+    `;
+    row.querySelector(".done-btn").addEventListener("click", async (e) => {
+      e.stopPropagation();
+      c.followUpAt = "";
+      renderQuickAccess();
+      applyFilters();
+      try { await saveShard(c); } catch (e2) {}
+    });
+    row.addEventListener("click", () => openDetail(c));
+    el("followup-list").appendChild(row);
+  }
+
+  const recentContacts = recents.map((id) => contactsById.get(id)).filter(Boolean);
+  el("recent-section").style.display = recentContacts.length ? "block" : "none";
+  el("recent-list").innerHTML = "";
+  for (const c of recentContacts) {
+    const item = document.createElement("div");
+    item.className = "recent-item";
+    item.innerHTML = `<div class="avatar">${escapeHtml(initials(c.n))}</div><div class="rn">${escapeHtml((c.n || "").split(" ")[0])}</div>`;
+    item.addEventListener("click", () => openDetail(c));
+    el("recent-list").appendChild(item);
   }
 }
 
@@ -348,8 +507,58 @@ function applyFilters() {
   filtered.sort((a, b) => (a.n || "").localeCompare(b.n || ""));
   renderedCount = 0;
   el("list").innerHTML = "";
-  renderMore();
+  if (state.view === "people") renderMore();
   updateCountLabel();
+}
+
+function renderCompanies() {
+  const groups = new Map();
+  for (const c of contacts) {
+    if (!c.o) continue;
+    if (!groups.has(c.o)) groups.set(c.o, { name: c.o, count: 0, sources: new Set() });
+    const g = groups.get(c.o);
+    g.count += 1;
+    (c.so || "").split(",").forEach((s) => s && g.sources.add(s));
+  }
+  const list = [...groups.values()].sort((a, b) => b.count - a.count);
+
+  el("count-label").textContent = `${list.length.toLocaleString()} companies`;
+  const wrap = el("company-list");
+  wrap.innerHTML = "";
+  const frag = document.createDocumentFragment();
+  for (const g of list.slice(0, 500)) {
+    const row = document.createElement("div");
+    row.className = "company-row";
+    row.innerHTML = `
+      <div class="cinit">${escapeHtml((g.name[0] || "?").toUpperCase())}</div>
+      <div class="main">
+        <div class="name">${escapeHtml(g.name)}</div>
+        <div class="n">${g.count.toLocaleString()} contact${g.count === 1 ? "" : "s"}</div>
+      </div>
+      <div class="badges">${[...g.sources].map((s) => badgeHtml(s)).join("")}</div>
+    `;
+    row.addEventListener("click", () => {
+      setView("people");
+      state.company = g.name;
+      applyFilters();
+      showToast(`Showing ${g.name}`);
+    });
+    frag.appendChild(row);
+  }
+  wrap.appendChild(frag);
+  el("empty-msg").style.display = list.length === 0 ? "block" : "none";
+}
+
+function setView(view) {
+  state.view = view;
+  document.querySelectorAll("#view-toggle button").forEach((b) => b.classList.toggle("active", b.dataset.view === view));
+  const isPeople = view === "people";
+  el("list").style.display = isPeople ? "block" : "none";
+  el("company-list").style.display = isPeople ? "none" : "block";
+  el("chip-row").style.display = isPeople ? "flex" : "none";
+  el("quick-access").style.display = isPeople ? "block" : "none";
+  if (isPeople) applyFilters();
+  else renderCompanies();
 }
 
 function updateCountLabel() {
@@ -438,10 +647,17 @@ async function toggleFavorite(c) {
 }
 
 function openDetail(c) {
+  recordRecent(c.i);
   const tags = c.tags ? [...c.tags] : [];
+  const waLink = c.p && digitsOnly(c.p) ? `https://wa.me/${digitsOnly(c.p)}` : null;
   el("detail-content").innerHTML = `
     <h2>${escapeHtml(c.n || "Unnamed")}</h2>
     <div class="sub">${escapeHtml([c.t, c.o].filter(Boolean).join(" at "))}</div>
+    <div class="action-row">
+      <a class="action-btn call ${c.p ? "" : "disabled"}" href="${c.p ? "tel:" + escapeHtml(c.p) : "#"}"><span class="ic">&#9742;</span>Call</a>
+      <a class="action-btn whatsapp ${waLink ? "" : "disabled"}" href="${waLink || "#"}" target="_blank" rel="noopener"><span class="ic">&#128172;</span>WhatsApp</a>
+      <a class="action-btn ${c.e ? "" : "disabled"}" href="${c.e ? "mailto:" + escapeHtml(c.e) : "#"}"><span class="ic">&#9993;</span>Email</a>
+    </div>
     <div class="fav-row">
       <div class="fav-toggle" id="detail-fav">
         <span class="star ${c.fav ? "on" : ""}" id="detail-star">&#9733;</span>
@@ -454,6 +670,13 @@ function openDetail(c) {
     <div class="field"><label>Location</label><div class="value">${escapeHtml([c.c, c.st, c.co].filter(Boolean).join(", ")) || "—"}</div></div>
     <div class="field"><label>LinkedIn</label><div class="value">${c.l ? `<a href="${escapeHtml(c.l)}" target="_blank" rel="noopener">View profile</a>` : "—"}</div></div>
     <div class="field">
+      <label>Follow up on</label>
+      <div class="followup-field">
+        <input type="date" id="followup-input" value="${escapeHtml(c.followUpAt || "")}" />
+        <button class="followup-clear" id="followup-clear-btn">Clear</button>
+      </div>
+    </div>
+    <div class="field">
       <label>Tags</label>
       <div class="tag-list" id="detail-tags"></div>
       <input type="text" id="tag-input" placeholder="Add a tag, press enter" />
@@ -464,6 +687,8 @@ function openDetail(c) {
     </div>
     <button class="save-btn" id="save-detail">Save</button>
   `;
+
+  el("followup-clear-btn").addEventListener("click", () => { el("followup-input").value = ""; });
 
   const renderTags = () => {
     el("detail-tags").innerHTML = tags
@@ -497,8 +722,10 @@ function openDetail(c) {
     c.notes = el("notes-input").value;
     c.tags = tags;
     c.fav = favLocal;
+    c.followUpAt = el("followup-input").value || "";
     closeSheet("detail-sheet");
     applyFilters();
+    renderQuickAccess();
     try {
       await saveShard(c);
       showToast("Saved");
@@ -547,6 +774,12 @@ async function exportCsv() {
     if (e && e.code === "declined") return;
     showToast("Export failed");
   }
+}
+
+function wireViewToggle() {
+  document.querySelectorAll("#view-toggle button").forEach((btn) => {
+    btn.addEventListener("click", () => setView(btn.dataset.view));
+  });
 }
 
 function wireChips() {
@@ -639,6 +872,7 @@ async function useCapability(name) {
 }
 
 async function init() {
+  wireViewToggle();
   wireChips();
   wireFilterSheet();
   wireGlobal();
@@ -655,20 +889,22 @@ async function init() {
       }
       contacts = await loadFromDb(dbApi);
     } catch (e) {
-      contacts = decodeSeed().map((r) => Object.assign({ notes: "", tags: [], fav: false, _shard: null }, r));
+      contacts = decodeSeed().map((r) => Object.assign({ notes: "", tags: [], fav: false, followUpAt: "", _shard: null }, r));
       showToast("Running without saved changes this session");
     }
   } else {
-    contacts = decodeSeed().map((r) => Object.assign({ notes: "", tags: [], fav: false, _shard: null }, r));
+    contacts = decodeSeed().map((r) => Object.assign({ notes: "", tags: [], fav: false, followUpAt: "", _shard: null }, r));
     showToast("Running without saved changes this session");
   }
 
   el("seeding-screen").style.display = "none";
   precompute();
+  recents = dbApi ? await loadRecents(dbApi) : [];
   fillFacet("f-company", "o", 400);
   fillFacet("f-title", "t", 400);
   fillFacet("f-country", "co", 200);
   fillFacet("f-email", "es", 20);
+  renderQuickAccess();
   applyFilters();
 }
 
