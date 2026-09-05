@@ -92,9 +92,10 @@
     <span data-i18n="bannerBody">
       This page ships with a curated set of ongoing offers and codes from major Saudi retailers, grouped by category.
       A scheduled job (see the repo's GitHub Actions workflow) runs daily to drop expired offers and refresh the
-      "last updated" timestamp automatically. Always double-check the code at checkout — merchants can end or change
-      promotions at any time. Want brand-new deals to appear without manual edits? Wire a real coupon/affiliate feed
-      into <code>scripts/update_coupons.py</code> — see the README in this folder.
+      "last updated" timestamp automatically, and it will also pull in and merge new entries automatically from a
+      coupon/affiliate feed once one is configured as the <code>COUPON_FEED_URL</code> repository secret — see the
+      README in this folder. Always double-check the code at checkout — merchants can end or change promotions at
+      any time.
     </span>
   </div>
 
@@ -552,7 +553,7 @@
       brandName: "KSA Coupons & Offers", dark: "Dark", light: "Light",
       lastUpdated: "Last updated", autoNote: "Refreshed automatically every day",
       bannerTitle: "How this stays current:",
-      bannerBody: "This page ships with a curated set of ongoing offers and codes from major Saudi retailers, grouped by category. A scheduled job (see the repo's GitHub Actions workflow) runs daily to drop expired offers and refresh the \"last updated\" timestamp automatically. Always double-check the code at checkout — merchants can end or change promotions at any time. Want brand-new deals to appear without manual edits? Wire a real coupon/affiliate feed into scripts/update_coupons.py — see the README in this folder.",
+      bannerBody: "This page ships with a curated set of ongoing offers and codes from major Saudi retailers, grouped by category. A scheduled job (see the repo's GitHub Actions workflow) runs daily to drop expired offers and refresh the \"last updated\" timestamp automatically, and it will also pull in and merge new entries automatically from a coupon/affiliate feed once one is configured as the COUPON_FEED_URL repository secret — see the README in this folder. Always double-check the code at checkout — merchants can end or change promotions at any time.",
       searchPlaceholder: "Search store, offer, category...",
       allStores: "All stores", allCategories: "All categories",
       sortExpiring: "Expiring soon", sortNewest: "Newest first", sortStore: "Store A–Z",
@@ -566,7 +567,7 @@
       brandName: "كوبونات وعروض السعودية", dark: "ليلي", light: "نهاري",
       lastUpdated: "آخر تحديث", autoNote: "يتم التحديث تلقائيًا يوميًا",
       bannerTitle: "كيف يبقى هذا محدثًا:",
-      bannerBody: "تحتوي هذه الصفحة على مجموعة مختارة من العروض والأكواد المستمرة من كبرى المتاجر السعودية، مصنفة حسب الفئة. تعمل مهمة مجدولة (راجع GitHub Actions في المستودع) يوميًا لإزالة العروض المنتهية وتحديث وقت \"آخر تحديث\" تلقائيًا. تحقق دائمًا من الكود عند الدفع — يمكن للمتاجر إنهاء أو تغيير العروض في أي وقت. لإضافة عروض جديدة تلقائيًا دون تعديل يدوي، اربط مصدر بيانات كوبونات حقيقي داخل scripts/update_coupons.py — راجع ملف README في هذا المجلد.",
+      bannerBody: "تحتوي هذه الصفحة على مجموعة مختارة من العروض والأكواد المستمرة من كبرى المتاجر السعودية، مصنفة حسب الفئة. تعمل مهمة مجدولة (راجع GitHub Actions في المستودع) يوميًا لإزالة العروض المنتهية وتحديث وقت \"آخر تحديث\" تلقائيًا، كما تقوم تلقائيًا بجلب ودمج عروض جديدة من مصدر بيانات كوبونات بمجرد ضبطه كسر repository باسم COUPON_FEED_URL — راجع ملف README في هذا المجلد. تحقق دائمًا من الكود عند الدفع — يمكن للمتاجر إنهاء أو تغيير العروض في أي وقت.",
       searchPlaceholder: "ابحث عن متجر أو عرض أو فئة...",
       allStores: "كل المتاجر", allCategories: "كل الفئات",
       sortExpiring: "الأقرب للانتهاء", sortNewest: "الأحدث أولاً", sortStore: "المتجر أ-ي",

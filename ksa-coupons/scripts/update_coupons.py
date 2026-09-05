@@ -1,18 +1,32 @@
 #!/usr/bin/env python3
 """Refreshes ksa-coupons/data/coupons.json and the embedded copy in index.html.
 
-Run by .github/workflows/update-ksa-coupons.yml on a daily schedule. What it
-does automatically, without any external data source:
+Run by .github/workflows/update-ksa-coupons.yml on a daily schedule. Every
+run, with no configuration at all, does two things automatically:
   - drops coupons whose "expires" date has passed
   - bumps "generated_at" to the current UTC time so the page's
     "Last updated" label reflects a real, scheduled refresh
 
-To pull in genuinely new deals automatically (rather than editing the JSON
-by hand), replace `fetch_new_coupons()` below with calls into a real coupon
-or affiliate-network API/feed and merge the results into `coupons`.
+Optionally, if a COUPON_FEED_URL environment variable (set as a GitHub
+Actions secret, see .github/workflows/update-ksa-coupons.yml) points at a
+real coupon/affiliate feed, this script also downloads it, parses it, and
+merges any new entries in. That is the only legitimate way to get broad,
+always-current KSA coupon coverage without manually curating every entry:
+merchants themselves don't publish machine-readable "these codes are valid
+today" pages, and coupon-aggregator sites deliberately hide their codes
+from scrapers. Licensed affiliate networks (Awin, Admitad, CJ Affiliate,
+Impact, etc.) sell exactly this as a CSV/JSON feed to their publishers.
+
+No feed configured -> this script silently just prunes + refreshes the
+timestamp, exactly like before. Nothing here fabricates coupon data.
 """
+import csv
+import io
 import json
+import os
 import pathlib
+import re
+import urllib.request
 from datetime import datetime, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -21,15 +35,116 @@ HTML_PATH = ROOT / "index.html"
 START_MARKER = "<!-- COUPONS_DATA_START -->"
 END_MARKER = "<!-- COUPONS_DATA_END -->"
 
+VALID_CATEGORIES = {
+    "marketplace", "fashion", "beauty", "food", "grocery",
+    "travel", "home", "kids", "transport", "telecom",
+}
+OTHER_CATEGORY = {"id": "other", "en": "Other", "ar": "أخرى"}
+
+# Accepted column/key names per field, most affiliate feeds use some subset
+# of these (case-insensitive). Extend this if your feed uses different names.
+FIELD_ALIASES = {
+    "store": ["store", "merchant", "advertiser", "advertisername", "brand", "shop"],
+    "title": ["title", "offername", "name", "headline", "voucher_title"],
+    "description": ["description", "terms", "details", "offerdescription"],
+    "code": ["code", "voucher", "vouchercode", "promocode", "coupon_code"],
+    "discount": ["discount", "discountvalue", "offer", "savings"],
+    "category": ["category", "sector", "vertical", "type_of_offer"],
+    "url": ["url", "link", "landing_page", "trackingurl", "deeplink", "clickurl"],
+    "expires": ["expires", "expirydate", "end_date", "validto", "enddate"],
+}
+
 
 def fetch_new_coupons():
-    """Placeholder hook for a real coupon/affiliate feed.
+    """Fetch and normalize entries from COUPON_FEED_URL, if configured.
 
-    Return a list of coupon dicts (same shape as entries in coupons.json)
-    to merge in. Returning an empty list keeps today's run limited to
-    pruning expired offers and refreshing the timestamp.
+    Supports CSV (default) or JSON (COUPON_FEED_FORMAT=json, expecting a
+    top-level JSON array of objects). Returns [] on missing config or any
+    fetch/parse failure -- a bad or unreachable feed should never break the
+    scheduled prune-and-refresh run.
     """
-    return []
+    feed_url = os.environ.get("COUPON_FEED_URL", "").strip()
+    if not feed_url:
+        return []
+
+    feed_format = os.environ.get("COUPON_FEED_FORMAT", "csv").strip().lower()
+
+    try:
+        req = urllib.request.Request(feed_url, headers={"User-Agent": "ksa-coupons-updater/1.0"})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            raw = resp.read().decode("utf-8", errors="replace")
+    except Exception as exc:
+        print(f"WARNING: could not fetch COUPON_FEED_URL ({exc}); skipping feed import")
+        return []
+
+    try:
+        if feed_format == "json":
+            rows = json.loads(raw)
+        else:
+            rows = list(csv.DictReader(io.StringIO(raw)))
+    except Exception as exc:
+        print(f"WARNING: could not parse coupon feed as {feed_format} ({exc}); skipping feed import")
+        return []
+
+    coupons = []
+    for row in rows:
+        coupon = normalize_row(row)
+        if coupon:
+            coupons.append(coupon)
+    print(f"Fetched {len(coupons)} usable entries from COUPON_FEED_URL")
+    return coupons
+
+
+def _lookup(row, field):
+    lowered = {str(k).strip().lower(): v for k, v in row.items() if v is not None}
+    for alias in FIELD_ALIASES[field]:
+        if alias in lowered and str(lowered[alias]).strip():
+            return str(lowered[alias]).strip()
+    return None
+
+
+def _slugify(*parts):
+    text = "-".join(p for p in parts if p).lower()
+    text = re.sub(r"[^a-z0-9]+", "-", text).strip("-")
+    return text or "feed-entry"
+
+
+def normalize_row(row):
+    if not isinstance(row, dict):
+        return None
+
+    store = _lookup(row, "store")
+    title = _lookup(row, "title") or _lookup(row, "discount")
+    if not store or not title:
+        return None
+
+    code = _lookup(row, "code")
+    url = _lookup(row, "url") or "#"
+    category = (_lookup(row, "category") or "").lower()
+    if category not in VALID_CATEGORIES:
+        category = OTHER_CATEGORY["id"]
+
+    expires = _lookup(row, "expires")
+    if expires:
+        expires = expires[:10]
+        try:
+            datetime.strptime(expires, "%Y-%m-%d")
+        except ValueError:
+            expires = None
+
+    return {
+        "id": _slugify("feed", store, code or title),
+        "store": store,
+        "storeUrl": url,
+        "category": category,
+        "title": title,
+        "description": _lookup(row, "description") or title,
+        "code": code,
+        "type": "code" if code else "deal",
+        "discount": _lookup(row, "discount") or title,
+        "expires": expires,
+        "verified_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+    }
 
 
 def load(path):
@@ -55,11 +170,19 @@ def prune_expired(data, today):
 
 def merge_new(data, new_coupons):
     existing_ids = {c["id"] for c in data["coupons"]}
+    added = 0
     for coupon in new_coupons:
         if coupon["id"] in existing_ids:
             continue
         data["coupons"].append(coupon)
         existing_ids.add(coupon["id"])
+        added += 1
+        if coupon["category"] == OTHER_CATEGORY["id"] and not any(
+            c["id"] == OTHER_CATEGORY["id"] for c in data["categories"]
+        ):
+            data["categories"].append(dict(OTHER_CATEGORY))
+    if added:
+        print(f"Merged {added} new coupon(s) from feed")
     return data
 
 

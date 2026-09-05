@@ -19,6 +19,9 @@ jobs:
           python-version: "3.12"
 
       - name: Refresh coupons data
+        env:
+          COUPON_FEED_URL: ${{ secrets.COUPON_FEED_URL }}
+          COUPON_FEED_FORMAT: ${{ secrets.COUPON_FEED_FORMAT }}
         run: python3 ksa-coupons/scripts/update_coupons.py
 
       - name: Commit changes if any
