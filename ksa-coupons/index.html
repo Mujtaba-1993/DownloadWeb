@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KSA Coupons &amp; Offers</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#ffffff; --text:#1a1d29; --muted:#6b7280;
+    --border:#e5e7eb; --accent:#0e8a5f; --accent-dark:#0a6b48;
+    --chip:#eef2f7; --chip-active:#0e8a5f; --chip-active-text:#ffffff;
+    --shadow:0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --danger:#c0392b;
+  }
+  [data-theme="dark"]{
+    --bg:#0f1115; --card:#171a21; --text:#eef1f6; --muted:#9aa3b2;
+    --border:#262b35; --accent:#22c48a; --accent-dark:#1aa473;
+    --chip:#1f2430; --chip-active:#22c48a; --chip-active-text:#0b0f0c;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+    --danger:#ff6b5e;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  [dir="rtl"] body{font-family:"Segoe UI",Tahoma,Arial,sans-serif;}
+  a{color:inherit;}
+  header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--border);padding:14px 20px;}
+  .header-row{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;white-space:nowrap;}
+  .brand .flag{font-size:22px;}
+  .header-actions{margin-inline-start:auto;display:flex;gap:8px;}
+  .icon-btn{border:1px solid var(--border);background:var(--chip);color:var(--text);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:13px;font-weight:600;}
+  .icon-btn:hover{border-color:var(--accent);}
+  .subbar{max-width:1100px;margin:10px auto 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:13px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;}
+  main{max-width:1100px;margin:0 auto;padding:20px;}
+  .banner{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:18px;font-size:13.5px;color:var(--muted);line-height:1.55;}
+  .banner b{color:var(--text);}
+  .controls{display:flex;flex-direction:column;gap:12px;margin-bottom:18px;}
+  .search-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .search-box{flex:1;min-width:220px;position:relative;}
+  .search-box input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:14px;}
+  select{padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:14px;}
+  .chip-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{padding:8px 14px;border-radius:999px;background:var(--chip);border:1px solid var(--border);color:var(--text);font-size:13px;cursor:pointer;user-select:none;font-weight:600;}
+  .chip.active{background:var(--chip-active);color:var(--chip-active-text);border-color:var(--chip-active);}
+  .count-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:var(--muted);font-size:13px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px;}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .store{font-weight:700;font-size:14px;}
+  .cat-tag{font-size:11px;color:var(--muted);background:var(--chip);padding:3px 8px;border-radius:8px;}
+  .discount{font-size:15px;font-weight:800;color:var(--accent);}
+  .title{font-weight:700;font-size:15px;line-height:1.35;}
+  .desc{font-size:13px;color:var(--muted);line-height:1.5;flex:1;}
+  .meta{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;}
+  .expiring{color:var(--danger);font-weight:700;}
+  .card-actions{display:flex;gap:8px;align-items:center;}
+  .code-box{flex:1;display:flex;align-items:center;justify-content:space-between;border:1.5px dashed var(--accent);border-radius:10px;padding:9px 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:700;letter-spacing:1px;font-size:13px;}
+  .copy-btn{background:var(--accent);color:#fff;border:none;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;}
+  .copy-btn:hover{background:var(--accent-dark);}
+  .deal-btn{flex:1;text-align:center;background:var(--accent);color:#fff;text-decoration:none;padding:10px 12px;border-radius:10px;font-weight:700;font-size:13px;}
+  .deal-btn:hover{background:var(--accent-dark);}
+  .visit-link{font-size:12px;text-decoration:none;color:var(--accent);font-weight:600;}
+  .empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:14px;}
+  footer{max-width:1100px;margin:10px auto 40px;padding:0 20px;color:var(--muted);font-size:12px;line-height:1.6;}
+  footer a{color:var(--accent);text-decoration:none;}
+  @media (max-width:520px){ .brand{font-size:17px;} .header-actions{width:100%;justify-content:flex-end;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div class="brand"><span class="flag">🇸🇦</span><span data-i18n="brandName">KSA Coupons &amp; Offers</span></div>
+    <div class="header-actions">
+      <button class="icon-btn" id="langToggle">العربية</button>
+      <button class="icon-btn" id="themeToggle">🌙 <span data-i18n="dark">Dark</span></button>
+    </div>
+  </div>
+  <div class="subbar">
+    <span><span class="dot"></span> <span data-i18n="lastUpdated">Last updated</span>: <b id="lastUpdated">—</b></span>
+    <span>•</span>
+    <span id="totalCountLabel">—</span>
+    <span>•</span>
+    <span id="autoNote" data-i18n="autoNote">Refreshed automatically every day</span>
+  </div>
+</header>
+
+<main>
+  <div class="banner">
+    <b data-i18n="bannerTitle">How this stays current:</b>
+    <span data-i18n="bannerBody">
+      This page ships with a curated set of ongoing offers and codes from major Saudi retailers, grouped by category.
+      A scheduled job (see the repo's GitHub Actions workflow) runs daily to drop expired offers and refresh the
+      "last updated" timestamp automatically. Always double-check the code at checkout — merchants can end or change
+      promotions at any time. Want brand-new deals to appear without manual edits? Wire a real coupon/affiliate feed
+      into <code>scripts/update_coupons.py</code> — see the README in this folder.
+    </span>
+  </div>
+
+  <div class="controls">
+    <div class="search-row">
+      <div class="search-box">
+        <input type="text" id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Search store, offer, category...">
+      </div>
+      <select id="storeFilter"><option value="" data-i18n="allStores">All stores</option></select>
+      <select id="sortSelect">
+        <option value="expiring" data-i18n="sortExpiring">Expiring soon</option>
+        <option value="newest" data-i18n="sortNewest">Newest first</option>
+        <option value="store" data-i18n="sortStore">Store A–Z</option>
+      </select>
+    </div>
+    <div class="chip-row" id="categoryChips"></div>
+  </div>
+
+  <div class="count-row">
+    <span id="resultCount"></span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="emptyState" style="display:none" data-i18n="noResults">No offers match your filters. Try clearing the search or category.</div>
+</main>
+
+<footer>
+  <span data-i18n="footerNote">
+    Data source: <code>data/coupons.json</code> in this folder (also embedded below for offline use).
+    This tool is a starter aggregator, not affiliated with any of the listed merchants.
+  </span>
+</footer>
+
+<script type="application/json" id="coupons-data">
+<!-- COUPONS_DATA_START -->
+{
+  "generated_at": "2026-09-05T08:55:59Z",
+  "categories": [
+    {
+      "id": "marketplace",
+      "en": "Marketplaces & Electronics",
+      "ar": "أسواق إلكترونية وإلكترونيات"
+    },
+    {
+      "id": "fashion",
+      "en": "Fashion & Apparel",
+      "ar": "أزياء وملابس"
+    },
+    {
+      "id": "beauty",
+      "en": "Beauty & Health",
+      "ar": "جمال وصحة"
+    },
+    {
+      "id": "food",
+      "en": "Food Delivery",
+      "ar": "توصيل الطعام"
+    },
+    {
+      "id": "grocery",
+      "en": "Groceries",
+      "ar": "بقالة"
+    },
+    {
+      "id": "travel",
+      "en": "Travel & Hospitality",
+      "ar": "سفر وضيافة"
+    },
+    {
+      "id": "home",
+      "en": "Home & Furniture",
+      "ar": "المنزل والأثاث"
+    },
+    {
+      "id": "kids",
+      "en": "Kids & Toys",
+      "ar": "أطفال وألعاب"
+    },
+    {
+      "id": "transport",
+      "en": "Transport",
+      "ar": "نقل ومواصلات"
+    },
+    {
+      "id": "telecom",
+      "en": "Telecom",
+      "ar": "اتصالات"
+    }
+  ],
+  "coupons": [
+    {
+      "id": "noon-app-welcome",
+      "store": "Noon",
+      "storeUrl": "https://www.noon.com/saudi-en/",
+      "category": "marketplace",
+      "title": "New customer welcome discount",
+      "description": "Discount on your first order when you sign up via the Noon app or website.",
+      "code": "NOONWELCOME",
+      "type": "code",
+      "discount": "Up to SAR 50 off",
+      "expires": null,
+      "verified_at": "2026-09-01"
+    },
+    {
+      "id": "noon-yellow-friday",
+      "store": "Noon",
+      "storeUrl": "https://www.noon.com/saudi-en/",
+      "category": "marketplace",
+      "title": "Seasonal mega sale",
+      "description": "Site-wide markdowns during Noon's recurring seasonal sale events (Yellow Friday, Ramadan, back-to-school).",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 70% off",
+      "expires": "2026-11-30",
+      "verified_at": "2026-09-01"
+    },
+    {
+      "id": "amazon-sa-prime",
+      "store": "Amazon.sa",
+      "storeUrl": "https://www.amazon.sa/",
+      "category": "marketplace",
+      "title": "Prime member deals",
+      "description": "Extra discounts and early access to lightning deals for Amazon Prime members in Saudi Arabia.",
+      "code": null,
+      "type": "deal",
+      "discount": "Varies by item",
+      "expires": null,
+      "verified_at": "2026-09-01"
+    },
+    {
+      "id": "extra-online-clearance",
+      "store": "eXtra Stores",
+      "storeUrl": "https://www.extra.com/en-sa/",
+      "category": "marketplace",
+      "title": "Online clearance section",
+      "description": "Ongoing clearance discounts on electronics and appliances, refreshed weekly.",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 50% off",
+      "expires": null,
+      "verified_at": "2026-08-28"
+    },
+    {
+      "id": "jarir-student",
+      "store": "Jarir Bookstore",
+      "storeUrl": "https://www.jarir.com/sa-en/",
+      "category": "marketplace",
+      "title": "Student & bulk order discounts",
+      "description": "Discounts on laptops and stationery for students and bulk school orders.",
+      "code": null,
+      "type": "deal",
+      "discount": "5–15% off",
+      "expires": null,
+      "verified_at": "2026-08-20"
+    },
+    {
+      "id": "shein-newuser",
+      "store": "SHEIN",
+      "storeUrl": "https://www.shein.com/",
+      "category": "fashion",
+      "title": "New user discount code",
+      "description": "Percentage off first order for new SHEIN accounts in Saudi Arabia.",
+      "code": "SASHEIN",
+      "type": "code",
+      "discount": "Up to 30% off",
+      "expires": null,
+      "verified_at": "2026-09-01"
+    },
+    {
+      "id": "namshi-app-only",
+      "store": "Namshi",
+      "storeUrl": "https://www.namshi.com/saudi-en/",
+      "category": "fashion",
+      "title": "App-exclusive discount",
+      "description": "Extra percentage off when ordering through the Namshi mobile app.",
+      "code": "APP15",
+      "type": "code",
+      "discount": "15% off",
+      "expires": null,
+      "verified_at": "2026-08-25"
+    },
+    {
+      "id": "ounass-sale",
+      "store": "Ounass",
+      "storeUrl": "https://www.ounass.sa/",
+      "category": "fashion",
+      "title": "End-of-season sale",
+      "description": "Designer fashion markdowns during recurring seasonal sale windows.",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 60% off",
+      "expires": "2026-10-31",
+      "verified_at": "2026-08-25"
+    },
+    {
+      "id": "centrepoint-loyalty",
+      "store": "Centrepoint",
+      "storeUrl": "https://www.centrepointstores.com/sa/en/",
+      "category": "fashion",
+      "title": "Shukran loyalty rewards",
+      "description": "Points-based cashback for Shukran loyalty members redeemable on future orders.",
+      "code": null,
+      "type": "deal",
+      "discount": "Cashback on purchases",
+      "expires": null,
+      "verified_at": "2026-08-18"
+    },
+    {
+      "id": "niceone-firstorder",
+      "store": "NiceOne",
+      "storeUrl": "https://niceonesa.com/",
+      "category": "beauty",
+      "title": "First order discount",
+      "description": "Discount code for first-time NiceOne beauty and skincare orders.",
+      "code": "NICE10",
+      "type": "code",
+      "discount": "10% off",
+      "expires": null,
+      "verified_at": "2026-08-30"
+    },
+    {
+      "id": "nahdi-membership",
+      "store": "Nahdi Pharmacy",
+      "storeUrl": "https://www.nahdionline.com/",
+      "category": "beauty",
+      "title": "Nahdi membership card offers",
+      "description": "Ongoing member pricing and point rewards on health and wellness products.",
+      "code": null,
+      "type": "deal",
+      "discount": "Member pricing",
+      "expires": null,
+      "verified_at": "2026-08-15"
+    },
+    {
+      "id": "hungerstation-newuser",
+      "store": "HungerStation",
+      "storeUrl": "https://www.hungerstation.com/",
+      "category": "food",
+      "title": "New user free delivery",
+      "description": "Free or discounted delivery fee on your first HungerStation order.",
+      "code": "HS0DELIVERY",
+      "type": "code",
+      "discount": "Free delivery",
+      "expires": null,
+      "verified_at": "2026-09-01"
+    },
+    {
+      "id": "talabat-promo",
+      "store": "Talabat",
+      "storeUrl": "https://www.talabat.com/saudi",
+      "category": "food",
+      "title": "Recurring restaurant promos",
+      "description": "Rotating percentage-off vouchers for partner restaurants inside the Talabat app.",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 50% off",
+      "expires": null,
+      "verified_at": "2026-08-27"
+    },
+    {
+      "id": "jahez-cashback",
+      "store": "Jahez",
+      "storeUrl": "https://jahez.net/",
+      "category": "food",
+      "title": "Jahez wallet cashback",
+      "description": "Cashback credited to the Jahez wallet on qualifying orders.",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 20% cashback",
+      "expires": null,
+      "verified_at": "2026-08-27"
+    },
+    {
+      "id": "danube-weekly",
+      "store": "Danube Online",
+      "storeUrl": "https://danube.sa/",
+      "category": "grocery",
+      "title": "Weekly grocery offers",
+      "description": "Rotating weekly discounts on groceries and household essentials.",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 40% off",
+      "expires": null,
+      "verified_at": "2026-08-29"
+    },
+    {
+      "id": "nana-firstorder",
+      "store": "Nana Direct",
+      "storeUrl": "https://nana.sa/",
+      "category": "grocery",
+      "title": "First order discount",
+      "description": "Discount code for first-time grocery delivery orders via Nana.",
+      "code": "NANA20",
+      "type": "code",
+      "discount": "20% off (max SAR 20)",
+      "expires": null,
+      "verified_at": "2026-08-29"
+    },
+    {
+      "id": "booking-genius",
+      "store": "Booking.com",
+      "storeUrl": "https://www.booking.com/",
+      "category": "travel",
+      "title": "Genius loyalty discounts",
+      "description": "Automatic member discounts on hotels in Saudi Arabia and abroad once Genius level is reached.",
+      "code": null,
+      "type": "deal",
+      "discount": "10–20% off stays",
+      "expires": null,
+      "verified_at": "2026-08-10"
+    },
+    {
+      "id": "almosafer-flight",
+      "store": "Almosafer",
+      "storeUrl": "https://www.almosafer.com/",
+      "category": "travel",
+      "title": "Flight + hotel bundle discount",
+      "description": "Bundle pricing when booking flights and hotels together.",
+      "code": null,
+      "type": "deal",
+      "discount": "Bundle savings",
+      "expires": null,
+      "verified_at": "2026-08-10"
+    },
+    {
+      "id": "flynas-sale",
+      "store": "flynas",
+      "storeUrl": "https://www.flynas.com/",
+      "category": "travel",
+      "title": "Domestic route flash sale",
+      "description": "Periodic flash sales on domestic Saudi routes.",
+      "code": null,
+      "type": "deal",
+      "discount": "Fares from SAR 99",
+      "expires": "2026-12-01",
+      "verified_at": "2026-08-05"
+    },
+    {
+      "id": "ikea-family",
+      "store": "IKEA Saudi Arabia",
+      "storeUrl": "https://www.ikea.com/sa/en/",
+      "category": "home",
+      "title": "IKEA Family member prices",
+      "description": "Special member-only pricing on selected items for IKEA Family cardholders.",
+      "code": null,
+      "type": "deal",
+      "discount": "Member pricing",
+      "expires": null,
+      "verified_at": "2026-08-12"
+    },
+    {
+      "id": "homebox-clearance",
+      "store": "Danube Home / HomeBox",
+      "storeUrl": "https://www.home-box.com/ksa/",
+      "category": "home",
+      "title": "Furniture clearance",
+      "description": "Recurring clearance sale on furniture and home decor lines.",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 50% off",
+      "expires": null,
+      "verified_at": "2026-08-12"
+    },
+    {
+      "id": "firstcry-newuser",
+      "store": "FirstCry Saudi Arabia",
+      "storeUrl": "https://www.firstcry.sa/",
+      "category": "kids",
+      "title": "New account discount",
+      "description": "Discount on baby and kids products for first-time FirstCry accounts.",
+      "code": "FCSA10",
+      "type": "code",
+      "discount": "10% off",
+      "expires": null,
+      "verified_at": "2026-08-14"
+    },
+    {
+      "id": "uber-rider-promo",
+      "store": "Uber",
+      "storeUrl": "https://www.uber.com/sa/en/",
+      "category": "transport",
+      "title": "Rider promo credits",
+      "description": "In-app promo credits offered periodically to riders in major Saudi cities.",
+      "code": null,
+      "type": "deal",
+      "discount": "Ride credit varies",
+      "expires": null,
+      "verified_at": "2026-08-22"
+    },
+    {
+      "id": "careem-newuser",
+      "store": "Careem",
+      "storeUrl": "https://www.careem.com/",
+      "category": "transport",
+      "title": "New rider discount",
+      "description": "Discount code for first rides for new Careem users in Saudi Arabia.",
+      "code": "CAREEMKSA",
+      "type": "code",
+      "discount": "Up to SAR 15 off",
+      "expires": null,
+      "verified_at": "2026-08-22"
+    },
+    {
+      "id": "stc-quicknet",
+      "store": "STC",
+      "storeUrl": "https://www.stc.com.sa/",
+      "category": "telecom",
+      "title": "Bundle upgrade offers",
+      "description": "Recurring promotional pricing on mobile and home internet bundle upgrades.",
+      "code": null,
+      "type": "deal",
+      "discount": "Varies by plan",
+      "expires": null,
+      "verified_at": "2026-08-19"
+    },
+    {
+      "id": "mobily-esim",
+      "store": "Mobily",
+      "storeUrl": "https://www.mobily.com.sa/",
+      "category": "telecom",
+      "title": "eSIM activation offer",
+      "description": "Reduced or waived activation fee when switching to a Mobily eSIM plan online.",
+      "code": null,
+      "type": "deal",
+      "discount": "Activation fee waived",
+      "expires": null,
+      "verified_at": "2026-08-19"
+    },
+    {
+      "id": "zain-prepaid",
+      "store": "Zain KSA",
+      "storeUrl": "https://www.zain.sa/",
+      "category": "telecom",
+      "title": "Prepaid recharge bonus",
+      "description": "Bonus data or minutes when recharging prepaid lines online during promo periods.",
+      "code": null,
+      "type": "deal",
+      "discount": "Bonus data",
+      "expires": null,
+      "verified_at": "2026-08-19"
+    }
+  ]
+}
+<!-- COUPONS_DATA_END -->
+</script>
+
+<script>
+(function(){
+  var raw = document.getElementById('coupons-data').textContent;
+  raw = raw.replace(/<!--\s*COUPONS_DATA_START\s*-->/, '').replace(/<!--\s*COUPONS_DATA_END\s*-->/, '');
+  var DATA = JSON.parse(raw);
+
+  var i18n = {
+    en: {
+      brandName: "KSA Coupons & Offers", dark: "Dark", light: "Light",
+      lastUpdated: "Last updated", autoNote: "Refreshed automatically every day",
+      bannerTitle: "How this stays current:",
+      bannerBody: "This page ships with a curated set of ongoing offers and codes from major Saudi retailers, grouped by category. A scheduled job (see the repo's GitHub Actions workflow) runs daily to drop expired offers and refresh the \"last updated\" timestamp automatically. Always double-check the code at checkout — merchants can end or change promotions at any time. Want brand-new deals to appear without manual edits? Wire a real coupon/affiliate feed into scripts/update_coupons.py — see the README in this folder.",
+      searchPlaceholder: "Search store, offer, category...",
+      allStores: "All stores", allCategories: "All categories",
+      sortExpiring: "Expiring soon", sortNewest: "Newest first", sortStore: "Store A–Z",
+      noResults: "No offers match your filters. Try clearing the search or category.",
+      footerNote: "Data source: data/coupons.json in this folder (also embedded above for offline use). This tool is a starter aggregator, not affiliated with any of the listed merchants.",
+      copy: "Copy", copied: "Copied!", getDeal: "Get deal", visit: "Visit store",
+      expiresLabel: "Expires", ongoing: "Ongoing offer", resultsLabel: "offers", totalLabel: "total offers tracked",
+      expiringSoon: "Expiring soon"
+    },
+    ar: {
+      brandName: "كوبونات وعروض السعودية", dark: "ليلي", light: "نهاري",
+      lastUpdated: "آخر تحديث", autoNote: "يتم التحديث تلقائيًا يوميًا",
+      bannerTitle: "كيف يبقى هذا محدثًا:",
+      bannerBody: "تحتوي هذه الصفحة على مجموعة مختارة من العروض والأكواد المستمرة من كبرى المتاجر السعودية، مصنفة حسب الفئة. تعمل مهمة مجدولة (راجع GitHub Actions في المستودع) يوميًا لإزالة العروض المنتهية وتحديث وقت \"آخر تحديث\" تلقائيًا. تحقق دائمًا من الكود عند الدفع — يمكن للمتاجر إنهاء أو تغيير العروض في أي وقت. لإضافة عروض جديدة تلقائيًا دون تعديل يدوي، اربط مصدر بيانات كوبونات حقيقي داخل scripts/update_coupons.py — راجع ملف README في هذا المجلد.",
+      searchPlaceholder: "ابحث عن متجر أو عرض أو فئة...",
+      allStores: "كل المتاجر", allCategories: "كل الفئات",
+      sortExpiring: "الأقرب للانتهاء", sortNewest: "الأحدث أولاً", sortStore: "المتجر أ-ي",
+      noResults: "لا توجد عروض مطابقة. جرّب تغيير البحث أو الفئة.",
+      footerNote: "مصدر البيانات: data/coupons.json داخل هذا المجلد (مضمّن أعلاه أيضًا للاستخدام دون اتصال). هذه الأداة مجمّعة عروض مستقلة وغير تابعة لأي من المتاجر المذكورة.",
+      copy: "نسخ", copied: "تم النسخ!", getDeal: "احصل على العرض", visit: "زيارة المتجر",
+      expiresLabel: "ينتهي في", ongoing: "عرض مستمر", resultsLabel: "عرض", totalLabel: "إجمالي العروض المتابعة",
+      expiringSoon: "ينتهي قريبًا"
+    }
+  };
+
+  var state = { lang: 'en', theme: 'light', search: '', category: '', store: '', sort: 'expiring' };
+
+  var els = {
+    grid: document.getElementById('grid'),
+    empty: document.getElementById('emptyState'),
+    search: document.getElementById('searchInput'),
+    storeFilter: document.getElementById('storeFilter'),
+    sortSelect: document.getElementById('sortSelect'),
+    chips: document.getElementById('categoryChips'),
+    resultCount: document.getElementById('resultCount'),
+    lastUpdated: document.getElementById('lastUpdated'),
+    totalCountLabel: document.getElementById('totalCountLabel'),
+    langToggle: document.getElementById('langToggle'),
+    themeToggle: document.getElementById('themeToggle')
+  };
+
+  function t(key){ return i18n[state.lang][key] || key; }
+
+  function applyStaticI18n(){
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el){
+      el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder')));
+    });
+    els.langToggle.textContent = state.lang === 'en' ? 'العربية' : 'English';
+    els.themeToggle.textContent = (state.theme === 'light' ? '🌙 ' : '☀️ ') + (state.theme === 'light' ? t('dark') : t('light'));
+    document.documentElement.setAttribute('dir', state.lang === 'ar' ? 'rtl' : 'ltr');
+    document.documentElement.setAttribute('lang', state.lang);
+  }
+
+  function catLabel(catId){
+    var c = DATA.categories.find(function(x){ return x.id === catId; });
+    if(!c) return catId;
+    return state.lang === 'ar' ? c.ar : c.en;
+  }
+
+  function buildCategoryChips(){
+    els.chips.innerHTML = '';
+    var allChip = document.createElement('div');
+    allChip.className = 'chip' + (state.category === '' ? ' active' : '');
+    allChip.textContent = t('allCategories');
+    allChip.onclick = function(){ state.category = ''; render(); };
+    els.chips.appendChild(allChip);
+
+    DATA.categories.forEach(function(cat){
+      var chip = document.createElement('div');
+      chip.className = 'chip' + (state.category === cat.id ? ' active' : '');
+      chip.textContent = state.lang === 'ar' ? cat.ar : cat.en;
+      chip.onclick = function(){ state.category = cat.id; render(); };
+      els.chips.appendChild(chip);
+    });
+  }
+
+  function buildStoreFilter(){
+    var stores = Array.from(new Set(DATA.coupons.map(function(c){ return c.store; }))).sort();
+    els.storeFilter.innerHTML = '<option value="">' + t('allStores') + '</option>';
+    stores.forEach(function(s){
+      var opt = document.createElement('option');
+      opt.value = s; opt.textContent = s;
+      if(s === state.store) opt.selected = true;
+      els.storeFilter.appendChild(opt);
+    });
+  }
+
+  function daysUntil(dateStr){
+    if(!dateStr) return Infinity;
+    var d = new Date(dateStr + 'T00:00:00Z');
+    var now = new Date();
+    return Math.ceil((d - now) / 86400000);
+  }
+
+  function filteredCoupons(){
+    var q = state.search.trim().toLowerCase();
+    var list = DATA.coupons.filter(function(c){
+      if(state.category && c.category !== state.category) return false;
+      if(state.store && c.store !== state.store) return false;
+      var exp = daysUntil(c.expires);
+      if(exp < 0) return false;
+      if(q){
+        var hay = (c.store + ' ' + c.title + ' ' + c.description + ' ' + catLabel(c.category)).toLowerCase();
+        if(hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+
+    list.sort(function(a, b){
+      if(state.sort === 'store') return a.store.localeCompare(b.store);
+      if(state.sort === 'newest') return new Date(b.verified_at) - new Date(a.verified_at);
+      return daysUntil(a.expires) - daysUntil(b.expires);
+    });
+    return list;
+  }
+
+  function renderCard(c){
+    var card = document.createElement('div');
+    card.className = 'card';
+
+    var exp = daysUntil(c.expires);
+    var expiringSoon = exp !== Infinity && exp <= 7;
+    var expiryText = c.expires
+      ? (t('expiresLabel') + ': ' + c.expires)
+      : t('ongoing');
+
+    var actionsHtml = '';
+    if(c.type === 'code' && c.code){
+      actionsHtml =
+        '<div class="card-actions">' +
+          '<div class="code-box"><span>' + c.code + '</span>' +
+            '<button class="copy-btn" data-code="' + c.code + '">' + t('copy') + '</button></div>' +
+        '</div>' +
+        '<a class="visit-link" href="' + c.storeUrl + '" target="_blank" rel="noopener noreferrer">' + t('visit') + ' →</a>';
+    } else {
+      actionsHtml =
+        '<div class="card-actions">' +
+          '<a class="deal-btn" href="' + c.storeUrl + '" target="_blank" rel="noopener noreferrer">' + t('getDeal') + '</a>' +
+        '</div>';
+    }
+
+    card.innerHTML =
+      '<div class="card-top">' +
+        '<div class="store">' + c.store + '</div>' +
+        '<div class="cat-tag">' + catLabel(c.category) + '</div>' +
+      '</div>' +
+      '<div class="discount">' + c.discount + '</div>' +
+      '<div class="title">' + c.title + '</div>' +
+      '<div class="desc">' + c.description + '</div>' +
+      '<div class="meta"><span class="' + (expiringSoon ? 'expiring' : '') + '">' + expiryText + '</span><span>' + t('lastUpdated') + ': ' + c.verified_at + '</span></div>' +
+      actionsHtml;
+
+    var copyBtn = card.querySelector('.copy-btn');
+    if(copyBtn){
+      copyBtn.addEventListener('click', function(){
+        var code = copyBtn.getAttribute('data-code');
+        var done = function(){
+          copyBtn.textContent = t('copied');
+          setTimeout(function(){ copyBtn.textContent = t('copy'); }, 1500);
+        };
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(code).then(done).catch(done);
+        } else {
+          done();
+        }
+      });
+    }
+    return card;
+  }
+
+  function render(){
+    applyStaticI18n();
+    buildCategoryChips();
+    buildStoreFilter();
+
+    var list = filteredCoupons();
+    els.grid.innerHTML = '';
+    list.forEach(function(c){ els.grid.appendChild(renderCard(c)); });
+
+    els.empty.style.display = list.length === 0 ? 'block' : 'none';
+    els.resultCount.textContent = list.length + ' ' + t('resultsLabel');
+    els.totalCountLabel.textContent = DATA.coupons.length + ' ' + t('totalLabel');
+
+    var d = new Date(DATA.generated_at);
+    els.lastUpdated.textContent = isNaN(d.getTime()) ? DATA.generated_at : d.toISOString().slice(0, 10);
+  }
+
+  els.search.addEventListener('input', function(e){ state.search = e.target.value; render(); });
+  els.storeFilter.addEventListener('change', function(e){ state.store = e.target.value; render(); });
+  els.sortSelect.addEventListener('change', function(e){ state.sort = e.target.value; render(); });
+  els.langToggle.addEventListener('click', function(){
+    state.lang = state.lang === 'en' ? 'ar' : 'en';
+    try{ localStorage.setItem('ksaCouponsLang', state.lang); }catch(e){}
+    render();
+  });
+  els.themeToggle.addEventListener('click', function(){
+    state.theme = state.theme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', state.theme);
+    try{ localStorage.setItem('ksaCouponsTheme', state.theme); }catch(e){}
+    render();
+  });
+
+  try{
+    var savedLang = localStorage.getItem('ksaCouponsLang');
+    var savedTheme = localStorage.getItem('ksaCouponsTheme');
+    if(savedLang) state.lang = savedLang;
+    if(savedTheme) state.theme = savedTheme;
+  }catch(e){}
+  document.documentElement.setAttribute('data-theme', state.theme);
+
+  // Optional: if hosted over http(s) with data/coupons.json kept in sync,
+  // prefer that file when it's newer than the embedded copy (auto-refresh
+  // without needing to re-download this HTML file).
+  fetch('data/coupons.json', { cache: 'no-store' })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(fresh){
+      if(fresh && fresh.generated_at && new Date(fresh.generated_at) > new Date(DATA.generated_at)){
+        DATA = fresh;
+      }
+      render();
+    })
+    .catch(function(){ render(); });
+
+  render();
+})();
+</script>
+</body>
+</html>

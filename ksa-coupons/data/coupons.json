@@ -1,0 +1,408 @@
+{
+  "generated_at": "2026-09-05T08:55:59Z",
+  "categories": [
+    {
+      "id": "marketplace",
+      "en": "Marketplaces & Electronics",
+      "ar": "أسواق إلكترونية وإلكترونيات"
+    },
+    {
+      "id": "fashion",
+      "en": "Fashion & Apparel",
+      "ar": "أزياء وملابس"
+    },
+    {
+      "id": "beauty",
+      "en": "Beauty & Health",
+      "ar": "جمال وصحة"
+    },
+    {
+      "id": "food",
+      "en": "Food Delivery",
+      "ar": "توصيل الطعام"
+    },
+    {
+      "id": "grocery",
+      "en": "Groceries",
+      "ar": "بقالة"
+    },
+    {
+      "id": "travel",
+      "en": "Travel & Hospitality",
+      "ar": "سفر وضيافة"
+    },
+    {
+      "id": "home",
+      "en": "Home & Furniture",
+      "ar": "المنزل والأثاث"
+    },
+    {
+      "id": "kids",
+      "en": "Kids & Toys",
+      "ar": "أطفال وألعاب"
+    },
+    {
+      "id": "transport",
+      "en": "Transport",
+      "ar": "نقل ومواصلات"
+    },
+    {
+      "id": "telecom",
+      "en": "Telecom",
+      "ar": "اتصالات"
+    }
+  ],
+  "coupons": [
+    {
+      "id": "noon-app-welcome",
+      "store": "Noon",
+      "storeUrl": "https://www.noon.com/saudi-en/",
+      "category": "marketplace",
+      "title": "New customer welcome discount",
+      "description": "Discount on your first order when you sign up via the Noon app or website.",
+      "code": "NOONWELCOME",
+      "type": "code",
+      "discount": "Up to SAR 50 off",
+      "expires": null,
+      "verified_at": "2026-09-01"
+    },
+    {
+      "id": "noon-yellow-friday",
+      "store": "Noon",
+      "storeUrl": "https://www.noon.com/saudi-en/",
+      "category": "marketplace",
+      "title": "Seasonal mega sale",
+      "description": "Site-wide markdowns during Noon's recurring seasonal sale events (Yellow Friday, Ramadan, back-to-school).",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 70% off",
+      "expires": "2026-11-30",
+      "verified_at": "2026-09-01"
+    },
+    {
+      "id": "amazon-sa-prime",
+      "store": "Amazon.sa",
+      "storeUrl": "https://www.amazon.sa/",
+      "category": "marketplace",
+      "title": "Prime member deals",
+      "description": "Extra discounts and early access to lightning deals for Amazon Prime members in Saudi Arabia.",
+      "code": null,
+      "type": "deal",
+      "discount": "Varies by item",
+      "expires": null,
+      "verified_at": "2026-09-01"
+    },
+    {
+      "id": "extra-online-clearance",
+      "store": "eXtra Stores",
+      "storeUrl": "https://www.extra.com/en-sa/",
+      "category": "marketplace",
+      "title": "Online clearance section",
+      "description": "Ongoing clearance discounts on electronics and appliances, refreshed weekly.",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 50% off",
+      "expires": null,
+      "verified_at": "2026-08-28"
+    },
+    {
+      "id": "jarir-student",
+      "store": "Jarir Bookstore",
+      "storeUrl": "https://www.jarir.com/sa-en/",
+      "category": "marketplace",
+      "title": "Student & bulk order discounts",
+      "description": "Discounts on laptops and stationery for students and bulk school orders.",
+      "code": null,
+      "type": "deal",
+      "discount": "5–15% off",
+      "expires": null,
+      "verified_at": "2026-08-20"
+    },
+    {
+      "id": "shein-newuser",
+      "store": "SHEIN",
+      "storeUrl": "https://www.shein.com/",
+      "category": "fashion",
+      "title": "New user discount code",
+      "description": "Percentage off first order for new SHEIN accounts in Saudi Arabia.",
+      "code": "SASHEIN",
+      "type": "code",
+      "discount": "Up to 30% off",
+      "expires": null,
+      "verified_at": "2026-09-01"
+    },
+    {
+      "id": "namshi-app-only",
+      "store": "Namshi",
+      "storeUrl": "https://www.namshi.com/saudi-en/",
+      "category": "fashion",
+      "title": "App-exclusive discount",
+      "description": "Extra percentage off when ordering through the Namshi mobile app.",
+      "code": "APP15",
+      "type": "code",
+      "discount": "15% off",
+      "expires": null,
+      "verified_at": "2026-08-25"
+    },
+    {
+      "id": "ounass-sale",
+      "store": "Ounass",
+      "storeUrl": "https://www.ounass.sa/",
+      "category": "fashion",
+      "title": "End-of-season sale",
+      "description": "Designer fashion markdowns during recurring seasonal sale windows.",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 60% off",
+      "expires": "2026-10-31",
+      "verified_at": "2026-08-25"
+    },
+    {
+      "id": "centrepoint-loyalty",
+      "store": "Centrepoint",
+      "storeUrl": "https://www.centrepointstores.com/sa/en/",
+      "category": "fashion",
+      "title": "Shukran loyalty rewards",
+      "description": "Points-based cashback for Shukran loyalty members redeemable on future orders.",
+      "code": null,
+      "type": "deal",
+      "discount": "Cashback on purchases",
+      "expires": null,
+      "verified_at": "2026-08-18"
+    },
+    {
+      "id": "niceone-firstorder",
+      "store": "NiceOne",
+      "storeUrl": "https://niceonesa.com/",
+      "category": "beauty",
+      "title": "First order discount",
+      "description": "Discount code for first-time NiceOne beauty and skincare orders.",
+      "code": "NICE10",
+      "type": "code",
+      "discount": "10% off",
+      "expires": null,
+      "verified_at": "2026-08-30"
+    },
+    {
+      "id": "nahdi-membership",
+      "store": "Nahdi Pharmacy",
+      "storeUrl": "https://www.nahdionline.com/",
+      "category": "beauty",
+      "title": "Nahdi membership card offers",
+      "description": "Ongoing member pricing and point rewards on health and wellness products.",
+      "code": null,
+      "type": "deal",
+      "discount": "Member pricing",
+      "expires": null,
+      "verified_at": "2026-08-15"
+    },
+    {
+      "id": "hungerstation-newuser",
+      "store": "HungerStation",
+      "storeUrl": "https://www.hungerstation.com/",
+      "category": "food",
+      "title": "New user free delivery",
+      "description": "Free or discounted delivery fee on your first HungerStation order.",
+      "code": "HS0DELIVERY",
+      "type": "code",
+      "discount": "Free delivery",
+      "expires": null,
+      "verified_at": "2026-09-01"
+    },
+    {
+      "id": "talabat-promo",
+      "store": "Talabat",
+      "storeUrl": "https://www.talabat.com/saudi",
+      "category": "food",
+      "title": "Recurring restaurant promos",
+      "description": "Rotating percentage-off vouchers for partner restaurants inside the Talabat app.",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 50% off",
+      "expires": null,
+      "verified_at": "2026-08-27"
+    },
+    {
+      "id": "jahez-cashback",
+      "store": "Jahez",
+      "storeUrl": "https://jahez.net/",
+      "category": "food",
+      "title": "Jahez wallet cashback",
+      "description": "Cashback credited to the Jahez wallet on qualifying orders.",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 20% cashback",
+      "expires": null,
+      "verified_at": "2026-08-27"
+    },
+    {
+      "id": "danube-weekly",
+      "store": "Danube Online",
+      "storeUrl": "https://danube.sa/",
+      "category": "grocery",
+      "title": "Weekly grocery offers",
+      "description": "Rotating weekly discounts on groceries and household essentials.",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 40% off",
+      "expires": null,
+      "verified_at": "2026-08-29"
+    },
+    {
+      "id": "nana-firstorder",
+      "store": "Nana Direct",
+      "storeUrl": "https://nana.sa/",
+      "category": "grocery",
+      "title": "First order discount",
+      "description": "Discount code for first-time grocery delivery orders via Nana.",
+      "code": "NANA20",
+      "type": "code",
+      "discount": "20% off (max SAR 20)",
+      "expires": null,
+      "verified_at": "2026-08-29"
+    },
+    {
+      "id": "booking-genius",
+      "store": "Booking.com",
+      "storeUrl": "https://www.booking.com/",
+      "category": "travel",
+      "title": "Genius loyalty discounts",
+      "description": "Automatic member discounts on hotels in Saudi Arabia and abroad once Genius level is reached.",
+      "code": null,
+      "type": "deal",
+      "discount": "10–20% off stays",
+      "expires": null,
+      "verified_at": "2026-08-10"
+    },
+    {
+      "id": "almosafer-flight",
+      "store": "Almosafer",
+      "storeUrl": "https://www.almosafer.com/",
+      "category": "travel",
+      "title": "Flight + hotel bundle discount",
+      "description": "Bundle pricing when booking flights and hotels together.",
+      "code": null,
+      "type": "deal",
+      "discount": "Bundle savings",
+      "expires": null,
+      "verified_at": "2026-08-10"
+    },
+    {
+      "id": "flynas-sale",
+      "store": "flynas",
+      "storeUrl": "https://www.flynas.com/",
+      "category": "travel",
+      "title": "Domestic route flash sale",
+      "description": "Periodic flash sales on domestic Saudi routes.",
+      "code": null,
+      "type": "deal",
+      "discount": "Fares from SAR 99",
+      "expires": "2026-12-01",
+      "verified_at": "2026-08-05"
+    },
+    {
+      "id": "ikea-family",
+      "store": "IKEA Saudi Arabia",
+      "storeUrl": "https://www.ikea.com/sa/en/",
+      "category": "home",
+      "title": "IKEA Family member prices",
+      "description": "Special member-only pricing on selected items for IKEA Family cardholders.",
+      "code": null,
+      "type": "deal",
+      "discount": "Member pricing",
+      "expires": null,
+      "verified_at": "2026-08-12"
+    },
+    {
+      "id": "homebox-clearance",
+      "store": "Danube Home / HomeBox",
+      "storeUrl": "https://www.home-box.com/ksa/",
+      "category": "home",
+      "title": "Furniture clearance",
+      "description": "Recurring clearance sale on furniture and home decor lines.",
+      "code": null,
+      "type": "deal",
+      "discount": "Up to 50% off",
+      "expires": null,
+      "verified_at": "2026-08-12"
+    },
+    {
+      "id": "firstcry-newuser",
+      "store": "FirstCry Saudi Arabia",
+      "storeUrl": "https://www.firstcry.sa/",
+      "category": "kids",
+      "title": "New account discount",
+      "description": "Discount on baby and kids products for first-time FirstCry accounts.",
+      "code": "FCSA10",
+      "type": "code",
+      "discount": "10% off",
+      "expires": null,
+      "verified_at": "2026-08-14"
+    },
+    {
+      "id": "uber-rider-promo",
+      "store": "Uber",
+      "storeUrl": "https://www.uber.com/sa/en/",
+      "category": "transport",
+      "title": "Rider promo credits",
+      "description": "In-app promo credits offered periodically to riders in major Saudi cities.",
+      "code": null,
+      "type": "deal",
+      "discount": "Ride credit varies",
+      "expires": null,
+      "verified_at": "2026-08-22"
+    },
+    {
+      "id": "careem-newuser",
+      "store": "Careem",
+      "storeUrl": "https://www.careem.com/",
+      "category": "transport",
+      "title": "New rider discount",
+      "description": "Discount code for first rides for new Careem users in Saudi Arabia.",
+      "code": "CAREEMKSA",
+      "type": "code",
+      "discount": "Up to SAR 15 off",
+      "expires": null,
+      "verified_at": "2026-08-22"
+    },
+    {
+      "id": "stc-quicknet",
+      "store": "STC",
+      "storeUrl": "https://www.stc.com.sa/",
+      "category": "telecom",
+      "title": "Bundle upgrade offers",
+      "description": "Recurring promotional pricing on mobile and home internet bundle upgrades.",
+      "code": null,
+      "type": "deal",
+      "discount": "Varies by plan",
+      "expires": null,
+      "verified_at": "2026-08-19"
+    },
+    {
+      "id": "mobily-esim",
+      "store": "Mobily",
+      "storeUrl": "https://www.mobily.com.sa/",
+      "category": "telecom",
+      "title": "eSIM activation offer",
+      "description": "Reduced or waived activation fee when switching to a Mobily eSIM plan online.",
+      "code": null,
+      "type": "deal",
+      "discount": "Activation fee waived",
+      "expires": null,
+      "verified_at": "2026-08-19"
+    },
+    {
+      "id": "zain-prepaid",
+      "store": "Zain KSA",
+      "storeUrl": "https://www.zain.sa/",
+      "category": "telecom",
+      "title": "Prepaid recharge bonus",
+      "description": "Bonus data or minutes when recharging prepaid lines online during promo periods.",
+      "code": null,
+      "type": "deal",
+      "discount": "Bonus data",
+      "expires": null,
+      "verified_at": "2026-08-19"
+    }
+  ]
+}
