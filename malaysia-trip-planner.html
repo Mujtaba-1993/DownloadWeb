@@ -204,6 +204,27 @@
   .conv-field input{font-family:var(--font-mono); font-size:15px; padding:8px 10px; border-radius:8px; border:1px solid var(--line-strong); background:var(--foam); color:var(--ink); width:120px;}
   .conv-result{font-weight:700; font-size:15px; color:var(--sea);}
 
+  /* ---------- MAP EMBEDS ---------- */
+  .map-embed{width:100%; height:150px; border-radius:10px; overflow:hidden; border:1px solid var(--line); background:var(--foam-2); margin-top:10px;}
+  .map-embed.hotel{height:190px; margin-top:12px;}
+  .map-embed iframe{width:100%; height:100%; border:0; display:block;}
+
+  /* ---------- LOCK SCREEN ---------- */
+  .app-content{display:none;}
+  html.unlocked .app-content{display:block;}
+  #lockScreen{position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; background:linear-gradient(180deg,var(--sea) 0%, var(--sea-2) 100%);}
+  html.unlocked #lockScreen{display:none;}
+  .lock-card{background:var(--card); color:var(--ink); border-radius:18px; padding:32px 28px; max-width:360px; width:100%; text-align:center; box-shadow:0 20px 50px -20px rgba(0,0,0,.5);}
+  .lock-emoji{font-size:34px;}
+  .lock-card h2{font-size:19px; margin-top:10px;}
+  .lock-card p{font-size:13px; color:var(--muted); margin:8px 0 18px;}
+  .lock-field{display:flex; gap:8px;}
+  .lock-field input{flex:1; font-family:var(--font-body); font-size:15px; padding:11px 14px; border-radius:10px; border:1px solid var(--line-strong); background:var(--foam); color:var(--ink); min-width:0;}
+  .lock-field button{border:none; background:var(--coral); color:#fff; font-weight:700; font-size:14px; border-radius:10px; padding:0 18px;}
+  .lock-field button:hover{background:var(--coral-2);}
+  .lock-error{color:var(--coral-2); font-size:12.5px; margin-top:10px; min-height:16px; font-weight:600;}
+  .lock-note{font-size:11px; color:var(--muted); margin-top:16px; opacity:.75;}
+
   footer{padding:24px 0 40px; text-align:center; color:var(--muted); font-size:12.5px;}
   .visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap;}
   :focus-visible{outline:2px solid var(--coral); outline-offset:2px;}
@@ -211,6 +232,32 @@
 </style>
 </head>
 <body>
+
+<script>
+(function(){
+  try{
+    if(localStorage.getItem('mtrip_unlocked') === '1'){
+      document.documentElement.classList.add('unlocked');
+    }
+  }catch(e){}
+})();
+</script>
+
+<div id="lockScreen">
+  <form class="lock-card" id="lockForm">
+    <div class="lock-emoji">🔒</div>
+    <h2>رحلة ماليزيا ٢٠٢٦</h2>
+    <p>هذه الصفحة خاصة بالعائلة — أدخلي كلمة المرور للمتابعة</p>
+    <div class="lock-field">
+      <input type="password" id="lockInput" placeholder="كلمة المرور" autocomplete="current-password" required>
+      <button type="submit">دخول</button>
+    </div>
+    <div class="lock-error" id="lockError"></div>
+    <div class="lock-note">حماية بسيطة على هذا الجهاز فقط — ليست تشفيرًا حقيقيًا للبيانات.</div>
+  </form>
+</div>
+
+<div class="app-content" id="appContent">
 
 <div class="hero">
   <div class="wrap">
@@ -520,6 +567,7 @@
             <div class="hotel-name">Sunway Putra Hotel</div>
             <div class="stars">★★★★★ · كوالالمبور</div>
             <div class="hotel-addr">100 Jalan Putra, Kuala Lumpur</div>
+            <div class="map-embed hotel"><iframe src="https://www.google.com/maps?q=Sunway%20Putra%20Hotel%20Kuala%20Lumpur&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="خريطة Sunway Putra Hotel"></iframe></div>
           </div>
           <div class="hotel-rows">
             <div class="hrow"><span class="k">تأكيد الحجز</span><span class="v mono">192HNU</span></div>
@@ -539,6 +587,7 @@
             <div class="hotel-name">Bayview Hotel Langkawi</div>
             <div class="stars">★★★★ · لنكاوي</div>
             <div class="hotel-addr">Jalan Pandak Mayah 1, Pusat Bandar Kuah, 07000 Langkawi</div>
+            <div class="map-embed hotel"><iframe src="https://www.google.com/maps?q=Bayview%20Hotel%20Langkawi&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="خريطة Bayview Hotel Langkawi"></iframe></div>
           </div>
           <div class="hotel-rows">
             <div class="hrow"><span class="k">تأكيد الحجز</span><span class="v mono">1FAIAB</span></div>
@@ -558,6 +607,7 @@
             <div class="hotel-name">Komune Living &amp; Wellness</div>
             <div class="stars">★★★ · كوالالمبور</div>
             <div class="hotel-addr">No. 21, Jalan Tasik Permaisuri 2, Bandar Tun Razak, 56000</div>
+            <div class="map-embed hotel"><iframe src="https://www.google.com/maps?q=Komune%20Living%20and%20Wellness%20Kuala%20Lumpur&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="خريطة Komune Living and Wellness"></iframe></div>
           </div>
           <div class="hotel-rows">
             <div class="hrow"><span class="k">تأكيد الحجز</span><span class="v mono">HB64XV</span></div>
@@ -692,9 +742,37 @@
 
 <footer>مخطط رحلة عائلة الطريقي · كوالالمبور ولنكاوي · ١٨–٢٧ سبتمبر ٢٠٢٦</footer>
 
+</div>
+
 <script>
 (function(){
   "use strict";
+
+  var SHOW_MAP_EMBEDS = true;
+  if(!SHOW_MAP_EMBEDS){
+    document.querySelectorAll('.map-embed').forEach(function(el){ el.remove(); });
+  }
+
+  /* ---------- LOCK SCREEN ---------- */
+  var TRIP_PASSWORD = 'Abrar8656244';
+  var lockForm = document.getElementById('lockForm');
+  var lockInput = document.getElementById('lockInput');
+  var lockError = document.getElementById('lockError');
+  lockForm.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    if(lockInput.value === TRIP_PASSWORD){
+      try{ localStorage.setItem('mtrip_unlocked', '1'); }catch(e){}
+      document.documentElement.classList.add('unlocked');
+      lockError.textContent = '';
+    } else {
+      lockError.textContent = 'كلمة المرور غير صحيحة، حاولي مرة أخرى.';
+      lockInput.value = '';
+      lockInput.focus();
+    }
+  });
+  if(!document.documentElement.classList.contains('unlocked')){
+    setTimeout(function(){ lockInput.focus(); }, 50);
+  }
 
   /* ---------- THEME ---------- */
   var root = document.documentElement;
@@ -758,14 +836,17 @@
 
   /* ---------- PLACES DATA ---------- */
   function mapLink(q){ return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q); }
+  function mapEmbed(q){ return 'https://www.google.com/maps?q=' + encodeURIComponent(q) + '&output=embed'; }
   function renderCards(containerId, items, accentClass){
     var el = document.getElementById(containerId);
     el.innerHTML = items.map(function(it){
+      var embed = SHOW_MAP_EMBEDS ? ('<div class="map-embed"><iframe src="' + mapEmbed(it.map) + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="خريطة ' + it.name + '"></iframe></div>') : '';
       return '<div class="card place-card ' + accentClass + '">' +
         '<span class="tag ' + (it.tagClass||'palm') + '">' + it.tag + '</span>' +
         '<h3 style="margin-top:8px;">' + it.name + '</h3>' +
         '<p>' + it.desc + '</p>' +
-        '<div class="place-foot"><a class="btn" target="_blank" rel="noopener" href="' + mapLink(it.map) + '">📍 الموقع على الخريطة</a></div>' +
+        embed +
+        '<div class="place-foot"><a class="btn" target="_blank" rel="noopener" href="' + mapLink(it.map) + '">📍 فتح في خرائط جوجل</a></div>' +
         '</div>';
     }).join('');
   }
