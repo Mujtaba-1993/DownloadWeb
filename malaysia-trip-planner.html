@@ -1,0 +1,932 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رحلة ماليزيا ٢٠٢٦</title>
+<meta name="description" content="مخطط رحلة عائلة الطوريقي إلى ماليزيا: كوالالمبور ولنكاوي، ١٨-٢٧ سبتمبر ٢٠٢٦">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sea:#0E2E30; --sea-2:#163F41; --foam:#EEF4F1; --foam-2:#E1EBE6; --card:#FFFFFF;
+    --coral:#E2543D; --coral-2:#C23F2C; --coral-soft:#FBE4DF;
+    --palm:#1F6F5C; --palm-2:#165445; --palm-soft:#DEEEE8;
+    --gold:#B4801F; --gold-soft:#F4E6C6;
+    --ink:#122624; --muted:#5B6D68; --line:rgba(14,46,48,.14); --line-strong:rgba(14,46,48,.28);
+    --shadow: 0 1px 2px rgba(14,46,48,.06), 0 8px 24px -12px rgba(14,46,48,.18);
+    --font-display:'Cairo',"Segoe UI",sans-serif;
+    --font-body:'IBM Plex Sans Arabic',"Segoe UI",sans-serif;
+    --font-mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --sea:#EAF3F0; --sea-2:#CFE3DE; --foam:#081A1B; --foam-2:#0F2726; --card:#0F2C2B;
+      --coral:#FF7A62; --coral-2:#FF9682; --coral-soft:#3A1E1A;
+      --palm:#4FBBA0; --palm-2:#79D2BB; --palm-soft:#123832;
+      --gold:#E7B75A; --gold-soft:#3A2F14;
+      --ink:#EAF2EF; --muted:#9BB4AE; --line:rgba(234,243,240,.14); --line-strong:rgba(234,243,240,.28);
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --sea:#EAF3F0; --sea-2:#CFE3DE; --foam:#081A1B; --foam-2:#0F2726; --card:#0F2C2B;
+    --coral:#FF7A62; --coral-2:#FF9682; --coral-soft:#3A1E1A;
+    --palm:#4FBBA0; --palm-2:#79D2BB; --palm-soft:#123832;
+    --gold:#E7B75A; --gold-soft:#3A2F14;
+    --ink:#EAF2EF; --muted:#9BB4AE; --line:rgba(234,243,240,.14); --line-strong:rgba(234,243,240,.28);
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px -14px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box;}
+  html{background:var(--foam);}
+  body{
+    margin:0; background:var(--foam); color:var(--ink); font-family:var(--font-body);
+    font-size:15.5px; line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%;}
+  h1,h2,h3{font-family:var(--font-display); text-wrap:balance; margin:0; color:var(--sea);}
+  .mono{font-family:var(--font-mono); font-variant-numeric:tabular-nums; direction:ltr; unicode-bidi:isolate;}
+  a{color:inherit;}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 18px;}
+  button{font-family:inherit; cursor:pointer;}
+
+  /* ---------- HERO / BOARDING PASS ---------- */
+  .hero{background:linear-gradient(180deg,var(--sea) 0%, var(--sea-2) 100%); color:var(--foam); padding:28px 0 0;}
+  .hero-top{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;}
+  .eyebrow{font-size:12.5px; letter-spacing:.14em; text-transform:uppercase; opacity:.72; font-weight:600;}
+  .hero h1{color:#fff; font-size:clamp(28px,4.2vw,40px); font-weight:800; margin-top:6px;}
+  .hero .dates{margin-top:8px; font-size:16px; opacity:.88; font-weight:500;}
+  .theme-toggle{border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.06); color:#fff; border-radius:100px; padding:8px 14px; font-size:13px; font-weight:600;}
+  .theme-toggle:hover{background:rgba(255,255,255,.14);}
+
+  .countdown{display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;}
+  .cd-cell{background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); border-radius:12px; padding:10px 16px; min-width:76px; text-align:center;}
+  .cd-cell .n{font-family:var(--font-mono); font-size:26px; font-weight:700; display:block; line-height:1;}
+  .cd-cell .l{font-size:11px; opacity:.75; margin-top:4px; display:block;}
+  .cd-note{align-self:center; font-size:13px; opacity:.8; margin-inline-start:4px;}
+
+  .travelers{display:flex; gap:8px; margin-top:18px; flex-wrap:wrap;}
+  .chip{background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); border-radius:100px; padding:6px 13px; font-size:12.5px; font-weight:600; display:flex; gap:6px; align-items:center;}
+  .chip small{opacity:.7; font-weight:500;}
+
+  .route{margin-top:24px; padding:16px 0 22px; position:relative;}
+  .route-line{display:flex; align-items:center; gap:0; overflow-x:auto; padding-bottom:6px;}
+  .route-stop{flex:0 0 auto; text-align:center; min-width:56px;}
+  .route-stop .code{font-family:var(--font-mono); font-weight:700; font-size:14px;}
+  .route-stop .city{font-size:10.5px; opacity:.68; margin-top:2px; white-space:nowrap;}
+  .route-seg{flex:1 1 32px; min-width:24px; height:1px; background-image:linear-gradient(to right, rgba(255,255,255,.5) 60%, transparent 0%); background-size:8px 1px; background-repeat:repeat-x; position:relative; margin:0 6px;}
+  .route-seg::after{content:'✈'; position:absolute; top:-9px; left:50%; transform:translateX(-50%); font-size:11px; opacity:.75;}
+  .perf{height:0; border-bottom:2px dashed rgba(255,255,255,.22); margin-top:18px;}
+  .perf-holes{display:flex; justify-content:space-between; margin-top:-9px; padding:0 2px;}
+  .perf-holes i{width:14px; height:14px; border-radius:50%; background:var(--foam); display:block;}
+
+  /* ---------- TABS ---------- */
+  .tabbar-outer{position:sticky; top:0; z-index:20; background:var(--foam); border-bottom:1px solid var(--line); box-shadow:0 2px 10px -8px rgba(0,0,0,.3);}
+  .tabbar{display:flex; gap:4px; overflow-x:auto; padding:10px 0;}
+  .tab{flex:0 0 auto; border:none; background:transparent; color:var(--muted); font-weight:700; font-size:13.5px; padding:9px 15px; border-radius:100px; white-space:nowrap; transition:background .15s,color .15s;}
+  .tab[aria-selected="true"]{background:var(--sea); color:var(--foam);}
+  .tab:not([aria-selected="true"]):hover{background:var(--foam-2);}
+
+  main{padding:26px 0 70px;}
+  .panel{display:none;}
+  .panel.active{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+
+  section.block{margin-bottom:34px;}
+  .block-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+  .block-head h2{font-size:21px; font-weight:800;}
+  .block-sub{color:var(--muted); font-size:13px;}
+
+  .grid{display:grid; gap:14px;}
+  .grid.cols-2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr));}
+  .grid.cols-3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:var(--shadow);}
+  .card.accent-palm{border-inline-start:4px solid var(--palm);}
+  .card.accent-coral{border-inline-start:4px solid var(--coral);}
+  .card.accent-gold{border-inline-start:4px solid var(--gold);}
+  .card.accent-sea{border-inline-start:4px solid var(--sea);}
+
+  .tag{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:3px 10px; border-radius:100px;}
+  .tag.palm{background:var(--palm-soft); color:var(--palm-2);}
+  .tag.coral{background:var(--coral-soft); color:var(--coral-2);}
+  .tag.gold{background:var(--gold-soft); color:var(--gold);}
+
+  /* overview */
+  .stat-row{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;}
+  .stat{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:var(--shadow);}
+  .stat .n{font-family:var(--font-mono); font-size:24px; font-weight:700; color:var(--sea);}
+  .stat .l{font-size:12.5px; color:var(--muted); margin-top:2px;}
+
+  .note-box{background:var(--gold-soft); border:1px solid rgba(180,128,31,.3); border-radius:14px; padding:16px 18px; font-size:14px; color:var(--ink);}
+  .note-box h3{font-size:14.5px; margin-bottom:8px; color:var(--gold);}
+  .note-box ul{margin:0; padding-inline-start:20px;}
+  .note-box li{margin-bottom:6px;}
+
+  .incl-list{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:8px 16px; list-style:none; padding:0; margin:0;}
+  .incl-list li{display:flex; gap:8px; align-items:flex-start; font-size:14px;}
+  .incl-list li::before{content:'✓'; color:var(--palm); font-weight:800; flex:0 0 auto;}
+
+  /* itinerary */
+  .day-card{display:grid; grid-template-columns:88px 1fr; gap:16px; padding:16px; align-items:start;}
+  .day-date{text-align:center;}
+  .day-date .d{font-family:var(--font-mono); font-size:26px; font-weight:700; line-height:1; color:var(--sea);}
+  .day-date .m{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;}
+  .day-date .dow{font-size:11px; color:var(--muted); margin-top:2px;}
+  .day-title{font-weight:700; font-size:15.5px; margin-bottom:4px;}
+  .day-desc{color:var(--ink); font-size:14px;}
+  .day-meta{margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;}
+  @media(max-width:520px){.day-card{grid-template-columns:64px 1fr;} .day-date .d{font-size:21px;}}
+
+  /* flights - boarding pass */
+  .bp{background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow:var(--shadow); margin-bottom:16px;}
+  .bp-head{background:var(--sea); color:var(--foam); padding:12px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;}
+  .bp-head .airline{font-weight:800; font-size:14.5px;}
+  .bp-head .flightno{font-family:var(--font-mono); font-size:13px; opacity:.85;}
+  .bp-body{display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px; padding:20px 18px;}
+  .bp-endpoint{text-align:center;}
+  .bp-endpoint .code{font-family:var(--font-mono); font-size:30px; font-weight:700; color:var(--sea);}
+  .bp-endpoint .time{font-family:var(--font-mono); font-size:16px; font-weight:600; margin-top:2px;}
+  .bp-endpoint .place{font-size:12px; color:var(--muted); margin-top:2px;}
+  .bp-mid{text-align:center; color:var(--muted); font-size:11.5px; min-width:90px;}
+  .bp-mid .line{height:1px; background-image:linear-gradient(to right, var(--line-strong) 50%, transparent 0%); background-size:6px 1px; background-repeat:repeat-x; margin:6px 0; position:relative;}
+  .bp-mid .line::after{content:'✈'; position:absolute; top:-9px; left:50%; transform:translateX(-50%); font-size:11px;}
+  .bp-foot{border-top:1px dashed var(--line-strong); padding:12px 18px; display:flex; gap:18px; flex-wrap:wrap; font-size:12.5px; color:var(--muted);}
+  .bp-foot b{color:var(--ink);}
+
+  /* hotels */
+  .hotel-card{padding:0; overflow:hidden;}
+  .hotel-top{padding:18px 18px 14px;}
+  .hotel-name{font-weight:800; font-size:16.5px;}
+  .stars{color:var(--gold); font-size:13px; margin-top:2px;}
+  .hotel-addr{font-size:13px; color:var(--muted); margin-top:6px;}
+  .hotel-rows{border-top:1px solid var(--line); padding:14px 18px; display:grid; gap:8px; font-size:13.5px;}
+  .hrow{display:flex; justify-content:space-between; gap:10px;}
+  .hrow .k{color:var(--muted);}
+  .hrow .v{font-weight:600; text-align:left;}
+  .hotel-actions{padding:12px 18px 18px; display:flex; gap:8px; flex-wrap:wrap;}
+
+  .btn{display:inline-flex; align-items:center; gap:6px; border-radius:10px; padding:8px 14px; font-size:13px; font-weight:700; border:1px solid var(--line-strong); text-decoration:none; background:transparent; color:var(--ink);}
+  .btn:hover{background:var(--foam-2);}
+  .btn.primary{background:var(--coral); border-color:var(--coral); color:#fff;}
+  .btn.primary:hover{background:var(--coral-2);}
+  .btn.ghost-gold{background:var(--gold-soft); border-color:transparent; color:var(--gold);}
+
+  /* places */
+  .place-card h3{font-size:15px; font-weight:700; margin-bottom:4px;}
+  .place-card p{margin:0; font-size:13.5px; color:var(--ink);}
+  .place-foot{margin-top:10px;}
+
+  /* deals */
+  .deal-card{display:flex; flex-direction:column; gap:10px;}
+  .deal-card h3{font-size:15px;}
+  .deal-card p{margin:0; font-size:13px; color:var(--muted);}
+
+  /* checklist */
+  .check-item{display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px;}
+  .check-item:last-child{border-bottom:none;}
+  .check-item input{width:18px; height:18px; margin-top:2px; accent-color:var(--palm); flex:0 0 auto;}
+  .check-item label{cursor:pointer;}
+  .check-item.done label{color:var(--muted); text-decoration:line-through;}
+  .progress-bar{height:8px; background:var(--foam-2); border-radius:100px; overflow:hidden; margin-top:8px;}
+  .progress-bar span{display:block; height:100%; background:var(--palm); transition:width .2s;}
+
+  .reminder-row{display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid var(--line);}
+  .reminder-row:last-child{border-bottom:none;}
+  .reminder-date{font-family:var(--font-mono); font-size:12.5px; color:var(--coral); font-weight:700; min-width:88px;}
+  .notif-box{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:var(--palm-soft); border-radius:14px; padding:16px 18px; margin-bottom:18px;}
+  .notif-status{font-size:12.5px; color:var(--muted);}
+
+  .conv-box{display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;}
+  .conv-field{display:flex; flex-direction:column; gap:4px;}
+  .conv-field label{font-size:12px; color:var(--muted); font-weight:600;}
+  .conv-field input{font-family:var(--font-mono); font-size:15px; padding:8px 10px; border-radius:8px; border:1px solid var(--line-strong); background:var(--foam); color:var(--ink); width:120px;}
+  .conv-result{font-weight:700; font-size:15px; color:var(--sea);}
+
+  footer{padding:24px 0 40px; text-align:center; color:var(--muted); font-size:12.5px;}
+  .visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap;}
+  :focus-visible{outline:2px solid var(--coral); outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;} }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="hero-top">
+      <div>
+        <div class="eyebrow">مخطط الرحلة العائلية</div>
+        <h1>ماليزيا ٢٠٢٦ 🌺</h1>
+        <div class="dates">١٨ – ٢٧ سبتمبر ٢٠٢٦ · كوالالمبور ← لنكاوي ← كوالالمبور</div>
+      </div>
+      <button class="theme-toggle" id="themeToggle" type="button">🌓 تبديل المظهر</button>
+    </div>
+
+    <div class="countdown" id="countdown" aria-live="polite">
+      <div class="cd-cell"><span class="n" id="cdDays">--</span><span class="l">يوم</span></div>
+      <div class="cd-cell"><span class="n" id="cdHours">--</span><span class="l">ساعة</span></div>
+      <div class="cd-cell"><span class="n" id="cdMins">--</span><span class="l">دقيقة</span></div>
+      <span class="cd-note" id="cdNote">حتى إقلاع الرحلة EY576 من الدمام</span>
+    </div>
+
+    <div class="travelers">
+      <span class="chip">مجتبى الطريقي <small>بالغ</small></span>
+      <span class="chip">أبرار المهدي <small>بالغة</small></span>
+      <span class="chip">مجيدة الصفواني <small>بالغة</small></span>
+      <span class="chip">لارين الطريقي <small>طفلة</small></span>
+      <span class="chip">ليان الطريقي <small>رضيعة</small></span>
+    </div>
+
+    <div class="route">
+      <div class="route-line">
+        <div class="route-stop"><div class="code">DMM</div><div class="city">الدمام</div></div>
+        <div class="route-seg"></div>
+        <div class="route-stop"><div class="code">AUH</div><div class="city">أبوظبي</div></div>
+        <div class="route-seg"></div>
+        <div class="route-stop"><div class="code">KUL</div><div class="city">كوالالمبور</div></div>
+        <div class="route-seg"></div>
+        <div class="route-stop"><div class="code">LGK</div><div class="city">لنكاوي</div></div>
+        <div class="route-seg"></div>
+        <div class="route-stop"><div class="code">KUL</div><div class="city">كوالالمبور</div></div>
+        <div class="route-seg"></div>
+        <div class="route-stop"><div class="code">AUH</div><div class="city">أبوظبي</div></div>
+        <div class="route-seg"></div>
+        <div class="route-stop"><div class="code">DMM</div><div class="city">الدمام</div></div>
+      </div>
+    </div>
+    <div class="perf"></div>
+    <div class="perf-holes"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+</div>
+
+<div class="tabbar-outer">
+  <div class="wrap">
+    <div class="tabbar" role="tablist" id="tabbar">
+      <button class="tab" role="tab" data-tab="overview" aria-selected="true">نظرة عامة</button>
+      <button class="tab" role="tab" data-tab="itinerary" aria-selected="false">البرنامج اليومي</button>
+      <button class="tab" role="tab" data-tab="flights" aria-selected="false">الطيران</button>
+      <button class="tab" role="tab" data-tab="hotels" aria-selected="false">الفنادق</button>
+      <button class="tab" role="tab" data-tab="places" aria-selected="false">الأماكن والمطاعم</button>
+      <button class="tab" role="tab" data-tab="deals" aria-selected="false">الحجوزات والعروض</button>
+      <button class="tab" role="tab" data-tab="checklist" aria-selected="false">التذكيرات والقوائم</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- ===================== OVERVIEW ===================== -->
+  <section class="panel active" id="panel-overview">
+    <section class="block">
+      <div class="stat-row">
+        <div class="stat"><div class="n">١٠</div><div class="l">أيام / ٩ ليالٍ داخل ماليزيا</div></div>
+        <div class="stat"><div class="n">٥</div><div class="l">مسافرين (٣ بالغين، طفلة، رضيعة)</div></div>
+        <div class="stat"><div class="n">٢</div><div class="l">وجهتان: كوالالمبور ولنكاوي</div></div>
+        <div class="stat"><div class="n mono">13,500</div><div class="l">ريال سعودي — إجمالي تكلفة الباقة الأرضية</div></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><h2>الباقة تشمل</h2></div>
+      <div class="card">
+        <ul class="incl-list">
+          <li>الاستقبال بالورد عند الوصول</li>
+          <li>الاستقبال والتوديع وكل الانتقالات</li>
+          <li>الجولات السياحية اليومية (٨ ساعات/يوم)</li>
+          <li>سيارة خاصة مع سائق خاص طوال الرحلة</li>
+          <li>شريحة اتصال وإنترنت لكل فرد</li>
+          <li>طيران داخلي كوالالمبور↔لنكاوي (بحقيبة ٢٠كجم + كابينة ٧كجم)</li>
+          <li>الإقامة مع الإفطار في الفنادق الثلاثة</li>
+          <li>سيارة من فئة متوسطة (سيدان)</li>
+        </ul>
+      </div>
+      <p class="block-sub" style="margin-top:8px;">الطيران الدولي (الدمام–أبوظبي–كوالالمبور والعودة) محجوز بشكل منفصل عبر وكالة ورد الشرق للسفر والسياحة — مرجع الحجز <span class="mono">8JK8TJ</span>.</p>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><h2>ملاحظات هامة قبل الحجز والسفر</h2></div>
+      <div class="grid cols-2">
+        <div class="note-box">
+          <h3>سياسات الفنادق والغرف</h3>
+          <ul>
+            <li>تسجيل الدخول من الساعة ٢ عصرًا، والخروج حتى ١٢ ظهرًا.</li>
+            <li>جميع الحجوزات <b>غير قابلة للاسترداد أو التعديل</b> حسب الفاوتشرات المرفقة.</li>
+            <li>الغرف تتسع لبالغين + طفل رضيع؛ لا يوجد سرير إضافي إلا إذا ذُكر صراحة.</li>
+            <li>التأمين (Deposit) يُدفع في الفندق ويُسترد عند المغادرة، وليس ضمن الباقة.</li>
+          </ul>
+        </div>
+        <div class="note-box">
+          <h3>الجولات والانتقالات</h3>
+          <ul>
+            <li>مدة الجولة ٨ ساعات ولا تشمل تذاكر دخول المعالم السياحية.</li>
+            <li>جولات جزر لنكاوي جماعية — رسوم القارب تُدفع نقدًا للسائق يوم الجولة.</li>
+            <li>السيارة السيدان تناسب ٢–٣ أشخاص مع ٢–٣ حقائب بحجم مناسب.</li>
+            <li>إلغاء سيارة الاستقبال/التوديع مسترد بالكامل إذا كان قبل السفر بيوم واحد.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><h2>معلومات عملية سريعة</h2></div>
+      <div class="grid cols-3">
+        <div class="card accent-palm"><b>دخول ماليزيا</b><p style="margin:6px 0 0;font-size:13.5px;">المواطن السعودي يدخل بدون تأشيرة لغاية ٩٠ يومًا. تأكد أن جواز السفر ساري لمدة ٦ أشهر على الأقل من تاريخ الوصول.</p></div>
+        <div class="card accent-gold"><b>الكهرباء والتوقيت</b><p style="margin:6px 0 0;font-size:13.5px;">مقابس نوع G، ٢٣٠ فولت. التوقيت المحلي GMT+8 (٥ ساعات أمام السعودية).</p></div>
+        <div class="card accent-coral"><b>العملة</b><p style="margin:6px 0 0;font-size:13.5px;">الرينغيت الماليزي (MYR). استخدم محول العملة في تبويب «التذكيرات والقوائم» بآخر سعر تراه عند الوصول.</p></div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ===================== ITINERARY ===================== -->
+  <section class="panel" id="panel-itinerary">
+    <section class="block">
+      <div class="block-head"><h2>البرنامج اليومي</h2><span class="block-sub">حسب مواعيد التذاكر والفنادق الفعلية</span></div>
+      <div class="grid" style="gap:12px;">
+
+        <div class="card accent-sea day-card">
+          <div class="day-date"><span class="d">18</span><span class="m">سبتمبر</span><span class="dow">الجمعة</span></div>
+          <div>
+            <div class="day-title">الوصول إلى كوالالمبور</div>
+            <div class="day-desc">مغادرة الدمام 04:40 (EY576) عبر أبوظبي، ووصول كوالالمبور 19:45. الاستقبال بالورد، توزيع شرائح الاتصال، والانتقال لفندق Sunway Putra.</div>
+            <div class="day-meta"><span class="tag coral">✈ رحلة دولية</span><span class="tag gold">🏨 Sunway Putra</span></div>
+          </div>
+        </div>
+
+        <div class="card accent-palm day-card">
+          <div class="day-date"><span class="d">19</span><span class="m">سبتمبر</span><span class="dow">السبت</span></div>
+          <div>
+            <div class="day-title">جولة سلانجور / كوالالمبور</div>
+            <div class="day-desc">جولة سياحية ٨ ساعات بسيارة خاصة وسائق خاص. مقترح: برجا بتروناس، باتو كيفز، ساحة ميرديكا.</div>
+            <div class="day-meta"><span class="tag palm">🚗 جولة ٨ ساعات</span></div>
+          </div>
+        </div>
+
+        <div class="card accent-sea day-card">
+          <div class="day-date"><span class="d">20</span><span class="m">سبتمبر</span><span class="dow">الأحد</span></div>
+          <div>
+            <div class="day-title">الانتقال إلى لنكاوي</div>
+            <div class="day-desc">تسجيل خروج ظهرًا، ثم رحلة AK6318 من كوالالمبور 13:40 إلى لنكاوي 14:45. تسجيل الدخول في Bayview Hotel الساعة ٢ عصرًا.</div>
+            <div class="day-meta"><span class="tag coral">✈ AK6318</span><span class="tag gold">🏨 Bayview Langkawi</span></div>
+          </div>
+        </div>
+
+        <div class="card accent-palm day-card">
+          <div class="day-date"><span class="d">21</span><span class="m">سبتمبر</span><span class="dow">الإثنين</span></div>
+          <div>
+            <div class="day-title">جولة لنكاوي الأولى</div>
+            <div class="day-desc">جولة ٨ ساعات — مقترح: جولة تعليق الجزر (Island Hopping) وحديقة كيليم الجيولوجية. جهّز نقدًا لرسوم القارب.</div>
+            <div class="day-meta"><span class="tag palm">🚤 جولة جزر</span></div>
+          </div>
+        </div>
+
+        <div class="card accent-palm day-card">
+          <div class="day-date"><span class="d">22</span><span class="m">سبتمبر</span><span class="dow">الثلاثاء</span></div>
+          <div>
+            <div class="day-title">جولة لنكاوي الثانية</div>
+            <div class="day-desc">جولة ٨ ساعات — مقترح: الجسر المعلق والتلفريك في جبل مات سنشانج، وشلالات تيلاجا توجوه.</div>
+            <div class="day-meta"><span class="tag palm">🚗 جولة ٨ ساعات</span></div>
+          </div>
+        </div>
+
+        <div class="card accent-sea day-card">
+          <div class="day-date"><span class="d">23</span><span class="m">سبتمبر</span><span class="dow">الأربعاء</span></div>
+          <div>
+            <div class="day-title">العودة إلى كوالالمبور</div>
+            <div class="day-desc">تسجيل خروج ظهرًا، ثم رحلة AK6325 من لنكاوي 14:30 إلى كوالالمبور 15:35. تسجيل الدخول في Komune Living &amp; Wellness.</div>
+            <div class="day-meta"><span class="tag coral">✈ AK6325</span><span class="tag gold">🏨 Komune Living</span></div>
+          </div>
+        </div>
+
+        <div class="card accent-palm day-card">
+          <div class="day-date"><span class="d">24</span><span class="m">سبتمبر</span><span class="dow">الخميس</span></div>
+          <div>
+            <div class="day-title">جولة كوالالمبور</div>
+            <div class="day-desc">جولة ٨ ساعات — مقترح: برجا بتروناس وحديقة KLCC، كهوف باتو، سوق باسار سيني.</div>
+            <div class="day-meta"><span class="tag palm">🚗 جولة ٨ ساعات</span></div>
+          </div>
+        </div>
+
+        <div class="card accent-gold day-card">
+          <div class="day-date"><span class="d">25</span><span class="m">سبتمبر</span><span class="dow">الجمعة</span></div>
+          <div>
+            <div class="day-title">مدينة الأضواء</div>
+            <div class="day-desc">جولة مسائية لمشاهدة أضواء المدينة — إطلالة برجا بتروناس ليلًا، برج كوالالمبور، نافورة KLCC المضيئة.</div>
+            <div class="day-meta"><span class="tag gold">🌃 جولة ليلية</span></div>
+          </div>
+        </div>
+
+        <div class="card accent-gold day-card">
+          <div class="day-date"><span class="d">26</span><span class="m">سبتمبر</span><span class="dow">السبت</span></div>
+          <div>
+            <div class="day-title">جولة تسوق</div>
+            <div class="day-desc">يوم تسوق حر — بوكيت بينتانج، بافيليون كوالالمبور، سوريا KLCC، والسوق المركزي للحرف اليدوية.</div>
+            <div class="day-meta"><span class="tag gold">🛍️ تسوق</span></div>
+          </div>
+        </div>
+
+        <div class="card accent-sea day-card">
+          <div class="day-date"><span class="d">27</span><span class="m">سبتمبر</span><span class="dow">الأحد</span></div>
+          <div>
+            <div class="day-title">المغادرة إلى الوطن</div>
+            <div class="day-desc">تسجيل خروج ظهرًا ووقت حر، ثم التوصيل لمطار كوالالمبور. رحلة EY487 تقلع 21:55 عبر أبوظبي، والوصول إلى الدمام 02:50 فجر يوم ٢٨ سبتمبر.</div>
+            <div class="day-meta"><span class="tag coral">✈ رحلة دولية</span></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </section>
+
+  <!-- ===================== FLIGHTS ===================== -->
+  <section class="panel" id="panel-flights">
+    <section class="block">
+      <div class="block-head"><h2>الطيران الدولي — Etihad Airways</h2><span class="block-sub mono">مرجع الحجز: 8JK8TJ</span></div>
+
+      <div class="bp">
+        <div class="bp-head"><span class="airline">Etihad Airways</span><span class="flightno mono">EY576 · الجمعة 18 سبتمبر</span></div>
+        <div class="bp-body">
+          <div class="bp-endpoint"><div class="code">DMM</div><div class="time mono">04:40</div><div class="place">الدمام</div></div>
+          <div class="bp-mid"><div>1h 20m</div><div class="line"></div><div>مباشرة</div></div>
+          <div class="bp-endpoint"><div class="code">AUH</div><div class="time mono">07:00</div><div class="place">أبوظبي · صالة A</div></div>
+        </div>
+        <div class="bp-foot"><span>وقت التوقف قبل الرحلة التالية: <b>1h 25m</b></span><span>الحقائب: <b>25كجم للبالغين، 10كجم للرضيعة</b></span></div>
+      </div>
+
+      <div class="bp">
+        <div class="bp-head"><span class="airline">Etihad Airways</span><span class="flightno mono">EY486 · الجمعة 18 سبتمبر</span></div>
+        <div class="bp-body">
+          <div class="bp-endpoint"><div class="code">AUH</div><div class="time mono">08:25</div><div class="place">أبوظبي · صالة A</div></div>
+          <div class="bp-mid"><div>7h 20m</div><div class="line"></div><div>مباشرة</div></div>
+          <div class="bp-endpoint"><div class="code">KUL</div><div class="time mono">19:45</div><div class="place">كوالالمبور · صالة 1</div></div>
+        </div>
+        <div class="bp-foot"><span>الطراز: <b>Boeing 787-10</b></span><span>الوجبة: <b>وجبة كاملة</b></span></div>
+      </div>
+
+      <div class="bp">
+        <div class="bp-head"><span class="airline">Etihad Airways</span><span class="flightno mono">EY487 · الأحد 27 سبتمبر</span></div>
+        <div class="bp-body">
+          <div class="bp-endpoint"><div class="code">KUL</div><div class="time mono">21:55</div><div class="place">كوالالمبور · صالة 1</div></div>
+          <div class="bp-mid"><div>6h 55m</div><div class="line"></div><div>مباشرة</div></div>
+          <div class="bp-endpoint"><div class="code">AUH</div><div class="time mono">00:50</div><div class="place">أبوظبي (+1) · صالة A</div></div>
+        </div>
+        <div class="bp-foot"><span>وقت التوقف قبل الرحلة التالية: <b>1h 35m</b></span><span>يُنصح بالتوجه للمطار قبل الإقلاع بـ<b> ٣ ساعات</b></span></div>
+      </div>
+
+      <div class="bp">
+        <div class="bp-head"><span class="airline">Etihad Airways</span><span class="flightno mono">EY575 · الإثنين 28 سبتمبر</span></div>
+        <div class="bp-body">
+          <div class="bp-endpoint"><div class="code">AUH</div><div class="time mono">02:25</div><div class="place">أبوظبي · صالة A</div></div>
+          <div class="bp-mid"><div>1h 25m</div><div class="line"></div><div>مباشرة</div></div>
+          <div class="bp-endpoint"><div class="code">DMM</div><div class="time mono">02:50</div><div class="place">الدمام</div></div>
+        </div>
+        <div class="bp-foot"><span>الطراز: <b>Airbus A320neo</b></span><span>وكالة الحجز: <b>ورد الشرق للسفر</b> · <span class="mono">+966 13 854 0000</span></span></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><h2>الطيران الداخلي — AirAsia</h2><span class="block-sub mono">مرجع الحجز: PCBERP</span></div>
+
+      <div class="bp">
+        <div class="bp-head"><span class="airline">AirAsia</span><span class="flightno mono">AK6318 · الأحد 20 سبتمبر</span></div>
+        <div class="bp-body">
+          <div class="bp-endpoint"><div class="code">KUL</div><div class="time mono">13:40</div><div class="place">كوالالمبور · صالة 2</div></div>
+          <div class="bp-mid"><div>1h 05m</div><div class="line"></div><div>مباشرة</div></div>
+          <div class="bp-endpoint"><div class="code">LGK</div><div class="time mono">14:45</div><div class="place">لنكاوي</div></div>
+        </div>
+        <div class="bp-foot"><span>حقيبة مسجلة: <b>20كجم</b></span><span>حقيبة يد: <b>7كجم</b></span><span>تغيير موعد مجاني (Zero Change Fee) مضاف لكل الركاب</span></div>
+      </div>
+
+      <div class="bp">
+        <div class="bp-head"><span class="airline">AirAsia</span><span class="flightno mono">AK6325 · الأربعاء 23 سبتمبر</span></div>
+        <div class="bp-body">
+          <div class="bp-endpoint"><div class="code">LGK</div><div class="time mono">14:30</div><div class="place">لنكاوي</div></div>
+          <div class="bp-mid"><div>1h 05m</div><div class="line"></div><div>مباشرة</div></div>
+          <div class="bp-endpoint"><div class="code">KUL</div><div class="time mono">15:35</div><div class="place">كوالالمبور · صالة 2</div></div>
+        </div>
+        <div class="bp-foot"><span>حقيبة مسجلة: <b>20كجم</b></span><span>حقيبة يد: <b>7كجم</b></span><span>الركاب: مجتبى، أبرار، مجيدة، لارين</span></div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ===================== HOTELS ===================== -->
+  <section class="panel" id="panel-hotels">
+    <section class="block">
+      <div class="block-head"><h2>الفنادق الثلاثة</h2><span class="block-sub">كل الحجوزات غير قابلة للاسترداد أو التعديل</span></div>
+      <div class="grid cols-3" style="align-items:stretch;">
+
+        <div class="card hotel-card accent-gold">
+          <div class="hotel-top">
+            <div class="hotel-name">Sunway Putra Hotel</div>
+            <div class="stars">★★★★★ · كوالالمبور</div>
+            <div class="hotel-addr">100 Jalan Putra, Kuala Lumpur</div>
+          </div>
+          <div class="hotel-rows">
+            <div class="hrow"><span class="k">تأكيد الحجز</span><span class="v mono">192HNU</span></div>
+            <div class="hrow"><span class="k">الإقامة</span><span class="v">18–20 سبتمبر (ليلتان)</span></div>
+            <div class="hrow"><span class="k">الغرفة</span><span class="v">2× ديلوكس بلكونة إطلالة مدينة</span></div>
+            <div class="hrow"><span class="k">النزلاء</span><span class="v">3 بالغين + طفلتان (1، 2)</span></div>
+            <div class="hrow"><span class="k">الإفطار</span><span class="v">لشخص واحد</span></div>
+          </div>
+          <div class="hotel-actions">
+            <a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Sunway%20Putra%20Hotel%20Kuala%20Lumpur">📍 الموقع</a>
+            <a class="btn primary" target="_blank" rel="noopener" href="https://www.booking.com/searchresults.html?ss=Sunway%20Putra%20Hotel%20Kuala%20Lumpur">قارن الأسعار</a>
+          </div>
+        </div>
+
+        <div class="card hotel-card accent-coral">
+          <div class="hotel-top">
+            <div class="hotel-name">Bayview Hotel Langkawi</div>
+            <div class="stars">★★★★ · لنكاوي</div>
+            <div class="hotel-addr">Jalan Pandak Mayah 1, Pusat Bandar Kuah, 07000 Langkawi</div>
+          </div>
+          <div class="hotel-rows">
+            <div class="hrow"><span class="k">تأكيد الحجز</span><span class="v mono">1FAIAB</span></div>
+            <div class="hrow"><span class="k">الإقامة</span><span class="v">20–23 سبتمبر (3 ليالٍ)</span></div>
+            <div class="hrow"><span class="k">الغرفة</span><span class="v">2× بريمير إطلالة بحرية</span></div>
+            <div class="hrow"><span class="k">النزلاء</span><span class="v">3 بالغين + طفلتان (1، 2)</span></div>
+            <div class="hrow"><span class="k">الإفطار</span><span class="v">مشمول</span></div>
+          </div>
+          <div class="hotel-actions">
+            <a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Bayview%20Hotel%20Langkawi">📍 الموقع</a>
+            <a class="btn primary" target="_blank" rel="noopener" href="https://www.booking.com/searchresults.html?ss=Bayview%20Hotel%20Langkawi">قارن الأسعار</a>
+          </div>
+        </div>
+
+        <div class="card hotel-card accent-palm">
+          <div class="hotel-top">
+            <div class="hotel-name">Komune Living &amp; Wellness</div>
+            <div class="stars">★★★ · كوالالمبور</div>
+            <div class="hotel-addr">No. 21, Jalan Tasik Permaisuri 2, Bandar Tun Razak, 56000</div>
+          </div>
+          <div class="hotel-rows">
+            <div class="hrow"><span class="k">تأكيد الحجز</span><span class="v mono">HB64XV</span></div>
+            <div class="hrow"><span class="k">الإقامة</span><span class="v">23–27 سبتمبر (4 ليالٍ)</span></div>
+            <div class="hrow"><span class="k">الغرفة</span><span class="v">استوديو غرفتي نوم (كوين + سريران مفردان)</span></div>
+            <div class="hrow"><span class="k">النزلاء</span><span class="v">3 بالغين + طفلتان (1، 2)</span></div>
+            <div class="hrow"><span class="k">الإفطار</span><span class="v">مشمول</span></div>
+          </div>
+          <div class="hotel-actions">
+            <a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Komune%20Living%20and%20Wellness%20Kuala%20Lumpur">📍 الموقع</a>
+            <a class="btn primary" target="_blank" rel="noopener" href="https://www.booking.com/searchresults.html?ss=Komune%20Living%20and%20Wellness%20Kuala%20Lumpur">قارن الأسعار</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </section>
+
+  <!-- ===================== PLACES & RESTAURANTS ===================== -->
+  <section class="panel" id="panel-places">
+    <section class="block">
+      <div class="block-head"><h2>كوالالمبور وسلانجور</h2><span class="block-sub">أماكن تستحق الزيارة</span></div>
+      <div class="grid cols-3" id="klPlaces"></div>
+    </section>
+    <section class="block">
+      <div class="block-head"><h2>مطاعم مقترحة في كوالالمبور</h2></div>
+      <div class="grid cols-3" id="klFood"></div>
+    </section>
+    <section class="block">
+      <div class="block-head"><h2>لنكاوي</h2><span class="block-sub">أماكن تستحق الزيارة</span></div>
+      <div class="grid cols-3" id="lgkPlaces"></div>
+    </section>
+    <section class="block">
+      <div class="block-head"><h2>مطاعم مقترحة في لنكاوي</h2></div>
+      <div class="grid cols-3" id="lgkFood"></div>
+    </section>
+  </section>
+
+  <!-- ===================== DEALS ===================== -->
+  <section class="panel" id="panel-deals">
+    <section class="block">
+      <div class="block-head"><h2>قارن الأسعار قبل التأكيد النهائي</h2><span class="block-sub">روابط بحث مباشرة — تفتح نتائج حية وليست أسعارًا ثابتة</span></div>
+      <div class="grid cols-3">
+        <div class="card deal-card accent-coral">
+          <h3>✈️ رحلات كوالالمبور↔لنكاوي</h3>
+          <p>قارن أسعار AirAsia مع شركات أخرى لنفس التاريخ.</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a class="btn primary" target="_blank" rel="noopener" href="https://www.google.com/travel/flights?q=Flights%20from%20Kuala%20Lumpur%20to%20Langkawi%20on%202026-09-20">Google Flights</a>
+            <a class="btn" target="_blank" rel="noopener" href="https://www.skyscanner.net/transport/flights/kul/lgk/260920/">Skyscanner</a>
+          </div>
+        </div>
+        <div class="card deal-card accent-gold">
+          <h3>🏨 أسعار الفنادق</h3>
+          <p>تحقق دوريًا من توفر أسعار أو غرف بديلة أفضل قبل موعد الوصول.</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a class="btn primary" target="_blank" rel="noopener" href="https://www.booking.com/searchresults.html?ss=Langkawi">فنادق لنكاوي</a>
+            <a class="btn" target="_blank" rel="noopener" href="https://www.booking.com/searchresults.html?ss=Kuala%20Lumpur">فنادق كوالالمبور</a>
+          </div>
+        </div>
+        <div class="card deal-card accent-palm">
+          <h3>🎟️ تذاكر المعالم بخصومات</h3>
+          <p>تذاكر الصعود لبرجا بتروناس، جولات الجزر، والتلفريك غالبًا أرخص عند الحجز المسبق أونلاين.</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a class="btn primary" target="_blank" rel="noopener" href="https://www.klook.com/search/result/?query=Langkawi">Klook</a>
+            <a class="btn" target="_blank" rel="noopener" href="https://www.getyourguide.com/s/?q=Kuala%20Lumpur">GetYourGuide</a>
+          </div>
+        </div>
+        <div class="card deal-card accent-sea">
+          <h3>📶 شريحة بيانات / eSIM</h3>
+          <p>خيار إضافي بجانب الشريحة المرفقة بالباقة — مفيد لأي جهاز إضافي.</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a class="btn primary" target="_blank" rel="noopener" href="https://www.airalo.com/malaysia-esim">Airalo eSIM ماليزيا</a>
+          </div>
+        </div>
+        <div class="card deal-card accent-coral">
+          <h3>🛍️ التسوق المعفى من الجمارك</h3>
+          <p>لنكاوي جزيرة معفاة من الضرائب — أفضل وقت لشراء العطور والشوكولاتة والمشروبات.</p>
+        </div>
+        <div class="card deal-card accent-gold">
+          <h3>🚗 السيارة والجولات</h3>
+          <p>سيارة سيدان مناسبة لـ٢–٣ ركاب. عائلتكم ٥ أفراد — تأكدوا مسبقًا مع المزوّد من نوع المركبة الفعلي لتفادي رسوم استبدال.</p>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ===================== CHECKLIST / REMINDERS ===================== -->
+  <section class="panel" id="panel-checklist">
+
+    <section class="block">
+      <div class="notif-box">
+        <div>
+          <b>تذكيرات المتصفح</b>
+          <div class="notif-status" id="notifStatus">فعّل الإشعارات لتصلك تنبيهات بالمواعيد المهمة أثناء فتح هذه الصفحة.</div>
+        </div>
+        <button class="btn primary" id="enableNotif" type="button">🔔 تفعيل التذكيرات</button>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><h2>مواعيد لا تفوتها</h2></div>
+      <div class="card" id="remindersList"></div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><h2>قائمة ما قبل السفر</h2><span class="block-sub" id="progressBefore">0 / 0</span></div>
+      <div class="progress-bar"><span id="progressBarBefore" style="width:0%"></span></div>
+      <div class="card" id="checklistBefore" style="margin-top:10px;"></div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><h2>قائمة أثناء الرحلة</h2><span class="block-sub" id="progressDuring">0 / 0</span></div>
+      <div class="progress-bar"><span id="progressBarDuring" style="width:0%"></span></div>
+      <div class="card" id="checklistDuring" style="margin-top:10px;"></div>
+    </section>
+
+    <section class="block">
+      <div class="block-head"><h2>محول العملة اليدوي (ريال ↔ رينغيت)</h2></div>
+      <div class="card">
+        <p class="block-sub" style="margin-top:0;">أدخل آخر سعر صرف رأيته (اختياريًا حدّث الرقم عند الوصول)، ثم اكتب أي مبلغ ليتحول تلقائيًا.</p>
+        <div class="conv-box">
+          <div class="conv-field"><label>1 ريال = كم رينغيت؟</label><input type="number" id="rate" value="1.13" step="0.01" min="0"></div>
+          <div class="conv-field"><label>المبلغ بالريال</label><input type="number" id="sar" value="100" step="1" min="0"></div>
+          <div class="conv-field"><label>&nbsp;</label><div class="conv-result" id="convResult">= 113.00 MYR</div></div>
+        </div>
+      </div>
+    </section>
+
+  </section>
+
+</main>
+
+<footer>مخطط رحلة عائلة الطريقي · كوالالمبور ولنكاوي · ١٨–٢٧ سبتمبر ٢٠٢٦</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- THEME ---------- */
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('themeToggle');
+  try{
+    var saved = localStorage.getItem('mtrip_theme');
+    if(saved) root.setAttribute('data-theme', saved);
+  }catch(e){}
+  themeBtn.addEventListener('click', function(){
+    var current = root.getAttribute('data-theme');
+    var isDark = current === 'dark' || (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var next = isDark ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try{ localStorage.setItem('mtrip_theme', next); }catch(e){}
+  });
+
+  /* ---------- TABS ---------- */
+  var tabs = document.querySelectorAll('.tab');
+  var panels = document.querySelectorAll('.panel');
+  tabs.forEach(function(tab){
+    tab.addEventListener('click', function(){
+      tabs.forEach(function(t){ t.setAttribute('aria-selected','false'); });
+      panels.forEach(function(p){ p.classList.remove('active'); });
+      tab.setAttribute('aria-selected','true');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  });
+
+  /* ---------- COUNTDOWN ---------- */
+  var FLIGHT_OUT = new Date('2026-09-18T04:40:00+03:00');
+  var TRIP_END = new Date('2026-09-28T02:50:00+03:00');
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function updateCountdown(){
+    var now = new Date();
+    var target, note;
+    if(now < FLIGHT_OUT){ target = FLIGHT_OUT; note = 'حتى إقلاع الرحلة EY576 من الدمام'; }
+    else if(now < TRIP_END){ target = TRIP_END; note = 'الرحلة جارية الآن — حتى العودة للدمام 🌴'; }
+    else { target = null; note = 'رحلتكم إلى ماليزيا انتهت — نتمنى أنها كانت رائعة! 🌺'; }
+
+    if(!target){
+      document.getElementById('cdDays').textContent='—';
+      document.getElementById('cdHours').textContent='—';
+      document.getElementById('cdMins').textContent='—';
+      document.getElementById('cdNote').textContent = note;
+      return;
+    }
+    var diff = Math.max(0, target - now);
+    var d = Math.floor(diff/86400000);
+    var h = Math.floor(diff%86400000/3600000);
+    var m = Math.floor(diff%3600000/60000);
+    document.getElementById('cdDays').textContent = d;
+    document.getElementById('cdHours').textContent = pad(h);
+    document.getElementById('cdMins').textContent = pad(m);
+    document.getElementById('cdNote').textContent = note;
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 30000);
+
+  /* ---------- PLACES DATA ---------- */
+  function mapLink(q){ return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q); }
+  function renderCards(containerId, items, accentClass){
+    var el = document.getElementById(containerId);
+    el.innerHTML = items.map(function(it){
+      return '<div class="card place-card ' + accentClass + '">' +
+        '<span class="tag ' + (it.tagClass||'palm') + '">' + it.tag + '</span>' +
+        '<h3 style="margin-top:8px;">' + it.name + '</h3>' +
+        '<p>' + it.desc + '</p>' +
+        '<div class="place-foot"><a class="btn" target="_blank" rel="noopener" href="' + mapLink(it.map) + '">📍 الموقع على الخريطة</a></div>' +
+        '</div>';
+    }).join('');
+  }
+
+  renderCards('klPlaces', [
+    {name:'برجا بتروناس التوأم', tag:'معلم مميز', tagClass:'gold', desc:'رمز المدينة وأعلى مرصد بانورامي؛ يُنصح بحجز تذاكر الصعود مسبقًا.', map:'Petronas Twin Towers Kuala Lumpur'},
+    {name:'كهوف باتو', tag:'ثقافي وطبيعي', tagClass:'palm', desc:'معبد هندوسي داخل كهف جيري بتمثال ذهبي ضخم و272 درجة سلّم.', map:'Batu Caves Kuala Lumpur'},
+    {name:'برج كوالالمبور (Menara KL)', tag:'إطلالة', tagClass:'gold', desc:'إطلالة بانورامية على المدينة مع مطعم دوّار.', map:'Menara Kuala Lumpur Tower'},
+    {name:'ساحة ميرديكا والمسجد الوطني', tag:'تاريخي', tagClass:'palm', desc:'قلب المدينة التاريخي وموقع إعلان استقلال ماليزيا.', map:'Merdeka Square Kuala Lumpur'},
+    {name:'السوق المركزي وشارع بيتالنق', tag:'تسوق', tagClass:'coral', desc:'تسوق تقليدي وحرف يدوية في قلب الحي الصيني.', map:'Central Market Kuala Lumpur'},
+    {name:'أكواريا KLCC', tag:'عائلي', tagClass:'palm', desc:'حوض أسماك عملاق أسفل مركز المؤتمرات، مناسب للأطفال.', map:'Aquaria KLCC'}
+  ], 'accent-palm');
+
+  renderCards('klFood', [
+    {name:'جادة جالان ألور', tag:'شارع مأكولات', tagClass:'coral', desc:'أشهر شارع مأكولات ليلي في المدينة بخيارات حلال متنوعة.', map:'Jalan Alor Kuala Lumpur'},
+    {name:'Madam Kwan\'s', tag:'ماليزي أصيل', tagClass:'gold', desc:'سلسلة مطاعم ماليزية معروفة، متوفرة في أغلب المولات الكبرى.', map:"Madam Kwan's Kuala Lumpur"},
+    {name:'Rebung by Chef Ismail', tag:'بوفيه حلال', tagClass:'palm', desc:'بوفيه ماليزي تقليدي شهير، مناسب للعائلات الكبيرة.', map:'Rebung Chef Ismail Kuala Lumpur'}
+  ], 'accent-coral');
+
+  renderCards('lgkPlaces', [
+    {name:'الجسر المعلق والتلفريك', tag:'معلم مميز', tagClass:'gold', desc:'تلفريك إلى قمة جبل مات سنشانج مع جسر مشاة معلق وإطلالة خلابة.', map:'Langkawi Sky Bridge Cable Car'},
+    {name:'ساحة النسر (Dataran Lang)', tag:'تصوير', tagClass:'palm', desc:'تمثال النسر الشهير الذي يمثل رمز الجزيرة، مكان مثالي للصور.', map:'Eagle Square Langkawi'},
+    {name:'جولة تعليق الجزر', tag:'بحري', tagClass:'coral', desc:'زيارة بحيرة العذراء الحامل وجزيرة براس باساه بالقارب.', map:'Island Hopping Langkawi'},
+    {name:'حديقة كيليم الجيولوجية', tag:'طبيعة', tagClass:'palm', desc:'جولة بالقارب وسط غابات المانغروف مع إطعام النسور.', map:'Kilim Geoforest Park Langkawi'},
+    {name:'عالم تحت الماء (Underwater World)', tag:'عائلي', tagClass:'palm', desc:'أكواريوم كبير مناسب لكل أفراد العائلة.', map:'Underwater World Langkawi'},
+    {name:'شلالات تيلاجا توجوه', tag:'طبيعة', tagClass:'palm', desc:'سبع برك طبيعية متتالية وسط الغابة، مناسبة للسباحة الخفيفة.', map:'Telaga Tujuh Waterfalls Langkawi'}
+  ], 'accent-coral');
+
+  renderCards('lgkFood', [
+    {name:"Fisherman's Cove", tag:'مأكولات بحرية', tagClass:'coral', desc:'إطلالة مباشرة على البحر داخل منتجع Bay View.', map:"Fisherman's Cove Langkawi"},
+    {name:'Orkid Ria Seafood', tag:'مأكولات بحرية', tagClass:'coral', desc:'من أشهر مطاعم المأكولات البحرية المحلية في الجزيرة.', map:'Orkid Ria Seafood Langkawi'},
+    {name:'مطاعم بانتاي تشيناع', tag:'شارع سياحي', tagClass:'gold', desc:'الشارع السياحي الرئيسي بخيارات حلال ومطاعم مطلة على الشاطئ.', map:'Pantai Cenang Langkawi restaurants'}
+  ], 'accent-palm');
+
+  /* ---------- REMINDERS ---------- */
+  var reminders = [
+    {date:'2026-09-11', text:'تأكد من صلاحية جوازات السفر (٦ أشهر على الأقل) ومن صحة بيانات جميع المسافرين.'},
+    {date:'2026-09-15', text:'اطبع تذاكر الطيران (الدولي 8JK8TJ والداخلي PCBERP) وفاوتشرات الفنادق الثلاثة.'},
+    {date:'2026-09-17', text:'فعّل التجوال الدولي أو جهّز eSIM إضافي، وجهّز نقودًا نقدية بالرينغيت.'},
+    {date:'2026-09-18', text:'التوجه لمطار الدمام — رحلة EY576 تقلع 04:40 (يفضل الوصول قبلها بـ٣ ساعات).'},
+    {date:'2026-09-20', text:'رحلة AK6318 من كوالالمبور إلى لنكاوي الساعة 13:40 — تسجيل خروج الفندق ظهرًا.'},
+    {date:'2026-09-21', text:'جهّز نقدًا لرسوم قارب جولة تعليق الجزر (تُدفع للسائق مباشرة).'},
+    {date:'2026-09-23', text:'رحلة AK6325 من لنكاوي إلى كوالالمبور الساعة 14:30.'},
+    {date:'2026-09-27', text:'رحلة العودة الدولية EY487 تقلع من كوالالمبور 21:55 — التوجه للمطار مبكرًا.'}
+  ];
+  var remWrap = document.getElementById('remindersList');
+  remWrap.innerHTML = reminders.map(function(r){
+    return '<div class="reminder-row"><div class="reminder-date mono">' + r.date + '</div><div>' + r.text + '</div></div>';
+  }).join('');
+
+  /* ---------- NOTIFICATIONS ---------- */
+  var notifBtn = document.getElementById('enableNotif');
+  var notifStatus = document.getElementById('notifStatus');
+  function refreshNotifStatus(){
+    if(!('Notification' in window)){
+      notifStatus.textContent = 'المتصفح الحالي لا يدعم الإشعارات.';
+      notifBtn.disabled = true;
+      return;
+    }
+    if(Notification.permission === 'granted'){
+      notifStatus.textContent = 'الإشعارات مفعّلة ✓ — ستصلك تنبيهات فقط أثناء فتح هذه الصفحة في المتصفح.';
+      notifBtn.textContent = '🔔 مفعّلة';
+    } else if(Notification.permission === 'denied'){
+      notifStatus.textContent = 'تم رفض إذن الإشعارات من إعدادات المتصفح.';
+    } else {
+      notifStatus.textContent = 'فعّل الإشعارات لتصلك تنبيهات بالمواعيد المهمة أثناء فتح هذه الصفحة.';
+    }
+  }
+  refreshNotifStatus();
+  notifBtn.addEventListener('click', function(){
+    if(!('Notification' in window)) return;
+    Notification.requestPermission().then(refreshNotifStatus);
+  });
+
+  var NOTIFIED_KEY = 'mtrip_notified_v1';
+  function getNotified(){ try{ return JSON.parse(localStorage.getItem(NOTIFIED_KEY) || '[]'); }catch(e){ return []; } }
+  function markNotified(id){ var list = getNotified(); list.push(id); try{ localStorage.setItem(NOTIFIED_KEY, JSON.stringify(list)); }catch(e){} }
+
+  function checkReminders(){
+    if(!('Notification' in window) || Notification.permission !== 'granted') return;
+    var now = new Date();
+    var notified = getNotified();
+    reminders.forEach(function(r){
+      var d = new Date(r.date + 'T08:00:00+08:00');
+      if(now >= d && notified.indexOf(r.date) === -1){
+        try{ new Notification('تذكير رحلة ماليزيا', {body: r.text}); }catch(e){}
+        markNotified(r.date);
+      }
+    });
+  }
+  checkReminders();
+  setInterval(checkReminders, 60000);
+
+  /* ---------- CHECKLISTS ---------- */
+  var beforeItems = [
+    'جوازات سفر سارية ٦ أشهر على الأقل + صور منها',
+    'تذاكر الطيران المطبوعة (الدولي والداخلي)',
+    'فاوتشرات الفنادق الثلاثة (192HNU / 1FAIAB / HB64XV)',
+    'تأمين السفر لجميع أفراد الأسرة',
+    'تفعيل تجوال دولي أو تجهيز eSIM',
+    'محول كهرباء بمقبس نوع G',
+    'كريم واقي شمس وطارد حشرات',
+    'ملابس سباحة خفيفة لجزر لنكاوي',
+    'حقيبة مستلزمات الرضيعة (حفاضات، حليب، أدوية)',
+    'نقود نقدية بالرينغيت الماليزي (لرسوم القوارب والتسوق)',
+    'الأدوية الشخصية والوصفات الطبية',
+    'عربة أطفال خفيفة (سترولر) للمطارات',
+    'نسخة من كل المستندات محفوظة على الجوال أو البريد'
+  ];
+  var duringItems = [
+    'الاحتفاظ بنسخة ورقية من فاوتشر الفندق عند تسجيل الوصول',
+    'دفع رسوم قارب جولة الجزر نقدًا في لنكاوي',
+    'التأكد من رسوم التأمين (Deposit) عند تسجيل الدخول واستردادها عند الخروج',
+    'تأكيد موعد الالتقاء اليومي مع السائق الخاص',
+    'الوصول لمطار لنكاوي/كوالالمبور الداخلي قبل الإقلاع بساعتين',
+    'شحن الجوال وباور بانك يوميًا قبل الجولات',
+    'شراء تذكارات وشوكولاتة معفاة من الجمارك في لنكاوي قبل المغادرة'
+  ];
+
+  function buildChecklist(containerId, items, storeKey, progressBarId, progressLabelId){
+    var container = document.getElementById(containerId);
+    var state = {};
+    try{ state = JSON.parse(localStorage.getItem(storeKey) || '{}'); }catch(e){ state = {}; }
+
+    function render(){
+      container.innerHTML = items.map(function(text, i){
+        var checked = !!state[i];
+        return '<div class="check-item' + (checked?' done':'') + '">' +
+          '<input type="checkbox" id="' + storeKey + '_' + i + '"' + (checked?' checked':'') + '>' +
+          '<label for="' + storeKey + '_' + i + '">' + text + '</label></div>';
+      }).join('');
+      container.querySelectorAll('input[type=checkbox]').forEach(function(cb, i){
+        cb.addEventListener('change', function(){
+          state[i] = cb.checked;
+          try{ localStorage.setItem(storeKey, JSON.stringify(state)); }catch(e){}
+          render();
+        });
+      });
+      var done = Object.keys(state).filter(function(k){ return state[k]; }).length;
+      document.getElementById(progressLabelId).textContent = done + ' / ' + items.length;
+      document.getElementById(progressBarId).style.width = (items.length ? (done/items.length*100) : 0) + '%';
+    }
+    render();
+  }
+  buildChecklist('checklistBefore', beforeItems, 'mtrip_before_v1', 'progressBarBefore', 'progressBefore');
+  buildChecklist('checklistDuring', duringItems, 'mtrip_during_v1', 'progressBarDuring', 'progressDuring');
+
+  /* ---------- CURRENCY CONVERTER ---------- */
+  var rateInput = document.getElementById('rate');
+  var sarInput = document.getElementById('sar');
+  var result = document.getElementById('convResult');
+  function updateConv(){
+    var rate = parseFloat(rateInput.value) || 0;
+    var sar = parseFloat(sarInput.value) || 0;
+    result.textContent = '= ' + (rate*sar).toFixed(2) + ' MYR';
+  }
+  rateInput.addEventListener('input', updateConv);
+  sarInput.addEventListener('input', updateConv);
+  updateConv();
+
+})();
+</script>
+</body>
+</html>
