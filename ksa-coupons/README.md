@@ -74,6 +74,36 @@ have one, entries can also be added or edited directly in
 `data/coupons.json` (the nightly job picks up manual edits, prunes them
 once they expire, and keeps the embedded copy in `index.html` in sync).
 
+#### Concrete option: Feedico's free tier
+
+Checked several providers (Feedico, CouponAPI.org, LinkMyDeals, Strackr) —
+every one of them requires creating an account, because affiliate coupon
+data is only ever handed out per-publisher (that's how commission
+attribution works; there's no such thing as a fully anonymous public feed
+of live promo codes). The closest to "free, no strings" is
+[Feedico](https://feedico.io/global-coupon-api): free tier, 1,000 API
+requests/month, no credit card mentioned, aggregating 40,000+ merchants
+across CJ/Awin/Impact/Admitad — though Saudi-specific merchant coverage
+isn't documented, so check after signing up. To wire it in:
+
+1. Create a free account at feedico.io and generate an API token
+   (`fdco_...`).
+2. Add these repo secrets:
+   - `COUPON_FEED_URL` = `https://api.feedico.io/api/v1/catalog/coupons`
+   - `COUPON_FEED_FORMAT` = `json`
+   - `COUPON_FEED_METHOD` = `POST`
+   - `COUPON_FEED_AUTH_HEADER` = `Bearer fdco_your_token_here`
+   - `COUPON_FEED_BODY` = `{"pageSize": 100}`
+   - `COUPON_FEED_PAGINATE` = `true`
+3. Run the workflow (Actions tab → "Update KSA Coupons Data" → "Run
+   workflow") and check the run log for how many entries came back.
+
+The same `COUPON_FEED_METHOD` / `COUPON_FEED_AUTH_HEADER` / `COUPON_FEED_BODY`
+/ `COUPON_FEED_PAGINATE` / `COUPON_FEED_MAX_PAGES` secrets work for any other
+POST+JSON, bearer-token-authenticated feed too, not just Feedico's — a
+plain `GET` CSV/JSON feed only needs `COUPON_FEED_URL` and
+`COUPON_FEED_FORMAT`.
+
 ### Coupon entry shape
 
 ```json

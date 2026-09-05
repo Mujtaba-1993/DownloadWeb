@@ -22,6 +22,11 @@ jobs:
         env:
           COUPON_FEED_URL: ${{ secrets.COUPON_FEED_URL }}
           COUPON_FEED_FORMAT: ${{ secrets.COUPON_FEED_FORMAT }}
+          COUPON_FEED_METHOD: ${{ secrets.COUPON_FEED_METHOD }}
+          COUPON_FEED_AUTH_HEADER: ${{ secrets.COUPON_FEED_AUTH_HEADER }}
+          COUPON_FEED_BODY: ${{ secrets.COUPON_FEED_BODY }}
+          COUPON_FEED_PAGINATE: ${{ secrets.COUPON_FEED_PAGINATE }}
+          COUPON_FEED_MAX_PAGES: ${{ secrets.COUPON_FEED_MAX_PAGES }}
         run: python3 ksa-coupons/scripts/update_coupons.py
 
       - name: Commit changes if any

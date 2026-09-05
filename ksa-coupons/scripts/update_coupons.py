@@ -43,51 +43,112 @@ OTHER_CATEGORY = {"id": "other", "en": "Other", "ar": "أخرى"}
 
 # Accepted column/key names per field, most affiliate feeds use some subset
 # of these (case-insensitive). Extend this if your feed uses different names.
+# Includes Feedico's schema (brandName/merchantWebsiteUrl) alongside the more
+# generic names used by CSV exports from other networks.
 FIELD_ALIASES = {
-    "store": ["store", "merchant", "advertiser", "advertisername", "brand", "shop"],
+    "store": ["store", "merchant", "advertiser", "advertisername", "brand", "shop", "brandname", "firmname"],
     "title": ["title", "offername", "name", "headline", "voucher_title"],
     "description": ["description", "terms", "details", "offerdescription"],
     "code": ["code", "voucher", "vouchercode", "promocode", "coupon_code"],
     "discount": ["discount", "discountvalue", "offer", "savings"],
     "category": ["category", "sector", "vertical", "type_of_offer"],
-    "url": ["url", "link", "landing_page", "trackingurl", "deeplink", "clickurl"],
+    "url": ["url", "link", "landing_page", "trackingurl", "deeplink", "clickurl", "merchantwebsiteurl", "offerurl"],
     "expires": ["expires", "expirydate", "end_date", "validto", "enddate"],
 }
+
+# Common wrapper keys JSON APIs use around the actual list of records
+# (e.g. {"data": [...]} or {"coupons": [...]}), tried in order.
+JSON_LIST_WRAPPER_KEYS = ["data", "coupons", "results", "items", "records"]
+
+
+def _unwrap_json_list(parsed):
+    if isinstance(parsed, list):
+        return parsed
+    if isinstance(parsed, dict):
+        for key in JSON_LIST_WRAPPER_KEYS:
+            if isinstance(parsed.get(key), list):
+                return parsed[key]
+    return []
+
+
+def _request_page(feed_url, method, headers, body_obj):
+    data_bytes = json.dumps(body_obj).encode("utf-8") if body_obj is not None else None
+    req = urllib.request.Request(feed_url, data=data_bytes, method=method, headers=headers)
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return resp.read().decode("utf-8", errors="replace")
 
 
 def fetch_new_coupons():
     """Fetch and normalize entries from COUPON_FEED_URL, if configured.
 
-    Supports CSV (default) or JSON (COUPON_FEED_FORMAT=json, expecting a
-    top-level JSON array of objects). Returns [] on missing config or any
-    fetch/parse failure -- a bad or unreachable feed should never break the
-    scheduled prune-and-refresh run.
+    Supports CSV (default) or JSON (COUPON_FEED_FORMAT=json). For JSON APIs
+    that require an Authorization header and/or a POST body (e.g. Feedico's
+    "Authorization: Bearer <token>" + POST /api/v1/catalog/coupons), set:
+      COUPON_FEED_METHOD=POST
+      COUPON_FEED_AUTH_HEADER="Bearer fdco_..."
+      COUPON_FEED_BODY='{"pageSize": 100}'   (optional JSON object, merged
+                                               with a "page" key when paginating)
+      COUPON_FEED_PAGINATE=true               (loop "page" 1..COUPON_FEED_MAX_PAGES,
+                                                 stopping at the first empty page)
+      COUPON_FEED_MAX_PAGES=5
+
+    Returns [] on missing config or any fetch/parse failure -- a bad or
+    unreachable feed should never break the scheduled prune-and-refresh run.
     """
     feed_url = os.environ.get("COUPON_FEED_URL", "").strip()
     if not feed_url:
         return []
 
     feed_format = os.environ.get("COUPON_FEED_FORMAT", "csv").strip().lower()
+    method = os.environ.get("COUPON_FEED_METHOD", "GET").strip().upper()
+    paginate = os.environ.get("COUPON_FEED_PAGINATE", "").strip().lower() in ("1", "true", "yes")
+    max_pages = int(os.environ.get("COUPON_FEED_MAX_PAGES", "5") or 5)
 
-    try:
-        req = urllib.request.Request(feed_url, headers={"User-Agent": "ksa-coupons-updater/1.0"})
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            raw = resp.read().decode("utf-8", errors="replace")
-    except Exception as exc:
-        print(f"WARNING: could not fetch COUPON_FEED_URL ({exc}); skipping feed import")
-        return []
+    headers = {"User-Agent": "ksa-coupons-updater/1.0"}
+    auth_header = os.environ.get("COUPON_FEED_AUTH_HEADER", "").strip()
+    if auth_header:
+        headers["Authorization"] = auth_header
+    if method == "POST":
+        headers["Content-Type"] = "application/json"
 
-    try:
-        if feed_format == "json":
-            rows = json.loads(raw)
-        else:
-            rows = list(csv.DictReader(io.StringIO(raw)))
-    except Exception as exc:
-        print(f"WARNING: could not parse coupon feed as {feed_format} ({exc}); skipping feed import")
-        return []
+    base_body = None
+    body_raw = os.environ.get("COUPON_FEED_BODY", "").strip()
+    if body_raw:
+        try:
+            base_body = json.loads(body_raw)
+        except Exception as exc:
+            print(f"WARNING: COUPON_FEED_BODY is not valid JSON ({exc}); ignoring it")
+
+    all_rows = []
+    pages = range(1, max_pages + 1) if paginate else [None]
+    for page in pages:
+        body_obj = None
+        if method == "POST":
+            body_obj = dict(base_body) if isinstance(base_body, dict) else {}
+            if page is not None:
+                body_obj["page"] = page
+
+        try:
+            raw = _request_page(feed_url, method, headers, body_obj)
+        except Exception as exc:
+            print(f"WARNING: could not fetch COUPON_FEED_URL ({exc}); skipping feed import")
+            return []
+
+        try:
+            if feed_format == "json":
+                page_rows = _unwrap_json_list(json.loads(raw))
+            else:
+                page_rows = list(csv.DictReader(io.StringIO(raw)))
+        except Exception as exc:
+            print(f"WARNING: could not parse coupon feed as {feed_format} ({exc}); skipping feed import")
+            return []
+
+        all_rows.extend(page_rows)
+        if not paginate or not page_rows:
+            break
 
     coupons = []
-    for row in rows:
+    for row in all_rows:
         coupon = normalize_row(row)
         if coupon:
             coupons.append(coupon)
