@@ -1,0 +1,318 @@
+<title>مكالمة جدو الوهمية</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Tajawal:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --sand:#FBF4E6; --sand-2:#F3E8D2; --ink:#17251F; --ink-soft:#4B5B52;
+    --nile:#0E6E6B; --nile-deep:#0A4F4D; --sun:#E8912B; --clay:#C4503F;
+    --grass:#2E9E52; --line:rgba(23,37,31,.14);
+    --bg:var(--sand); --panel:#FFFDF7; --text:var(--ink); --muted:var(--ink-soft);
+    --edge:var(--line); --accent:var(--nile); --glow:rgba(14,110,107,.18);
+    --bubble-them:#FFFFFF; --bubble-me:var(--nile); --on-accent:#FFFDF7;
+    --r:18px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0C1613; --panel:#132220; --text:#F2EADA; --muted:#9FB3AA;
+      --edge:rgba(242,234,218,.16); --accent:#3FBDA8; --glow:rgba(63,189,168,.22);
+      --sand-2:#1B2E2A; --bubble-them:#1C302C; --bubble-me:#3FBDA8; --on-accent:#07110F;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0C1613; --panel:#132220; --text:#F2EADA; --muted:#9FB3AA;
+    --edge:rgba(242,234,218,.16); --accent:#3FBDA8; --glow:rgba(63,189,168,.22);
+    --sand-2:#1B2E2A; --bubble-them:#1C302C; --bubble-me:#3FBDA8; --on-accent:#07110F;
+  }
+
+  body{background:var(--bg);color:var(--text);font-family:"Tajawal",system-ui,"Segoe UI",sans-serif;
+    min-height:100vh;display:flex;justify-content:center;padding:20px 14px 36px;}
+  *{box-sizing:border-box}
+  .app{width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px}
+
+  .brand{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .brand h1{font-family:"Cairo",sans-serif;font-weight:800;font-size:22px;margin:0;letter-spacing:-.2px;text-wrap:balance}
+  .tag{font-size:11px;letter-spacing:.08em;padding:5px 10px;border-radius:999px;
+    background:var(--sand-2);color:var(--muted);border:1px solid var(--edge);white-space:nowrap}
+
+  .card{background:var(--panel);border:1px solid var(--edge);border-radius:var(--r);padding:16px}
+  .lbl{font-size:12px;letter-spacing:.06em;color:var(--muted);margin:0 0 8px;font-weight:700}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-family:"Tajawal",sans-serif;font-size:14px;padding:9px 13px;border-radius:999px;cursor:pointer;
+    background:transparent;color:var(--text);border:1px solid var(--edge);transition:.15s}
+  .chip:hover{border-color:var(--accent)}
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:700}
+  .chip .emo{margin-left:6px}
+
+  input[type=text], textarea{width:100%;font-family:"Tajawal",sans-serif;font-size:15px;color:var(--text);
+    background:var(--bg);border:1px solid var(--edge);border-radius:12px;padding:11px 13px}
+  input:focus-visible,textarea:focus-visible,button:focus-visible{outline:3px solid var(--glow);outline-offset:2px}
+
+  .btn{font-family:"Cairo",sans-serif;font-weight:700;font-size:16px;border:none;border-radius:14px;
+    padding:14px 18px;cursor:pointer;width:100%;transition:transform .12s}
+  .btn:active{transform:scale(.98)}
+  .btn-main{background:var(--accent);color:var(--on-accent)}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--edge)}
+
+  /* ===== call screen ===== */
+  .screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;
+    background:linear-gradient(170deg,var(--nile-deep),#071A19 65%);color:#F4EEE2;padding:34px 18px 30px;z-index:9}
+  .screen.on{display:flex}
+  .status{font-size:13px;letter-spacing:.1em;color:#9FCFC6;margin-bottom:6px}
+  .who{font-family:"Cairo",sans-serif;font-weight:800;font-size:30px;margin:6px 0 2px;text-align:center}
+  .sub{font-size:14px;color:#9FCFC6;margin-bottom:20px}
+  .ava{width:132px;height:132px;border-radius:50%;display:grid;place-items:center;font-size:62px;
+    background:rgba(255,253,247,.1);border:2px solid rgba(232,145,43,.55);margin:6px 0 14px}
+  .ringing .ava{animation:pulse 1.6s ease-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(232,145,43,.45)}70%{box-shadow:0 0 0 34px rgba(232,145,43,0)}100%{box-shadow:0 0 0 0 rgba(232,145,43,0)}}
+  @media (prefers-reduced-motion:reduce){.ringing .ava{animation:none}}
+
+  .keys{display:flex;gap:46px;margin-top:auto;padding-top:16px}
+  .key{width:74px;height:74px;border-radius:50%;border:none;font-size:30px;cursor:pointer;color:#fff;display:grid;place-items:center}
+  .key.yes{background:var(--grass)} .key.no{background:var(--clay)}
+  .key-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:13px;color:#CDE3DC}
+
+  .talk{flex:1;width:100%;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin:14px 0;padding:2px}
+  .bub{max-width:82%;padding:10px 14px;border-radius:16px;font-size:16px;line-height:1.55;white-space:pre-wrap}
+  .them{background:rgba(255,253,247,.12);border-bottom-right-radius:5px;align-self:flex-start}
+  .me{background:var(--sun);color:#241403;border-bottom-left-radius:5px;align-self:flex-end;font-weight:500}
+  .note{align-self:center;font-size:12px;color:#9FCFC6}
+
+  .bar{width:100%;display:flex;gap:10px;align-items:center}
+  .bar input{background:rgba(255,253,247,.1);border-color:rgba(255,253,247,.25);color:#F4EEE2}
+  .bar input::placeholder{color:#8FB6AD}
+  .mic{width:58px;height:58px;flex:none;border-radius:50%;border:2px solid rgba(232,145,43,.6);
+    background:rgba(255,253,247,.08);color:#F4EEE2;font-size:24px;cursor:pointer}
+  .mic.live{background:var(--clay);border-color:var(--clay);animation:pulse 1.4s infinite}
+  .send{flex:none;padding:0 16px;height:48px;border-radius:12px;border:none;background:var(--sun);
+    color:#241403;font-family:"Cairo",sans-serif;font-weight:700;cursor:pointer}
+  .hang{background:var(--clay);color:#fff;border:none;border-radius:14px;padding:13px;width:100%;
+    font-family:"Cairo",sans-serif;font-weight:700;font-size:16px;cursor:pointer;margin-top:10px}
+  .timer{font-variant-numeric:tabular-nums;font-size:14px;color:#9FCFC6}
+  .hint{font-size:13px;color:var(--muted);line-height:1.7;margin:0}
+  ul.hint{padding-inline-start:18px}
+</style>
+
+<div class="app" dir="rtl" id="setup">
+  <div class="brand">
+    <h1>مكالمة جدو الوهمية</h1>
+    <span class="tag">لعبة تمثيل للأطفال</span>
+  </div>
+
+  <div class="card">
+    <p class="lbl">مين اللي هيتصل؟</p>
+    <div class="chips" id="whoChips"></div>
+  </div>
+
+  <div class="card">
+    <p class="lbl">اسم الطفل</p>
+    <input type="text" id="kid" placeholder="يوسف" value="حبيبي">
+    <p class="lbl" style="margin-top:14px">المكالمة عن إيه؟</p>
+    <div class="chips" id="goalChips"></div>
+    <input type="text" id="goalFree" placeholder="أو اكتب موضوع تاني بنفسك" style="margin-top:10px">
+  </div>
+
+  <button class="btn btn-main" id="start">📞 خلّي التليفون يرن</button>
+  <div class="card">
+    <p class="lbl">للأهل</p>
+    <ul class="hint">
+      <li>الصوت عربي مصري. لو الجهاز مفيهوش صوت عربي هيقرا بأقرب صوت موجود.</li>
+      <li>زرار المايك بيسمع كلام الطفل، ولو مسمعش تقدر تكتب الرد بدل عنه.</li>
+      <li>ده تمثيل، مش مكالمة حقيقية، ومفيش رقم بيتصل بيه.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="screen" id="callScreen" dir="rtl">
+  <div class="status" id="statusTxt">مكالمة واردة</div>
+  <div class="ava" id="ava">👴</div>
+  <div class="who" id="whoName">جدو</div>
+  <div class="sub"><span id="subTxt">موبايل</span> · <span class="timer" id="timer"></span></div>
+
+  <div class="talk" id="talk" hidden></div>
+
+  <div class="keys" id="keys">
+    <div class="key-wrap"><button class="key no" id="declineBtn" aria-label="ارفض">✕</button><span>ارفض</span></div>
+    <div class="key-wrap"><button class="key yes" id="acceptBtn" aria-label="رد">📞</button><span>رد</span></div>
+  </div>
+
+  <div id="liveCtrls" hidden style="width:100%">
+    <div class="bar">
+      <button class="mic" id="micBtn" aria-label="اتكلم">🎤</button>
+      <input type="text" id="typeIn" placeholder="أو اكتب اللي بيقوله الطفل">
+      <button class="send" id="sendBtn">إبعت</button>
+    </div>
+    <button class="hang" id="hangBtn">إنهاء المكالمة</button>
+  </div>
+</div>
+
+<script>
+document.documentElement.dir = "rtl";
+document.documentElement.lang = "ar";
+
+const CHARS = [
+  {id:"gedo",  name:"جدو",            emo:"👴", sub:"موبايل",        persona:"جد مصري طيب وبيحب يهزر شوية، بيقول يا حبيبي ويا قلب جدو"},
+  {id:"teta",  name:"تيتا",           emo:"👵", sub:"موبايل",        persona:"جدة مصرية حنينة بتسأل عن الأكل والمدرسة"},
+  {id:"doctor",name:"الدكتور سمير",   emo:"🩺", sub:"العيادة",       persona:"دكتور أطفال لطيف بيطمّن ومبيخوّفش أبداً"},
+  {id:"coach", name:"كابتن أحمد",     emo:"⚽", sub:"نادي الكورة",   persona:"كابتن كورة متحمس بيشجع ويقول برافو يا بطل"},
+  {id:"space", name:"رائد الفضاء نور",emo:"🚀", sub:"من الفضاء",     persona:"رائد فضاء مصري بيحكي عن النجوم بخيال حلو"},
+  {id:"cat",   name:"القطة مشمش",     emo:"🐱", sub:"من فوق السطوح", persona:"قطة بتتكلم وبتهزر وبتقول مياو في وسط الكلام"}
+];
+const GOALS = [
+  {t:"دردشة ولعب",      v:"اتكلم معاه كلام حلو واسأله عن يومه واهزر معاه"},
+  {t:"ياكل أكله",       v:"اقنعه بهدوء إنه يخلص أكله وخصوصاً الخضار، من غير تخويف"},
+  {t:"ينام بدري",       v:"اقنعه إنه ينام دلوقتي بهدوء واحكيله إن النوم بيكبّره"},
+  {t:"يذاكر",           v:"شجعه إنه يقعد يذاكر شوية ويفتخر بنفسه"},
+  {t:"يرتب لعبه",       v:"العبها معاه كأنها مهمة بطل وخليه يلم لعبه"},
+  {t:"يغسل سنانه",      v:"فكّره يغسل سنانه ويحكيله ليه ده مهم بشكل مضحك"}
+];
+
+let charSel = CHARS[0], goalSel = GOALS[0], history = [], ringTimer = null, tickTimer = null, t0 = 0, busy = false, sample = null;
+
+const $ = id => document.getElementById(id);
+const whoChips = $("whoChips"), goalChips = $("goalChips");
+
+CHARS.forEach((c,i)=>{
+  const b = document.createElement("button");
+  b.className = "chip"; b.type = "button";
+  b.innerHTML = '<span class="emo">'+c.emo+'</span>'+c.name;
+  b.setAttribute("aria-pressed", i===0 ? "true" : "false");
+  b.onclick = ()=>{ charSel=c; [...whoChips.children].forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); };
+  whoChips.appendChild(b);
+});
+GOALS.forEach((g,i)=>{
+  const b = document.createElement("button");
+  b.className = "chip"; b.type = "button"; b.textContent = g.t;
+  b.setAttribute("aria-pressed", i===0 ? "true" : "false");
+  b.onclick = ()=>{ goalSel=g; $("goalFree").value=""; [...goalChips.children].forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true"); };
+  goalChips.appendChild(b);
+});
+
+/* ---------- الصوت ---------- */
+let actx = null;
+function audio(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
+function ringOnce(){
+  const a = audio(); const now = a.currentTime;
+  [0,0.4].forEach(off=>{
+    const o = a.createOscillator(), g = a.createGain();
+    o.type="sine"; o.frequency.value = off ? 480 : 620;
+    g.gain.setValueAtTime(0, now+off); g.gain.linearRampToValueAtTime(.22, now+off+.04);
+    g.gain.linearRampToValueAtTime(0, now+off+.32);
+    o.connect(g).connect(a.destination); o.start(now+off); o.stop(now+off+.34);
+  });
+  if(navigator.vibrate) navigator.vibrate([250,150,250]);
+}
+function startRing(){ ringOnce(); ringTimer = setInterval(ringOnce, 2200); }
+function stopRing(){ clearInterval(ringTimer); ringTimer=null; if(navigator.vibrate) navigator.vibrate(0); }
+
+/* ---------- النطق بالمصري ---------- */
+let voices = [];
+function loadVoices(){ voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
+loadVoices();
+if(window.speechSynthesis) speechSynthesis.onvoiceschanged = loadVoices;
+function arabicVoice(){
+  if(!voices.length) loadVoices();
+  return voices.find(v=>/ar[-_]EG/i.test(v.lang))
+      || voices.find(v=>/^ar/i.test(v.lang))
+      || voices.find(v=>/arab/i.test(v.name)) || null;
+}
+function speak(txt){
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(txt);
+  u.lang = "ar-EG"; u.rate = .95; u.pitch = charSel.id==="cat" ? 1.5 : (charSel.id==="teta" ? 1.15 : 1);
+  const v = arabicVoice(); if(v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+
+/* ---------- سمع الطفل ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, listening = false;
+function listen(){
+  if(!SR){ note("المتصفح ده مش بيسمع، اكتب الرد في الخانة."); $("typeIn").focus(); return; }
+  if(listening){ rec.stop(); return; }
+  rec = new SR(); rec.lang = "ar-EG"; rec.interimResults = false; rec.maxAlternatives = 1;
+  listening = true; $("micBtn").classList.add("live");
+  rec.onresult = e => { const t = e.results[0][0].transcript.trim(); if(t) say(t); };
+  rec.onerror = () => note("مسمعتش كويس، جرب تاني أو اكتب.");
+  rec.onend = () => { listening = false; $("micBtn").classList.remove("live"); };
+  try{ rec.start(); }catch(err){ listening=false; $("micBtn").classList.remove("live"); }
+}
+
+/* ---------- الكلام على الشاشة ---------- */
+function bubble(cls, txt){
+  const d = document.createElement("div"); d.className = "bub "+cls; d.textContent = txt;
+  $("talk").appendChild(d); $("talk").scrollTop = $("talk").scrollHeight; return d;
+}
+function note(txt){ const d=document.createElement("div"); d.className="note"; d.textContent=txt;
+  $("talk").appendChild(d); $("talk").scrollTop = $("talk").scrollHeight; }
+
+function brief(){
+  const kid = ($("kid").value || "حبيبي").trim();
+  const goal = ($("goalFree").value || "").trim() || goalSel.v;
+  return "إنت بتمثل مكالمة تليفون مع طفل صغير في لعبة تمثيل آمنة.\n"+
+    "شخصيتك: "+charSel.name+" — "+charSel.persona+".\n"+
+    "اسم الطفل: "+kid+". هدف المكالمة: "+goal+".\n"+
+    "قواعد لازم تلتزم بيها:\n"+
+    "- اتكلم عامية مصرية بس، كلام بسيط جداً يفهمه طفل.\n"+
+    "- ردك قصير: جملة أو اتنين، وميزيدش عن ٢٥ كلمة، وينتهي غالباً بسؤال بسيط.\n"+
+    "- كن حنين ومرح، وممنوع أي تخويف أو عقاب أو كلام حزين أو أي حاجة مخيفة.\n"+
+    "- متقولش إنك ذكاء اصطناعي، وفضل في دور الشخصية.\n"+
+    "- متطلبش منه معلومات شخصية ولا تقوله يعمل حاجة لوحده بره البيت.\n"+
+    "- اكتب الرد نص عادي من غير رموز ولا علامات تنسيق.";
+}
+const FALLBACK = ["إزيك يا حبيبي، عامل إيه النهاردة؟","تعرف إني كنت بفكر فيك؟ قولي عملت إيه؟",
+  "ده كلام جميل قوي، وبعدين؟","برافو عليك يا بطل، أنا فخور بيك.","طيب وعدني تعمل كده، وأنا هكلمك تاني بكرة."];
+let fb = 0;
+
+async function ask(){
+  if(busy) return; busy = true;
+  const b = bubble("them","..."); 
+  try{
+    if(!sample) throw new Error("offline");
+    const r = await sample(history, { modelTier:"quick", onText:({text})=>{ b.textContent = text; $("talk").scrollTop=$("talk").scrollHeight; } });
+    const txt = (r.text||"").trim() || FALLBACK[0];
+    b.textContent = txt; history.push({role:"assistant", content:txt}); speak(txt);
+  }catch(err){
+    const txt = FALLBACK[fb++ % FALLBACK.length];
+    b.textContent = txt; history.push({role:"assistant", content:txt}); speak(txt);
+  }finally{ busy = false; $("talk").scrollTop = $("talk").scrollHeight; }
+}
+function say(txt){
+  if(busy) return;
+  bubble("me", txt); history.push({role:"user", content:txt}); ask();
+}
+
+/* ---------- مسار المكالمة ---------- */
+$("start").onclick = ()=>{
+  $("ava").textContent = charSel.emo; $("whoName").textContent = charSel.name;
+  $("subTxt").textContent = charSel.sub; $("statusTxt").textContent = "مكالمة واردة";
+  $("callScreen").classList.add("on","ringing"); $("timer").textContent = "";
+  $("talk").hidden = true; $("talk").innerHTML = ""; $("keys").hidden = false; $("liveCtrls").hidden = true;
+  startRing();
+};
+$("declineBtn").onclick = endCall;
+$("acceptBtn").onclick = ()=>{
+  stopRing(); $("callScreen").classList.remove("ringing");
+  $("statusTxt").textContent = "المكالمة شغالة"; $("keys").hidden = true;
+  $("talk").hidden = false; $("liveCtrls").hidden = false;
+  t0 = Date.now(); tick(); tickTimer = setInterval(tick, 1000);
+  history = [{ role:"user", content: brief() + "\n\nالطفل رفع السماعة دلوقتي. ابدأ إنت بتحية قصيرة وسؤال بسيط." }];
+  ask();
+};
+function tick(){
+  const s = Math.floor((Date.now()-t0)/1000);
+  $("timer").textContent = String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+}
+function endCall(){
+  stopRing(); clearInterval(tickTimer);
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  if(rec && listening){ try{ rec.stop(); }catch(e){} }
+  $("callScreen").classList.remove("on","ringing");
+}
+$("hangBtn").onclick = endCall;
+$("micBtn").onclick = listen;
+$("sendBtn").onclick = ()=>{ const v = $("typeIn").value.trim(); if(v){ $("typeIn").value=""; say(v); } };
+$("typeIn").addEventListener("keydown", e=>{ if(e.key==="Enter") $("sendBtn").click(); });
+
+(async ()=>{ try{ sample = window.claude ? await claude.use("sample") : null; }catch(e){ sample = null; } })();
+</script>
