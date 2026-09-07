@@ -44,6 +44,10 @@
   .btn-test{background:var(--soft);color:var(--text);border:1px solid var(--edge)}
   .warn{background:rgba(196,80,63,.12);border:1px solid rgba(196,80,63,.45);color:var(--text);
     border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.65}
+  select{width:100%;font-family:"Tajawal",sans-serif;font-size:15px;color:var(--text);
+    background:var(--bg);border:1px solid var(--edge);border-radius:12px;padding:11px 13px}
+  .vnote{font-size:13px;color:var(--muted);margin:9px 0 0;line-height:1.6}
+  .good{color:var(--accent);font-weight:700}
   .hint{font-size:13.5px;color:var(--muted);line-height:1.8;margin:0}
   ul.hint{padding-inline-start:18px}
 
@@ -102,6 +106,12 @@
     <input type="text" id="goalFree" placeholder="أو اكتب موضوع تاني" style="margin-top:10px">
   </div>
 
+  <div class="card">
+    <p class="lbl">صوت الشخصية</p>
+    <select id="voiceSel"></select>
+    <p class="vnote" id="vnote">بيدور على أحسن صوت عربي في الجهاز…</p>
+  </div>
+
   <button class="btn btn-test" id="testBtn">🔊 اسمع الصوت الأول</button>
   <button class="btn btn-main" id="start">📞 خلّي التليفون يرن</button>
 
@@ -111,6 +121,7 @@
       <li>دوس «اسمع الصوت الأول» قبل ما تبدأ. لو مسمعتش حاجة، ارفع صوت الموبايل واقفل وضع الصامت.</li>
       <li>بعد ما الطفل يرد، الشخصية بتتكلم لوحدها والمايك بيفتح لوحده. الطفل بيتكلم عادي من غير ما يدوس حاجة.</li>
       <li>لو المتصفح منعش المايك، افتح الصفحة في كروم أو سفاري من الرابط نفسه واسمح بالميكروفون.</li>
+      <li><b>الصوت طالع زي الروبوت؟</b> الصفحة بتنطق بصوت الجهاز نفسه، مش بصوت من عندي، فجودته على قد الأصوات المتسطبة عندك. على أندرويد: الإعدادات ← إدارة عامة أو النظام ← تحويل النص لكلام ← خلي المحرك <b>Google</b> ← إعدادات ← تثبيت بيانات الصوت ← العربية، ونزّل الصوت عالي الجودة، وبعدين ارجع هنا واختار الصوت اللي جنبه ★. على آيفون: الإعدادات ← إمكانية الوصول ← المحتوى المنطوق ← الأصوات ← العربية، ونزّل صوت Enhanced أو Premium.</li>
       <li>ده تمثيل، مفيش رقم بيتطلب ولا مكالمة حقيقية.</li>
     </ul>
   </div>
@@ -149,22 +160,22 @@ document.documentElement.dir="rtl"; document.documentElement.lang="ar";
 const $=id=>document.getElementById(id);
 
 const CHARS=[
- {id:"gedo",name:"جدو",emo:"👴",sub:"موبايل",pitch:.85,
+ {id:"gedo",name:"جدو",emo:"👴",sub:"موبايل",pitch:.96,
   persona:"جد مصري طيب بيحب يهزر، بيقول يا حبيبي ويا قلب جدو",
   hi:"ألو! إزيك يا حبيبي، أنا جدو. وحشتني قوي، عامل إيه النهاردة؟"},
- {id:"teta",name:"تيتا",emo:"👵",sub:"موبايل",pitch:1.2,
+ {id:"teta",name:"تيتا",emo:"👵",sub:"موبايل",pitch:1.1,
   persona:"جدة مصرية حنينة بتسأل عن الأكل والمدرسة",
   hi:"ألو يا روح تيتا! إزيك يا حبيبي؟ قوللي عملت إيه النهاردة."},
- {id:"doctor",name:"الدكتور سمير",emo:"🩺",sub:"العيادة",pitch:.95,
+ {id:"doctor",name:"الدكتور سمير",emo:"🩺",sub:"العيادة",pitch:1,
   persona:"دكتور أطفال لطيف بيطمّن ومبيخوّفش خالص",
   hi:"ألو، أنا الدكتور سمير. إزيك يا بطل؟ عامل إيه النهاردة؟"},
- {id:"coach",name:"كابتن أحمد",emo:"⚽",sub:"نادي الكورة",pitch:1,
+ {id:"coach",name:"كابتن أحمد",emo:"⚽",sub:"نادي الكورة",pitch:1.05,
   persona:"كابتن كورة متحمس بيشجع وبيقول برافو يا بطل",
   hi:"ألو يا نجم! أنا كابتن أحمد. جاهز نتكلم شوية يا بطل؟"},
- {id:"space",name:"رائد الفضاء نور",emo:"🚀",sub:"من الفضاء",pitch:1.05,
+ {id:"space",name:"رائد الفضاء نور",emo:"🚀",sub:"من الفضاء",pitch:1,
   persona:"رائد فضاء مصري بيحكي عن النجوم بخيال حلو",
   hi:"ألو، أنا نور من المركبة فوق فوق! سامعني كويس؟"},
- {id:"cat",name:"القطة مشمش",emo:"🐱",sub:"من فوق السطوح",pitch:1.55,
+ {id:"cat",name:"القطة مشمش",emo:"🐱",sub:"من فوق السطوح",pitch:1.28,
   persona:"قطة بتتكلم وبتهزر وبتقول مياو في وسط الكلام",
   hi:"مياو! أنا مشمش القطة، بكلمك من فوق السطوح. إزيك؟"}
 ];
@@ -205,13 +216,41 @@ function startRing(){ ringOnce(); ringTimer=setInterval(ringOnce,2200); }
 function stopRing(){ clearInterval(ringTimer); ringTimer=null; if(navigator.vibrate) navigator.vibrate(0); }
 
 /* ===== الصوت العربي ===== */
-let voices=[];
+let voices=[], chosen=null;
+const NATURAL=/(natural|neural|online|enhanced|premium|siri|google)/i;
 function loadVoices(){ voices=window.speechSynthesis?speechSynthesis.getVoices():[]; }
 loadVoices();
-if(window.speechSynthesis) speechSynthesis.addEventListener("voiceschanged",()=>{loadVoices();checkVoice();});
-function arVoice(){ if(!voices.length) loadVoices();
-  return voices.find(v=>/ar[-_]EG/i.test(v.lang)) || voices.find(v=>/^ar/i.test(v.lang))
-      || voices.find(v=>/arab/i.test(v.name)) || null; }
+function score(v){
+  let n=0;
+  if(/ar[-_]EG/i.test(v.lang)) n+=100; else if(/^ar/i.test(v.lang)) n+=60; else if(/arab/i.test(v.name)) n+=40;
+  if(NATURAL.test(v.name)) n+=25;               /* الأصوات العصبية أنعم بكتير من المدمجة */
+  if(/compact|pico|espeak|eloquence/i.test(v.name)) n-=30;  /* دي اللي بتطلع زي الروبوت */
+  if(v.localService===false) n+=8;
+  return n;
+}
+function ranked(){ if(!voices.length) loadVoices();
+  return voices.slice().sort((a,b)=>score(b)-score(a)); }
+function arVoice(){ const r=ranked(); return (r.length&&score(r[0])>0)?r[0]:null; }
+function voiceByName(n){ return voices.find(v=>v.name===n)||null; }
+function fillVoices(){
+  const sel=$("voiceSel"); if(!sel) return;
+  const r=ranked(); if(!r.length) return;
+  const saved=(()=>{ try{ return localStorage.getItem("fc_voice"); }catch(e){ return null; } })();
+  chosen = (saved&&voiceByName(saved)) || chosen || arVoice() || r[0];
+  sel.innerHTML="";
+  r.forEach(v=>{ const o=document.createElement("option");
+    o.value=v.name; o.textContent=v.name+" — "+v.lang+(NATURAL.test(v.name)?" ★":"");
+    if(chosen&&v.name===chosen.name) o.selected=true; sel.appendChild(o); });
+  const note=$("vnote");
+  if(!chosen||score(chosen)<40){
+    note.textContent="مفيش صوت عربي على الجهاز، فبيتكلم بصوت أجنبي والنطق هيطلع وحش. نزّل صوت عربي من إعدادات الموبايل.";
+  }else if(NATURAL.test(chosen.name)){
+    note.innerHTML='<span class="good">صوت طبيعي ★</span> — لو مش عاجبك جرب واحد تاني من القايمة.';
+  }else{
+    note.textContent="ده صوت مدمج وبيطلع ناشف زي الروبوت. لو لاقيت في القايمة صوت جنبه ★ اختاره، وإلا شوف الشرح تحت.";
+  }
+}
+if(window.speechSynthesis) speechSynthesis.addEventListener("voiceschanged",()=>{loadVoices();fillVoices();checkVoice();});
 function checkVoice(){
   if(!window.speechSynthesis){ warn("المتصفح ده مش بينطق صوت خالص. افتح الصفحة في كروم أو سفاري."); return; }
   if(voices.length && !arVoice())
@@ -222,8 +261,8 @@ function warn(t){ const w=$("soundWarn"); w.textContent=t; w.hidden=false; }
 function speak(txt, done){
   if(!window.speechSynthesis){ done&&done(); return; }
   const u=new SpeechSynthesisUtterance(txt);
-  const v=arVoice(); if(v) u.voice=v;
-  u.lang=(v&&v.lang)||"ar-EG"; u.rate=.95; u.pitch=charSel.pitch; u.volume=1;
+  const v=chosen||arVoice(); if(v) u.voice=v;
+  u.lang=(v&&v.lang)||"ar-EG"; u.rate=.92; u.pitch=charSel.pitch; u.volume=1;
   u.onstart=()=>{ speaking=true; setState("talking","بيتكلم…"); };
   u.onend=()=>{ speaking=false; done&&done(); };
   u.onerror=()=>{ speaking=false; done&&done(); };
@@ -308,7 +347,10 @@ function nudge(){
 }
 
 /* ===== أزرار ===== */
-$("testBtn").onclick=()=>{ loadVoices(); checkVoice();
+$("voiceSel").onchange=e=>{ chosen=voiceByName(e.target.value)||chosen;
+  try{ localStorage.setItem("fc_voice",e.target.value); }catch(err){}
+  fillVoices(); speak("أهلاً يا حبيبي، أنا "+charSel.name+"، سامعني كده؟"); };
+$("testBtn").onclick=()=>{ loadVoices(); fillVoices(); checkVoice();
   speak("ألو، إزيك يا حبيبي؟ أنا "+charSel.name+"، سامعني كويس؟"); };
 $("start").onclick=()=>{
   $("ava").textContent=charSel.emo; $("whoName").textContent=charSel.name; $("subTxt").textContent=charSel.sub;
@@ -341,6 +383,6 @@ $("kbBtn").onclick=()=>{ $("typeBar").hidden=!$("typeBar").hidden; if(!$("typeBa
 $("sendBtn").onclick=()=>{ const v=$("typeIn").value.trim(); if(v){ $("typeIn").value=""; stopListen(); say(v); } };
 $("typeIn").addEventListener("keydown",e=>{ if(e.key==="Enter") $("sendBtn").click(); });
 
-setTimeout(checkVoice,900);
+fillVoices(); setTimeout(()=>{loadVoices();fillVoices();checkVoice();},900);
 (async()=>{ try{ sample=window.claude?await claude.use("sample"):null; }catch(e){ sample=null; } })();
 </script>
