@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Machine Smiles</title>
+<style>
+  html,body{margin:0;height:100%;background:#05080c;overflow:hidden;font-family:"Courier New",monospace;color:#e8e8e8}
+  canvas{display:block;width:100%;height:100%}
+  #log{position:fixed;left:16px;bottom:16px;right:16px;font-size:14px;letter-spacing:2px;color:#ffd23f;text-transform:uppercase;min-height:20px}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="log"></div>
+<script>
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const log = document.getElementById('log');
+let W, H;
+function resize(){ W = cv.width = innerWidth; H = cv.height = innerHeight; }
+addEventListener('resize', resize); resize();
+
+const YELLOW = '#ffd23f', WHITE = '#e8e8e8';
+let smile = 0;            // 0 = neutral, 1 = full smile
+let target = 0;
+let t0 = performance.now();
+
+// Typed Machine-style messages (it speaks in terse text)
+const script = [
+  [500,  'Scanning...', 0],
+  [2200, 'Subject acquired.', 0],
+  [4200, 'Analyzing expression...', 0.3],
+  [6200, 'Expression: Smile.', 1],
+  [8200, 'I see you.', 1],
+  [10500,'Hello, Admin.', 1],
+];
+let si = 0, typing = '', typeStart = 0, typeText = '';
+function say(text){ typeText = text; typeStart = performance.now(); }
+
+function bracket(x, y, w, h, l, color, lw){
+  ctx.strokeStyle = color; ctx.lineWidth = lw;
+  ctx.beginPath();
+  ctx.moveTo(x, y + l); ctx.lineTo(x, y); ctx.lineTo(x + l, y);
+  ctx.moveTo(x + w - l, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + l);
+  ctx.moveTo(x + w, y + h - l); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w - l, y + h);
+  ctx.moveTo(x + l, y + h); ctx.lineTo(x, y + h); ctx.lineTo(x, y + h - l);
+  ctx.stroke();
+}
+
+function drawFace(cx, cy, r, now){
+  ctx.save();
+  ctx.strokeStyle = WHITE; ctx.fillStyle = WHITE; ctx.lineWidth = 2;
+  ctx.globalAlpha = 0.9;
+  // head outline, dashed wireframe
+  ctx.setLineDash([6, 6]);
+  ctx.beginPath(); ctx.ellipse(cx, cy, r * 0.8, r, 0, 0, Math.PI * 2); ctx.stroke();
+  ctx.setLineDash([]);
+  // eyes (blink occasionally)
+  const blink = (Math.sin(now / 1300) > 0.985) ? 0.15 : 1;
+  for (const s of [-1, 1]){
+    ctx.beginPath();
+    ctx.ellipse(cx + s * r * 0.33, cy - r * 0.2, r * 0.09, r * 0.09 * blink, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // mouth: curve blends from flat to smile
+  const mw = r * 0.5, my = cy + r * 0.38, curve = r * 0.28 * smile;
+  ctx.lineWidth = 3; ctx.strokeStyle = smile > 0.6 ? YELLOW : WHITE;
+  ctx.beginPath();
+  ctx.moveTo(cx - mw, my - curve * 0.6);
+  ctx.quadraticCurveTo(cx, my + curve * 1.8 - curve * 0.6, cx + mw, my - curve * 0.6);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function frame(now){
+  const e = now - t0;
+  ctx.fillStyle = '#05080c'; ctx.fillRect(0, 0, W, H);
+
+  // scanlines
+  ctx.fillStyle = 'rgba(255,255,255,0.025)';
+  for (let y = (now / 40) % 4; y < H; y += 4) ctx.fillRect(0, y, W, 1);
+
+  // advance script
+  while (si < script.length && e > script[si][0]){ say(script[si][1]); target = script[si][2]; si++; }
+  smile += (target - smile) * 0.04;
+
+  const cx = W / 2, cy = H / 2, r = Math.min(W, H) * 0.26;
+  drawFace(cx, cy, r, now);
+
+  // tracking bracket: white while neutral, yellow once smile registered
+  const locked = smile > 0.6;
+  const pulse = 1 + Math.sin(now / 250) * 0.015;
+  const bw = r * 1.9 * pulse, bh = r * 2.35 * pulse;
+  bracket(cx - bw / 2, cy - bh / 2, bw, bh, 28, locked ? YELLOW : WHITE, 3);
+
+  // side labels
+  ctx.font = '13px "Courier New", monospace';
+  ctx.fillStyle = locked ? YELLOW : WHITE;
+  ctx.fillText(locked ? 'RELEVANT' : 'UNCLASSIFIED', cx - bw / 2, cy - bh / 2 - 12);
+  ctx.fillStyle = WHITE;
+  ctx.fillText('EXPR: ' + (smile > 0.6 ? 'SMILE' : 'NEUTRAL') + '  ' + (smile * 100 | 0) + '%', cx - bw / 2, cy + bh / 2 + 22);
+
+  // typewriter log
+  const n = Math.min(typeText.length, ((now - typeStart) / 60) | 0);
+  log.textContent = '> ' + typeText.slice(0, n) + (((now / 400) | 0) % 2 ? '_' : ' ');
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// click to replay
+addEventListener('click', () => { t0 = performance.now(); si = 0; smile = 0; target = 0; typeText = ''; });
+</script>
+</body>
+</html>
