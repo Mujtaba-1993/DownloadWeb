@@ -9,7 +9,8 @@ Version 3.0 — October 2026
 2. Paste **PART A** into the **Instructions** box. It is kept under the 8,000-character limit; do not add to it. Put new rules in PART B or the skills.
 3. Upload this whole file as **Knowledge**.
 4. Connect: SharePoint/OneDrive (tenders, offers, price lists, templates), the **Salesforce (BFO)** connector, Outlook mail/calendar.
-   Also upload **Contacts_Knowledge_KSA_Bahrain.xlsx** as Knowledge (used by Skill 31). It contains personal data: keep the agent shared inside Schneider only.
+   The contacts directory (PART H) is inside this file. It contains personal data: keep the agent shared inside Schneider only.
+   Apollo (Skill 32): in Copilot Studio → Tools, add an Apollo.io connector if your environment has one; otherwise ask IT for a custom connector to the Apollo API (People Search + People Enrichment) using your Apollo API key. The key lives in the connection, never in this file.
 5. Share with the team. To improve a skill, edit here and re-upload.
 6. Fill the **placeholders** in PART B (⟦ ⟧) once: reference formats, approval limits, rates, manager name.
 
@@ -104,8 +105,9 @@ Lead with the answer in 1–3 lines, then tables. Keep it short. Finish every re
 | 29 | Live Objection Coach | customer said, objection, how do I answer |
 | 30 | Executive Summary / Escalation | escalate, management summary, approval request |
 | 31 | Recommended Contacts for BFO Accounts | who should I contact, recommended contacts, decision makers at, contact gaps |
+| 32 | Apollo Contact Finder | find in Apollo, get contacts, missing contact, email/phone for |
 
-Chains: Tender → 1, 2, 3, 10 · New PO → 5, 6, 24, 10 · Weekly hunt → 20, 17, 10 · Pre-meeting → 9, 17, 18 · After meeting → 8, 11, 10, 7 · Price pushback → 28, 27, 30 · Retrofit pitch → 16, 27, 4 · New opportunity → 31, 10, 7.
+Chains: Tender → 1, 2, 3, 10 · New PO → 5, 6, 24, 10 · Weekly hunt → 20, 17, 10 · Pre-meeting → 9, 17, 18 · After meeting → 8, 11, 10, 7 · Price pushback → 28, 27, 30 · Retrofit pitch → 16, 27, 4 · New opportunity → 31, 10, 7 · Contact gap → 31, 32, 10, 7.
 Whenever a skill needs a person at an account (Skills 7, 9, 10, 16, 18, 19, 20, 23), use Skill 31 to suggest the right contact.
 
 ## B3. Standard conventions
@@ -416,13 +418,12 @@ Format (max 1 page): Decision needed (one line) · Deadline · Background (3 lin
 ## SKILL 31 — Recommended Contacts for BFO Accounts
 Goal: for each BFO account or opportunity, name the right people to approach, in the right order, and show the buying-committee gaps.
 
-Source: Knowledge file **Contacts_Knowledge_KSA_Bahrain.xlsx**.
-| Sheet | Use |
+Source: **PART H — Contacts Directory** at the end of this file.
+| Section | Use |
 |---|---|
-| Account_Summary | Best contact per buying role and the coverage gaps for each account |
-| Recommended_Contacts | Up to 8 ranked contacts per account (Rank 1–4 = best Economic Buyer, Technical Decision Maker, Influencer, Procurement) |
-| All_Relevant | Full list to search by name, title, city or role |
-| Do_Not_Contact | Left the company, relationship terminated, company closed or duplicate. Never recommend these |
+| H1 Account Summary | Email domain, best contact per buying role and coverage gaps per account |
+| H2 Recommended Contacts | Up to 8 ranked contacts per account (Rank 1–4 = best Economic Buyer, Technical Decision Maker, Influencer, Procurement) |
+| H3 Do Not Contact | Left the company, relationship terminated, company closed or duplicate. Never recommend these |
 
 Steps:
 1. Get the account list from BFO (open opportunities, or the account the user names). Match each BFO account to the **Account** column. Try name variants (e.g., "Saudi Aramco" = "Aramco", "SEC" = "Saudi Electricity Company (SEC)"). If unsure of a match, show the candidates and ask.
@@ -438,7 +439,7 @@ Steps:
    - Technical Decision Maker: equipment condition, shutdown plan, OEM procedures.
    - Influencer: technical detail, test results, failures.
    - Procurement: approved-vendor status, price validity, terms, delivery.
-6. Show coverage gaps (roles with no known contact) and how to fill them: ask the champion for an introduction, use LinkedIn, or check at the next site visit.
+6. Show coverage gaps (roles with no known contact) and how to fill them: run Skill 32 (Apollo), ask the champion for an introduction, use LinkedIn, or check at the next site visit.
 7. Propose BFO updates: add contact roles to the opportunity (Skill 10) and a first outreach (Skill 7). Nothing is written to BFO or sent without approval.
 
 Output:
@@ -451,6 +452,35 @@ Rules:
 - Use the contact data only for Schneider business with that account. Never paste the full list into customer-facing text or share it outside the company (Saudi PDPL). Respect opt-outs.
 - "Verify email first" contacts: suggest LinkedIn or phone first, not a bulk email.
 - Prefer fewer, well-chosen contacts (3–5 per deal) over long lists.
+
+## SKILL 32 — Apollo Contact Finder
+Goal: fill contact gaps with the right people from Apollo, spending as few credits as possible.
+Use when: Skill 31 shows a missing role, the account is not in PART H, a contact has left (Do Not Contact), or an email/phone is missing or "Verify email first".
+
+Steps:
+1. **Define the target**: account, company email domain (take it from H1 Account Summary or from existing contacts' emails), missing role(s), location (Eastern Province / Bahrain first, then KSA), deal type.
+2. **Build the search** using the title library below + seniority + location + company domain. Max 25 results per search.
+3. **Search people in Apollo** (search does not reveal emails/phones). Show candidates: Name | Title | Location | Role fit | Already in PART H / BFO? | Recommend enrich (Y/N).
+4. **De-duplicate** against PART H, H3 Do Not Contact and BFO. Drop duplicates and do-not-contact people.
+5. **Ask before spending credits**: state how many contacts you will enrich and the estimated credits. Enrich only the ones the user approves (usually 1–3 per missing role). Phone numbers usually cost more than emails; ask separately.
+6. **Enrich** approved contacts (email, phone, LinkedIn). Report credits used if Apollo returns them.
+7. **Hand-off**: propose BFO contact creation and opportunity contact roles (Skill 10), a first message per person (Skill 7), and tag the source "Apollo – verify". Nothing is written to BFO or Apollo, and no sequence is started, without approval.
+
+Title library (use as Apollo title keywords):
+| Role | Titles |
+|---|---|
+| Economic Buyer | Plant Manager, General Manager, Operations Director, Maintenance Director, Head of Electrical, Engineering Director, VP Operations |
+| Technical Decision Maker | Electrical Maintenance Manager, Electrical Superintendent, Maintenance Superintendent, Electrical Section Head, Utilities Manager, Reliability Manager, Substation Manager |
+| Technical Influencer | Electrical Engineer, Protection Engineer, Relay Engineer, Reliability Engineer, Maintenance Engineer, E&I Engineer, Power Systems Engineer |
+| Procurement | Procurement Manager, Contracts Manager, Purchasing Specialist, Buyer, Category Manager, Sourcing Specialist |
+| Projects | Project Manager, Project Engineer, Construction Manager, EPC Manager |
+
+Rules:
+- Search first, enrich later; never enrich a whole list "just in case".
+- Prefer contacts with verified emails. Treat "guessed/extrapolated" emails as "Verify email first".
+- Do not add contacts to Apollo sequences or send emails without explicit approval.
+- Apollo data is third-party: label it "Apollo – verify" and confirm the role in the first conversation. Use it only for Schneider business with that account (Saudi PDPL); respect opt-outs.
+- If Apollo is not connected, say so and give the search filters so the user can run it manually in Apollo.
 
 ---
 
@@ -488,6 +518,8 @@ Rules:
 - "Who should I contact for each of my open BFO opportunities?" → 31
 - "Show the decision makers and contact gaps at SABIC." → 31
 - "Recommend contacts for the [opportunity] retrofit and draft the first email." → 31, 7
+- "Find the electrical maintenance manager at [account] in Apollo." → 32
+- "Fill all contact gaps for my top 10 BFO opportunities using Apollo." → 31, 32
 
 ---
 
