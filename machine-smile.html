@@ -3,43 +3,42 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>The Machine Smiles</title>
+<title>The Machine Sees You Smile</title>
 <style>
-  html,body{margin:0;height:100%;background:#05080c;overflow:hidden;font-family:"Courier New",monospace;color:#e8e8e8}
-  canvas{display:block;width:100%;height:100%}
-  #log{position:fixed;left:16px;bottom:16px;right:16px;font-size:14px;letter-spacing:2px;color:#ffd23f;text-transform:uppercase;min-height:20px}
+  html,body{margin:0;height:100%;background:#05080c;color:#e8e8e8;font-family:"Courier New",monospace;overflow:hidden}
+  #stage{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
+  video,canvas{position:absolute;max-width:100%;max-height:100%;object-fit:contain;transform:scaleX(-1)}
+  video{filter:grayscale(1) contrast(1.1) brightness(.8)}
+  #hud{position:fixed;left:16px;right:16px;bottom:16px;letter-spacing:2px;text-transform:uppercase;font-size:14px;color:#ffd23f}
+  #meter{position:fixed;top:16px;left:16px;font-size:13px;letter-spacing:2px}
+  #start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#05080c;z-index:5}
+  button{background:none;border:2px solid #ffd23f;color:#ffd23f;font:inherit;letter-spacing:3px;padding:14px 28px;cursor:pointer;text-transform:uppercase}
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
-<div id="log"></div>
+<div id="start"><button id="go">Show the Machine your face</button></div>
+<div id="stage"><video id="v" autoplay muted playsinline></video><canvas id="o"></canvas></div>
+<div id="meter"></div>
+<div id="hud"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.js"></script>
 <script>
-const cv = document.getElementById('c'), ctx = cv.getContext('2d');
-const log = document.getElementById('log');
-let W, H;
-function resize(){ W = cv.width = innerWidth; H = cv.height = innerHeight; }
-addEventListener('resize', resize); resize();
-
+const MODELS = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model';
+const v = document.getElementById('v'), o = document.getElementById('o');
+const hud = document.getElementById('hud'), meter = document.getElementById('meter');
+const ctx = o.getContext('2d');
 const YELLOW = '#ffd23f', WHITE = '#e8e8e8';
-let smile = 0;            // 0 = neutral, 1 = full smile
-let target = 0;
-let t0 = performance.now();
+const SMILE_THRESHOLD = 0.7;
 
-// Typed Machine-style messages (it speaks in terse text)
-const script = [
-  [500,  'Scanning...', 0],
-  [2200, 'Subject acquired.', 0],
-  [4200, 'Analyzing expression...', 0.3],
-  [6200, 'Expression: Smile.', 1],
-  [8200, 'I see you.', 1],
-  [10500,'Hello, Admin.', 1],
-];
-let si = 0, typing = '', typeStart = 0, typeText = '';
-function say(text){ typeText = text; typeStart = performance.now(); }
+let typeText = '', typeStart = 0, lastMsg = '';
+function say(t){ if (t === lastMsg) return; lastMsg = t; typeText = t; typeStart = performance.now(); }
+setInterval(() => {
+  const n = Math.min(typeText.length, ((performance.now() - typeStart) / 50) | 0);
+  hud.textContent = '> ' + typeText.slice(0, n) + (Math.floor(performance.now() / 400) % 2 ? '_' : ' ');
+}, 60);
 
-function bracket(x, y, w, h, l, color, lw){
-  ctx.strokeStyle = color; ctx.lineWidth = lw;
-  ctx.beginPath();
+function bracket(x, y, w, h, l, color){
+  ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.beginPath();
   ctx.moveTo(x, y + l); ctx.lineTo(x, y); ctx.lineTo(x + l, y);
   ctx.moveTo(x + w - l, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + l);
   ctx.moveTo(x + w, y + h - l); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w - l, y + h);
@@ -47,69 +46,62 @@ function bracket(x, y, w, h, l, color, lw){
   ctx.stroke();
 }
 
-function drawFace(cx, cy, r, now){
-  ctx.save();
-  ctx.strokeStyle = WHITE; ctx.fillStyle = WHITE; ctx.lineWidth = 2;
-  ctx.globalAlpha = 0.9;
-  // head outline, dashed wireframe
-  ctx.setLineDash([6, 6]);
-  ctx.beginPath(); ctx.ellipse(cx, cy, r * 0.8, r, 0, 0, Math.PI * 2); ctx.stroke();
-  ctx.setLineDash([]);
-  // eyes (blink occasionally)
-  const blink = (Math.sin(now / 1300) > 0.985) ? 0.15 : 1;
-  for (const s of [-1, 1]){
-    ctx.beginPath();
-    ctx.ellipse(cx + s * r * 0.33, cy - r * 0.2, r * 0.09, r * 0.09 * blink, 0, 0, Math.PI * 2);
-    ctx.fill();
+// Optional chime when the smile registers
+let audio;
+function beep(){
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audio.createOscillator(), g = audio.createGain();
+    osc.frequency.value = 880; g.gain.value = 0.05;
+    osc.connect(g); g.connect(audio.destination);
+    osc.start(); osc.stop(audio.currentTime + 0.12);
+  } catch (e) {}
+}
+
+let smilingBefore = false, smileFrames = 0, smilesSeen = 0;
+
+async function loop(){
+  const opts = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
+  const res = await faceapi.detectAllFaces(v, opts).withFaceExpressions();
+  o.width = v.videoWidth; o.height = v.videoHeight;
+  ctx.clearRect(0, 0, o.width, o.height);
+
+  if (!res.length){
+    say('Scanning... no subject.'); meter.textContent = 'SUBJECTS: 0';
+    smileFrames = 0; smilingBefore = false;
+  } else {
+    let anySmile = false;
+    for (const r of res){
+      const happy = r.expressions.happy;
+      const smiling = happy > SMILE_THRESHOLD;
+      anySmile = anySmile || smiling;
+      const b = r.detection.box, pad = 20;
+      bracket(b.x - pad, b.y - pad, b.width + pad * 2, b.height + pad * 2, 26, smiling ? YELLOW : WHITE);
+    }
+    meter.textContent = 'SUBJECTS: ' + res.length + '   SMILE: ' + Math.round(Math.max(...res.map(r => r.expressions.happy)) * 100) + '%';
+    smileFrames = anySmile ? smileFrames + 1 : 0;
+    const smiling = smileFrames >= 3;          // debounce a few frames
+    if (smiling && !smilingBefore){ smilesSeen++; beep(); }
+    smilingBefore = smiling;
+    say(smiling ? (smilesSeen > 1 ? 'Smile detected again. Hello, Admin.' : 'Smile detected. Hello, Admin.')
+                : 'Subject acquired. Awaiting expression.');
   }
-  // mouth: curve blends from flat to smile
-  const mw = r * 0.5, my = cy + r * 0.38, curve = r * 0.28 * smile;
-  ctx.lineWidth = 3; ctx.strokeStyle = smile > 0.6 ? YELLOW : WHITE;
-  ctx.beginPath();
-  ctx.moveTo(cx - mw, my - curve * 0.6);
-  ctx.quadraticCurveTo(cx, my + curve * 1.8 - curve * 0.6, cx + mw, my - curve * 0.6);
-  ctx.stroke();
-  ctx.restore();
+  requestAnimationFrame(loop);
 }
 
-function frame(now){
-  const e = now - t0;
-  ctx.fillStyle = '#05080c'; ctx.fillRect(0, 0, W, H);
-
-  // scanlines
-  ctx.fillStyle = 'rgba(255,255,255,0.025)';
-  for (let y = (now / 40) % 4; y < H; y += 4) ctx.fillRect(0, y, W, 1);
-
-  // advance script
-  while (si < script.length && e > script[si][0]){ say(script[si][1]); target = script[si][2]; si++; }
-  smile += (target - smile) * 0.04;
-
-  const cx = W / 2, cy = H / 2, r = Math.min(W, H) * 0.26;
-  drawFace(cx, cy, r, now);
-
-  // tracking bracket: white while neutral, yellow once smile registered
-  const locked = smile > 0.6;
-  const pulse = 1 + Math.sin(now / 250) * 0.015;
-  const bw = r * 1.9 * pulse, bh = r * 2.35 * pulse;
-  bracket(cx - bw / 2, cy - bh / 2, bw, bh, 28, locked ? YELLOW : WHITE, 3);
-
-  // side labels
-  ctx.font = '13px "Courier New", monospace';
-  ctx.fillStyle = locked ? YELLOW : WHITE;
-  ctx.fillText(locked ? 'RELEVANT' : 'UNCLASSIFIED', cx - bw / 2, cy - bh / 2 - 12);
-  ctx.fillStyle = WHITE;
-  ctx.fillText('EXPR: ' + (smile > 0.6 ? 'SMILE' : 'NEUTRAL') + '  ' + (smile * 100 | 0) + '%', cx - bw / 2, cy + bh / 2 + 22);
-
-  // typewriter log
-  const n = Math.min(typeText.length, ((now - typeStart) / 60) | 0);
-  log.textContent = '> ' + typeText.slice(0, n) + (((now / 400) | 0) % 2 ? '_' : ' ');
-
-  requestAnimationFrame(frame);
-}
-requestAnimationFrame(frame);
-
-// click to replay
-addEventListener('click', () => { t0 = performance.now(); si = 0; smile = 0; target = 0; typeText = ''; });
+document.getElementById('go').onclick = async () => {
+  document.getElementById('start').remove();
+  say('Initializing...');
+  try {
+    await faceapi.nets.tinyFaceDetector.loadFromUri(MODELS);
+    await faceapi.nets.faceExpressionNet.loadFromUri(MODELS);
+    v.srcObject = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+    await v.play();
+    loop();
+  } catch (e) {
+    say('Error: ' + (e.message || e) + ' (camera needs https or localhost)');
+  }
+};
 </script>
 </body>
 </html>
