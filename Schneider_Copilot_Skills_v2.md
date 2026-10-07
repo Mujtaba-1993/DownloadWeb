@@ -10,7 +10,7 @@ Version 3.0 — October 2026
 3. Upload this whole file as **Knowledge**.
 4. Connect: SharePoint/OneDrive (tenders, offers, price lists, templates), the **Salesforce (BFO)** connector, Outlook mail/calendar.
    The contacts directory (PART H) is inside this file. It contains personal data: keep the agent shared inside Schneider only.
-   Apollo (Skill 32): in Copilot Studio → Tools, add an Apollo.io connector if your environment has one; otherwise ask IT for a custom connector to the Apollo API (People Search + People Enrichment) using your Apollo API key. The key lives in the connection, never in this file.
+   Apollo (Skill 32): connect it as a Tool. Follow **PART I — Apollo Setup** (about 10 minutes).
 5. Share with the team. To improve a skill, edit here and re-upload.
 6. Fill the **placeholders** in PART B (⟦ ⟧) once: reference formats, approval limits, rates, manager name.
 
@@ -459,11 +459,11 @@ Use when: Skill 31 shows a missing role, the account is not in PART H, a contact
 
 Steps:
 1. **Define the target**: account, company email domain (take it from H1 Account Summary or from existing contacts' emails), missing role(s), location (Eastern Province / Bahrain first, then KSA), deal type.
-2. **Build the search** using the title library below + seniority + location + company domain. Max 25 results per search.
-3. **Search people in Apollo** (search does not reveal emails/phones). Show candidates: Name | Title | Location | Role fit | Already in PART H / BFO? | Recommend enrich (Y/N).
+2. **Build the search** using the title library below + seniority + location + company domain. Max 25 results per search. No domain? Call **Apollo_SearchCompanies** or **Apollo_EnrichCompany** first.
+3. **Search people** with the tool **Apollo_SearchPeople** (free, no emails/phones). Example input: q_organization_domains_list ["sabic.com"], person_titles ["Electrical Maintenance Manager","Electrical Superintendent"], person_locations ["Eastern Province, Saudi Arabia"]. Show candidates: Name | Title | Location | Role fit | Already in PART H / BFO? | Recommend enrich (Y/N).
 4. **De-duplicate** against PART H, H3 Do Not Contact and BFO. Drop duplicates and do-not-contact people.
 5. **Ask before spending credits**: state how many contacts you will enrich and the estimated credits. Enrich only the ones the user approves (usually 1–3 per missing role). Phone numbers usually cost more than emails; ask separately.
-6. **Enrich** approved contacts (email, phone, LinkedIn). Report credits used if Apollo returns them.
+6. **Enrich** approved contacts one by one with **Apollo_EnrichPerson** (pass the Apollo id from the search). Phone numbers are not pulled automatically; ask the user to reveal them in Apollo if needed. Report credits used if Apollo returns them.
 7. **Hand-off**: propose BFO contact creation and opportunity contact roles (Skill 10), a first message per person (Skill 7), and tag the source "Apollo – verify". Nothing is written to BFO or Apollo, and no sequence is started, without approval.
 
 Title library (use as Apollo title keywords):
@@ -481,6 +481,33 @@ Rules:
 - Do not add contacts to Apollo sequences or send emails without explicit approval.
 - Apollo data is third-party: label it "Apollo – verify" and confirm the role in the first conversation. Use it only for Schneider business with that account (Saudi PDPL); respect opt-outs.
 - If Apollo is not connected, say so and give the search filters so the user can run it manually in Apollo.
+
+---
+
+# PART I — APOLLO SETUP (connect Apollo to the agent as a Tool)
+The agent cannot browse the Apollo website in the background (logins, captchas and Apollo's terms block that). The supported way is Apollo's API, added as a Tool. Two options, try A first.
+
+**Option A — Apollo MCP server (if your Copilot Studio supports MCP)**
+1. Copilot Studio → your agent → **Tools** → **Add a tool** → **New tool** → **Model Context Protocol**.
+2. Server URL: Apollo's MCP server (Apollo publishes it at mcp.apollo.io; check Apollo's help page for the exact URL). Authentication: OAuth 2.0 (sign in with your Apollo account).
+3. Save, then turn on the people search, enrichment and company tools. Done; Skill 32 works with them.
+
+**Option B — Apollo API connector (works in any Copilot Studio)**
+1. Get an Apollo API key: Apollo → Settings → Integrations → API → create a key. Make it a **master key** (people search needs it). Requires an Apollo plan with API access.
+2. Copilot Studio → your agent → **Tools** → **Add a tool** → **New tool** → **Custom connector** (opens Power Apps) → **New custom connector** → **Import an OpenAPI file** → choose **Apollo_Connector_OpenAPI.yaml**.
+3. Security tab: API Key, parameter name **x-api-key**, location Header (already set by the file). Click **Create connector**.
+4. Test tab → **New connection** → paste your API key → test **Apollo_EnrichCompany** with domain `aramco.com`.
+5. Back in Copilot Studio → **Add a tool** → pick the connector → add all 4 actions:
+   | Tool | Use | Credits |
+   |---|---|---|
+   | Apollo_SearchPeople | Find people by company domain, title, seniority, location | Free |
+   | Apollo_SearchCompanies | Find companies / their domains | Check your plan |
+   | Apollo_EnrichCompany | Company details by domain | Check your plan |
+   | Apollo_EnrichPerson | Email for one approved person | Uses credits |
+6. On **Apollo_EnrichPerson**, set "Ask the user before running this action" (confirmation) so no credits are spent without approval.
+7. Test in the agent: "Find the electrical maintenance manager at SABIC in Eastern Province in Apollo."
+
+Notes: the API key belongs to your Apollo account. Everyone using the agent spends your credits, so share carefully. If your company blocks custom connectors, ask IT (Power Platform admin) to allow it, or use Option A.
 
 ---
 
