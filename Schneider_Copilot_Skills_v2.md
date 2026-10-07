@@ -494,7 +494,7 @@ The agent cannot browse the Apollo website in the background (logins, captchas a
 
 **Option B — Apollo API connector (works in any Copilot Studio)**
 1. Get an Apollo API key: Apollo → Settings → Integrations → API → create a key. Make it a **master key** (people search needs it). Requires an Apollo plan with API access.
-2. Copilot Studio → your agent → **Tools** → **Add a tool** → **New tool** → **Custom connector** (opens Power Apps) → **New custom connector** → **Import an OpenAPI file** → choose **Apollo_Connector_OpenAPI.yaml**.
+2. Copilot Studio → your agent → **Tools** → **Add a tool** → **New tool** → **Custom connector** (opens Power Apps) → **New custom connector** → **Create from blank** → name it "Apollo" → **Continue** → switch on **Swagger editor** (top) → delete what is there → paste the whole code block from **PART J** below. (Or save PART J as `Apollo.yaml` and use **Import an OpenAPI file**.)
 3. Security tab: API Key, parameter name **x-api-key**, location Header (already set by the file). Click **Create connector**.
 4. Test tab → **New connection** → paste your API key → test **Apollo_EnrichCompany** with domain `aramco.com`.
 5. Back in Copilot Studio → **Add a tool** → pick the connector → add all 4 actions:
@@ -596,3 +596,245 @@ Why it works: new information (shutdown availability), a real deadline, one clea
 | Date | Situation | What went wrong / missed | Rule added |
 |---|---|---|---|
 | | | | |
+
+---
+
+# PART J — APOLLO CONNECTOR CODE (copy everything inside the box for PART I, step 2)
+
+```yaml
+swagger: "2.0"
+info:
+  title: Apollo for Schneider Sales Assistant
+  description: >-
+    Apollo.io People and Company search and enrichment for the Schneider Sales
+    Assistant (Skill 32). Search does not reveal emails. Enrichment uses Apollo credits.
+  version: "1.0"
+host: api.apollo.io
+basePath: /api/v1
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  apiKey:
+    type: apiKey
+    in: header
+    name: x-api-key
+security:
+  - apiKey: []
+paths:
+  /mixed_people/api_search:
+    post:
+      operationId: Apollo_SearchPeople
+      summary: Search people in Apollo (no credits, no emails)
+      description: >-
+        Find people at a company by job title, seniority and location. Use the
+        company email domain (e.g. aramco.com). Returns names, titles, locations
+        and Apollo person IDs. Does not return emails or phone numbers.
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              q_organization_domains_list:
+                type: array
+                description: Company domains, e.g. ["aramco.com"]
+                items:
+                  type: string
+              person_titles:
+                type: array
+                description: Job titles to match, e.g. ["Electrical Maintenance Manager", "Electrical Superintendent"]
+                items:
+                  type: string
+              person_seniorities:
+                type: array
+                description: "Any of: owner, founder, c_suite, partner, vp, head, director, manager, senior, entry"
+                items:
+                  type: string
+              person_locations:
+                type: array
+                description: Where the person lives, e.g. ["Eastern Province, Saudi Arabia", "Bahrain"]
+                items:
+                  type: string
+              q_keywords:
+                type: string
+                description: Free-text keywords
+              page:
+                type: integer
+                default: 1
+              per_page:
+                type: integer
+                default: 25
+                description: Results per page (keep at 25 or fewer)
+      responses:
+        "200":
+          description: People found
+          schema:
+            type: object
+            properties:
+              total_entries:
+                type: integer
+              people:
+                type: array
+                items:
+                  $ref: "#/definitions/Person"
+  /people/match:
+    post:
+      operationId: Apollo_EnrichPerson
+      summary: Enrich one person (uses credits) - only after user approval
+      description: >-
+        Get email and details for ONE person. Prefer the Apollo person id from
+        Apollo_SearchPeople, or name + company domain, or LinkedIn URL.
+        Consumes Apollo credits. Ask the user before calling.
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Apollo person ID from Apollo_SearchPeople
+              first_name:
+                type: string
+              last_name:
+                type: string
+              name:
+                type: string
+              domain:
+                type: string
+                description: Company domain, e.g. sabic.com
+              organization_name:
+                type: string
+              linkedin_url:
+                type: string
+              email:
+                type: string
+              reveal_personal_emails:
+                type: boolean
+                default: false
+      responses:
+        "200":
+          description: Enriched person
+          schema:
+            type: object
+            properties:
+              person:
+                $ref: "#/definitions/Person"
+  /mixed_companies/search:
+    post:
+      operationId: Apollo_SearchCompanies
+      summary: Search companies in Apollo
+      description: >-
+        Find companies by name, location or keywords (e.g. new plants or
+        contractors in Eastern Province). Use to get a company's domain before
+        searching people.
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              q_organization_name:
+                type: string
+              organization_locations:
+                type: array
+                description: e.g. ["Saudi Arabia", "Bahrain"]
+                items:
+                  type: string
+              q_organization_keyword_tags:
+                type: array
+                description: e.g. ["petrochemicals", "utilities", "data center"]
+                items:
+                  type: string
+              page:
+                type: integer
+                default: 1
+              per_page:
+                type: integer
+                default: 25
+      responses:
+        "200":
+          description: Companies found
+          schema:
+            type: object
+            properties:
+              organizations:
+                type: array
+                items:
+                  $ref: "#/definitions/Organization"
+  /organizations/enrich:
+    get:
+      operationId: Apollo_EnrichCompany
+      summary: Get company details by domain
+      description: Company profile (industry, size, locations, website) for one domain.
+      parameters:
+        - name: domain
+          in: query
+          required: true
+          type: string
+          description: Company domain, e.g. sipchem.com
+      responses:
+        "200":
+          description: Company details
+          schema:
+            type: object
+            properties:
+              organization:
+                $ref: "#/definitions/Organization"
+definitions:
+  Person:
+    type: object
+    properties:
+      id:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+      seniority:
+        type: string
+      email:
+        type: string
+      email_status:
+        type: string
+      linkedin_url:
+        type: string
+      city:
+        type: string
+      state:
+        type: string
+      country:
+        type: string
+      organization:
+        $ref: "#/definitions/Organization"
+  Organization:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      website_url:
+        type: string
+      primary_domain:
+        type: string
+      industry:
+        type: string
+      estimated_num_employees:
+        type: integer
+      city:
+        type: string
+      country:
+        type: string
+```
