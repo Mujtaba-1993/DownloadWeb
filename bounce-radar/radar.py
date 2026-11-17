@@ -37,7 +37,7 @@ def get4h(s):
                 if nl<end: B=B[:-1]
             return B,cur,off
         except Exception: pass
-def fakeouts4h(s,lv,X):
+def fakeouts4h(s,lv,X,W):
     # Same shape on 4-hour bars: 8 closes above a strong weekly level, a 1.5-5% pierce within 3 bars, then a 4h close
     # back above it. Signals from the last 10 closed bars; dropped once target 1 (+3%) is reached or a 4h close is below the wick.
     # Backtest (S&P 500, 2 years of hourly data, 223 signals): +3% reached before stop-out in ~60%, +5% in 50%, +8% in 42%.
@@ -50,10 +50,11 @@ def fakeouts4h(s,lv,X):
             if not L['a'] or L['h']<3 or round(p,2) in seen: continue
             if not(p<=c<=p*1.03 and p*0.95<=lo<=p*0.985 and (B[i-1][3]<p or b[1]<=p*0.985)): continue
             if min(x[3] for x in B[i-10:i-2])<=p: continue
-            seen.add(round(p,2))
+            seen.add(round(p,2));ps=pos52(W[-53:],c)
+            if not(MID[0]<=ps<=MID[1]): continue
             if any(x[3]<lo for x in after) or cur<lo or max([x[2] for x in after]+[cur])>=c*1.03: continue
             t=d.datetime.fromtimestamp(b[0]+off,d.timezone.utc)
-            out.append(dict(s=s,side='دعم',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(lo,2),pen=round((1-lo/p)*100,1),wk=t.strftime('%Y-%m-%d ')+('صباحاً' if t.hour<13 else 'مساءً'),age=k,hit=0,cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(c*1.03,2),round(c*1.05,2),round(c*1.08,2)],kind='4 ساعات'))
+            out.append(dict(s=s,side='دعم',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(lo,2),pen=round((1-lo/p)*100,1),wk=t.strftime('%Y-%m-%d ')+('صباحاً' if t.hour<13 else 'مساءً'),age=k,hit=0,pos=round(ps*100),cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(c*1.03,2),round(c*1.05,2),round(c*1.08,2)],kind='4 ساعات'))
     return out
 try:
     from zoneinfo import ZoneInfo
@@ -167,6 +168,10 @@ def track(B):
                 if (side=='S' and c<p*(1-BRK)) or (side=='R' and c>p*(1+BRK)): ev.append((L['h'],1,side,tr));L['a']=False;break
                 if (side=='S' and hi>=p*(1+REV)) or (side=='R' and lo<=p*(1-REV)): ev.append((L['h'],0,side,tr));L['h']+=1;st='wait'
     return levels,ev
+MID=(0.2,0.8)  # user's choice: only signals in the middle of the 52-week range, not near its top or bottom
+def pos52(W,c):
+    h=max(x[2] for x in W);l=min(x[1] for x in W)
+    return (c-l)/(h-l) if h>l else 0.5
 def fakeouts(s,lv,B):
     # Weekly false breakout: price traded 1-8% through a strong level (>=3 holds) and a CLOSED weekly candle
     # closed back inside the zone. The 4 weekly closes before the break must all be on the right side of the level
@@ -179,6 +184,8 @@ def fakeouts(s,lv,B):
     for k in range(4):
         i=len(C)-1-k;last=C[i];prev=C[i-1];pre=[x[3] for x in C[i-5:i-1]];w=C[i-1:i+1];after=B[i+1:]
         lo=min(x[1] for x in w);hi=max(x[2] for x in w);wk=ny_date(last[0]).isoformat();c=last[3]
+        ps=pos52(C[max(0,i-52):i+1],c)
+        if not(MID[0]<=ps<=MID[1]): continue
         for L in lv:
             p=L['p']
             if not L['a'] or L['h']<3: continue
@@ -189,11 +196,11 @@ def fakeouts(s,lv,B):
             if up:
                 T=[c*1.05,c*1.087,c*1.12];mx=max([x[2] for x in after],default=0);hit=sum(mx>=x for x in T)
                 if hit or any(x[3]<lo for x in after): continue  # reached a target already, or stopped out
-                out.append(dict(s=s,side='دعم',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(lo,2),pen=round((1-lo/p)*100,1),wk=wk,age=k,hit=hit,cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(x,2) for x in T],kind='ذيل في نفس الشمعة' if prev[3]>=p else 'رجوع بعد إغلاق تحت المستوى'))
+                out.append(dict(s=s,side='دعم',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(lo,2),pen=round((1-lo/p)*100,1),wk=wk,age=k,pos=round(ps*100),hit=hit,cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(x,2) for x in T],kind='ذيل في نفس الشمعة' if prev[3]>=p else 'رجوع بعد إغلاق تحت المستوى'))
             else:
                 T=[c*0.95,c*0.946,c*0.88];mn=min([x[1] for x in after],default=9e9);hit=sum(mn<=x for x in T)
                 if hit or any(x[3]>hi for x in after): continue
-                out.append(dict(s=s,side='مقاومة',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(hi,2),pen=round((hi/p-1)*100,1),wk=wk,age=k,hit=hit,cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(x,2) for x in T],kind='ذيل في نفس الشمعة' if prev[3]<=p else 'رجوع بعد إغلاق فوق المستوى'))
+                out.append(dict(s=s,side='مقاومة',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(hi,2),pen=round((hi/p-1)*100,1),wk=wk,age=k,pos=round(ps*100),hit=hit,cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(x,2) for x in T],kind='ذيل في نفس الشمعة' if prev[3]<=p else 'رجوع بعد إغلاق فوق المستوى'))
     return out
 def grp(h): return '1' if h==1 else '2-3' if h<=3 else '4-6' if h<=6 else '7+'
 def main(out):
@@ -210,7 +217,7 @@ def main(out):
             for m,x in ct[1].items():
                 bb=cbase.setdefault(m,[0.0,0.0,0]);bb[0]+=x[0];bb[1]+=x[1];bb[2]+=x[2]
         lv,e=track(B)
-        fake4+=fakeouts4h(s,lv,X4);fake+=fakeouts(s,lv,B);ev+=e;last=B[-1][3];sma=sum(x[3] for x in B[-41:-1])/40
+        fake4+=fakeouts4h(s,lv,X4,B);fake+=fakeouts(s,lv,B);ev+=e;last=B[-1][3];sma=sum(x[3] for x in B[-41:-1])/40
         for L in lv:
             if L['a'] and L['h']>=3 and abs(last-L['p'])/L['p']<=NEAR:
                 cand.append(dict(s=s,price=round(last,2),level=round(L['p'],2),holds=L['h'],side='دعم' if last>=L['p'] else 'مقاومة',dist=round((last/L['p']-1)*100,1),tr='صاعد' if last>sma else 'هابط'))
