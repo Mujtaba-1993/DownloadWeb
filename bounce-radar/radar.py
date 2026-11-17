@@ -55,8 +55,12 @@ def fakeouts4h(s,lv,X):
             t=d.datetime.fromtimestamp(b[0]+off,d.timezone.utc)
             out.append(dict(s=s,side='دعم',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(lo,2),pen=round((1-lo/p)*100,1),wk=t.strftime('%Y-%m-%d ')+('صباحاً' if t.hour<13 else 'مساءً'),age=k,hit=0,cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(c*1.03,2),round(c*1.05,2),round(c*1.08,2)],kind='4 ساعات'))
     return out
-def ny_now(): return d.datetime.now(d.timezone.utc)-d.timedelta(hours=5)
-def ny_date(ts): return (d.datetime.fromtimestamp(ts,d.timezone.utc)-d.timedelta(hours=5)).date()
+try:
+    from zoneinfo import ZoneInfo
+    NY=ZoneInfo('America/New_York')
+except Exception: NY=d.timezone(d.timedelta(hours=-5))
+def ny_now(): return d.datetime.now(NY)
+def ny_date(ts): return d.datetime.fromtimestamp(ts,NY).date()
 # --- Contrarian study: what the crowd typically does on a signal, and what happened next ---
 # key: (crowd action, contrarian direction) ; +1 = contrarian buys, -1 = contrarian sells/avoids
 CT={'panic':1,'fomo':-1,'hi52':-1,'lo52':1,'rsi70':1,'rsi30':-1,'golden':-1,'death':1}
@@ -115,7 +119,7 @@ def contrarian(s,Dd):
                 bb[0]+=c[i+20]/e-1;bb[1]+=c[i+60]/e-1;bb[2]+=1
         rsi_prev=rsi
     cur=full[-1][4]
-    cd=[dict(s=s,k=k,date=ny_date(t[i]).isoformat(),sig=round(c[i],2),cur=round(cur,2),chg=round((cur/c[i]-1)*100,1)) for k,i in cand]
+    cd=[dict(s=s,k=k,date=ny_date(t[i]).isoformat(),sig=round(c[i],2),cur=round(cur,2),chg=round((cur/c[i]-1)*100,1),mx=round(max([x[2] for x in full[i+1:]]+[cur]),2)) for k,i in cand]
     return ev,base,cd
 def ct_stats(evs,base):
     import statistics as S
@@ -196,6 +200,8 @@ def main(out):
     S=open(os.path.join(H,'tickers.txt')).read().split();ev=[];cand=[];cev=[];cbase={};ccand=[]
     with cf.ThreadPoolExecutor(12) as ex: data=list(ex.map(get,S))
     fake=[];fake4=[]
+    okn=sum(1 for x in data if x)
+    if okn<450: sys.exit(f'ERROR: only {okn} of {len(S)} stocks downloaded; not writing the page')
     for s,X in zip(S,data):
         if not X or len(X[0])<260: continue
         B,ct,X4=X
@@ -222,7 +228,17 @@ def main(out):
     cst=ct_stats(cev,cbase)
     ccand=[dict(c,vd=cst[c['k']]['vd'],dir=cst[c['k']]['dir']) for c in ccand if c['k'] in cst and cst[c['k']]['vd']!='none']
     ccand.sort(key=lambda c:c['date'],reverse=True)
-    html=open(os.path.join(H,'template.html'),encoding='utf8').read().replace('__DATA__',json.dumps(dict(st=st,cur=cur,fake=fake,fake4=fake4,ct=dict(st=cst,cand=ccand,n=len(cev))),ensure_ascii=False)).replace('__DATE__',d.date.today().isoformat()).replace('__N__',str(len(ev)//1000))
+    keep=[];seen=set()
+    for c in ccand:
+        if c['vd']=='win' and c['dir']>0:
+            c['tgt']=round(c['sig']*(1+cst[c['k']]['raw60']/100),2)
+            if c['mx']>=c['tgt']: continue  # already reached its target once: drop it
+        if (c['s'],c['vd'],c['dir']) in seen: continue  # newest signal per stock only
+        seen.add((c['s'],c['vd'],c['dir']));keep.append(c)
+    ccand=keep
+    tp=os.path.join(H,'template.html')
+    if not os.path.exists(tp): tp=os.path.join(H,'template.txt')  # name used by the copy stored with the artifact
+    html=open(tp,encoding='utf8').read().replace('__DATA__',json.dumps(dict(st=st,cur=cur,fake=fake,fake4=fake4,ct=dict(st=cst,cand=ccand,n=len(cev))),ensure_ascii=False)).replace('__DATE__',d.date.today().isoformat()).replace('__N__',str(len(ev)//1000))
     open(out,'w',encoding='utf8').write(html)
     print(len([x for x in data if x]),'stocks',len(ev),'events',len(cur),'candidates')
     print('FAKEOUTS',json.dumps(fake,ensure_ascii=False))
