@@ -62,210 +62,173 @@ body{font-size:16px}h1{font-size:22px}
 .tabs button{transition:color .2s,transform .15s}.tabs button:active{transform:scale(.97)}.tabs button.on{border:1.5px solid transparent;background:linear-gradient(#141a10,#141a10) padding-box,var(--rgb) border-box;color:var(--acc);animation:spin 4s linear infinite,pulse 2.4s ease-in-out infinite}
 .tab{display:grid;gap:20px;min-width:0}.tab>*{min-width:0}.tab[hidden]{display:none}.fg span{direction:ltr;text-align:right}.fi.dim{opacity:.6}.pill.wn{color:var(--warn)}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.mk{display:flex;gap:6px;margin-top:12px}.mk button{flex:1;font:inherit;font-weight:700;padding:9px 6px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--mut);cursor:pointer}
+.mk button.on{border-color:var(--acc);color:var(--acc);box-shadow:0 0 14px -4px var(--acc)}
 </style>
 <div class="w" dir="rtl">
-<header><h1>رادار الارتدادات</h1><p class="sub">كسر كاذب مؤكد بإغلاق أسبوعي، وفرص عكس المتداولين، في أسهم S&amp;P 500. آخر تحديث: __DATE__.</p></header>
+<header><h1>رادار الارتدادات</h1><p class="sub" id="sub"></p>
+<div class="mk" id="mk"><button data-mk="us">السوق الأمريكي</button><button data-mk="sa">السوق السعودي</button></div></header>
 
-<nav class="tabs" role="tablist"><button data-go="radar">الرادار</button><button data-go="contra">عكس المتداولين</button><button data-go="journal">سجل صفقاتي</button><button data-go="perf">أداء الأداة</button></nav>
+<nav class="tabs" role="tablist"><button data-go="radar">الرادار</button><button data-go="contra">سلوك المتداولين</button><button data-go="journal">سجل صفقاتي</button><button data-go="perf">أداء الأداة</button></nav>
+
 <div class="tab" data-tab="radar">
-<section class="card fk"><h2>تنبيه الكسر الكاذب</h2>
-<p class="note">سهم كان يغلق فوق دعم قوي (3 ارتدادات أو أكثر) لأربعة أسابيع متتالية، ثم كسره بين 1% و8% خلال أسبوع أو أسبوعين، ثم <b>أغلقت الشمعة الأسبوعية</b> عائدة فوق المستوى (والعكس للمقاومة). تظهر فقط الإشارات في <b>وسط</b> نطاق آخر 52 أسبوعاً (بين 20% و80%)، وتُستبعد القريبة من القمة أو القاع. تبقى الإشارة 4 أسابيع، وتُحذف إذا أغلق السعر خلف الوقف، وتُحذف أيضاً إذا وصل السعر إلى أي هدف ولو الهدف الأول، حتى لا تدخل متأخراً. في اختبار تاريخي على إشارات الوسط (1,881 إشارة): وصل السعر +5% قبل الوقف في 60%، و+8% في 49%.</p>
+<section class="card"><h2>تنبيه الكسر الكاذب</h2>
+<p class="note">سهم كان يغلق فوق مستوى ارتداد قوي (3 ارتدادات أو أكثر) لأربعة أسابيع متتالية، ثم كسره بين 1% و8% خلال أسبوع أو أسبوعين، ثم <b>أغلقت الشمعة الأسبوعية</b> عائدة فوق المستوى (والعكس لإشارات النزول). تظهر فقط الإشارات في <b>وسط</b> نطاق آخر 52 أسبوعاً (بين 20% و80%). تبقى الإشارة 4 أسابيع، وتُحذف إذا أغلق السعر خلف الوقف أو وصل إلى أي هدف ولو الهدف الأول.</p>
+<p class="note" id="fknote"></p>
 <div id="fk"></div>
 <details class="sub2"><summary><b>نموذج تقييم الإشارات (الدرجة A / B / C)</b></summary>
 <p class="note">كل إشارة شراء تأخذ احتمال نجاح مقدّراً من نموذج إحصائي (انحدار لوجستي) يقرأ 11 عاملاً: عمق الكسر، قوة الإغلاق داخل شمعة الأسبوع، حجم التداول مقارنة بمتوسطه، اتجاه السهم واتجاه السوق العام، تذبذب السهم، بُعد الإغلاق عن المستوى، عدد الارتدادات السابقة، الزخم، الموقع في نطاق السنة، وشكل الكسر. النجاح = وصول +5% قبل إغلاق أسبوعي تحت الذيل.</p>
-<p class="note">النموذج تدرّب على <span id="mtr"></span> إشارة، ثم اختُبر على <span id="mte"></span> إشارة منذ <span id="mts"></span> لم يتدرّب عليها. هذه نتيجة الاختبار:</p>
+<p class="note">النموذج تدرّب على <span id="mtr"></span> إشارة، ثم اختُبر على <span id="mte"></span> إشارة من هذا السوق منذ <span id="mts"></span> لم يتدرّب عليها. هذه نتيجة الاختبار:</p>
 <div class="tb"><table class="st" id="mtb"></table></div>
-<p class="note">الفرق حقيقي لكنه متوسط: النموذج يرفع الاحتمال ولا يضمن الصفقة. أقوى العوامل: كسر أعمق، إغلاق أبعد فوق المستوى، وسهم أعلى تذبذباً. الأفضل تجنّب الدرجة C. لا يُطبّق على إشارات النزول ولا على فريم 4 ساعات.</p>
+<p class="note" id="mnote"></p>
 </details>
-<details class="sub2"><summary><b>ماذا يحدث بعد الكسر الكاذب؟</b></summary>
-<p class="note">اختبار على كل تاريخ أسهم S&amp;P 500 (7,976 إشارة دعم و7,740 إشارة مقاومة). أقصى حركة خلال 13 أسبوعاً قبل ضرب الوقف (إغلاق أسبوعي خلف الذيل).</p>
-<div class="tb"><table class="st"><tr><th>الحركة</th><th>بعد كسر كاذب لدعم (صعود)</th><th>بعد كسر كاذب لمقاومة (نزول)</th></tr>
+<details class="sub2" data-only="us"><summary><b>ماذا يحدث بعد الكسر الكاذب؟</b></summary>
+<p class="note">اختبار على كل تاريخ أسهم S&amp;P 500 (7,976 إشارة صعود و7,740 إشارة نزول). أقصى حركة خلال 13 أسبوعاً قبل ضرب الوقف.</p>
+<div class="tb"><table class="st"><tr><th>الحركة</th><th>بعد إشارة شراء (صعود)</th><th>بعد إشارة نزول</th></tr>
 <tr><td>3%</td><td class="n">73%</td><td class="n">65%</td></tr><tr><td>5%</td><td class="n">63%</td><td class="n">52%</td></tr>
 <tr><td>8%</td><td class="n">52%</td><td class="n">38%</td></tr><tr><td>12%</td><td class="n">40%</td><td class="n">26%</td></tr><tr><td>20%</td><td class="n">23%</td><td class="n">12%</td></tr>
 <tr><td>الوسيط</td><td class="n">+8.7%</td><td class="n">−5.4%</td></tr><tr><td>ضرب الوقف خلال 13 أسبوعاً</td><td class="n">58%</td><td class="n">71%</td></tr></table></div>
-<p class="note">الأهداف في البطاقات: هدف 1 = 5%، هدف 2 = الوسيط، هدف 3 = 12%. الوقف = خلف الذيل. كثير من الصفقات تلمس الهدف الأول ثم ترجع للوقف، فجني جزء من الربح عند الهدف الأول مهم.</p>
 </details></section>
 
-<section class="card fk"><h2>كسر كاذب على فريم 4 ساعات</h2>
-<p class="note">نفس الشكل على شموع 4 ساعات: 8 إغلاقات فوق مستوى ارتداد قوي، ثم كسر بين 1.5% و5%، ثم <b>إغلاق شمعة 4 ساعات</b> عائدة فوق المستوى. تظهر فقط الإشارات في وسط نطاق السنة (20% إلى 80%). تبقى الإشارة 5 أيام تداول، وتُحذف إذا وصلت الهدف الأول أو أغلقت تحت الذيل.</p>
-<p class="note"><b>الدقة أقل من الأسبوعي.</b> في اختبار على آخر سنتين (223 إشارة فقط، لأن البيانات الساعية المتاحة سنتان): وصل السعر +3% قبل الوقف في نحو 60%، و+5% في 50%، و+8% في 42%. ميزته أن الوقف أقرب (نحو 3.5% بدل 4.4%). الكسر الأقل من 1.5% كان أضعف (40% فقط للـ+5%) فاستبعدته.</p>
+<section class="card" id="sec4h"><h2>كسر كاذب على فريم 4 ساعات</h2>
+<p class="note">نفس الشكل على شموع 4 ساعات: 8 إغلاقات فوق مستوى ارتداد قوي، ثم كسر بين 1.5% و5%، ثم <b>إغلاق شمعة 4 ساعات</b> عائدة فوق المستوى، في وسط نطاق السنة فقط. تبقى الإشارة 5 أيام تداول، وتُحذف إذا وصلت الهدف الأول أو أغلقت تحت الذيل.</p>
+<p class="note"><b>الدقة أقل من الأسبوعي.</b> في اختبار على آخر سنتين (223 إشارة): وصل السعر +3% قبل الوقف في نحو 60%، و+5% في 50%، و+8% في 42%.</p>
 <div id="fk4"></div></section>
-
-
-
-<div hidden>
-<section class="card"><h2>الأسهم القريبة الآن من منطقة ارتداد</h2>
-<div class="ctl">
-<label>النوع <select id="fs"><option value="">الكل</option><option>دعم</option><option>مقاومة</option></select></label>
-<label>أقل عدد ارتدادات <select id="fh"><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select></label>
-<label>بحث <input id="q" placeholder="رمز السهم"></label>
-<span class="note" id="cnt"></span><span class="note">مرتبة من الأقرب للمنطقة. <b class="res">الأحمر</b> = احتمال كسر 40% أو أكثر، تجنّب الدخول عليه.</span>
 </div>
-<div class="tb"><table><thead><tr>
-<th data-k="s">الرمز</th><th data-k="price">السعر</th><th data-k="level">المستوى</th><th data-k="ad">البعد %</th><th data-k="holds">الارتدادات</th><th data-k="side">النوع</th><th data-k="tr">الترند</th><th data-k="br">احتمال الكسر</th>
-</tr></thead><tbody id="tb"></tbody></table></div>
-<p class="note">«دعم» = السعر فوق المستوى ويقترب منه نزولاً. «مقاومة» = السعر تحته. احتمال الكسر مأخوذ من الدراسة حسب النوع والترند وعدد الارتدادات. كل الرموز من S&amp;P 500 المدرجة في NYSE وناسداك، وابحث عنها في تطبيق سهم بالرمز. البيانات لقطة من تاريخ التحديث وليست مباشرة. هذه قراءة فنية وليست توصية.</p>
-</section>
 
-<details class="card"><summary><h2>مستويات الدخول في منطقة وقف الخسارة</h2></summary>
-<p class="note">المتداولون يضعون وقف الخسارة عادة تحت الدعم الواضح مباشرة. عندما يضرب السعر هذه الأوامر قد يرتد بقوة. اختبرت الدخول بأمر معلّق على عمق 1% إلى 12% تحت دعم قوي (3 ارتدادات أو أكثر) على كل تاريخ أسهم S&amp;P 500.</p>
-<div class="tb"><table class="st"><tr><th>عمق الدخول تحت الدعم</th><th>رجع وأغلق فوق الدعم خلال 4 أسابيع</th><th>وسيط أقصى ارتداد من سعر الدخول</th><th>+10% قبل −8%</th></tr>
-<tr><td>1%</td><td class="n">73%</td><td class="n">+17.8%</td><td class="n">46%</td></tr>
-<tr><td>2%</td><td class="n">68%</td><td class="n">+18.1%</td><td class="n">46%</td></tr>
-<tr><td>3%</td><td class="n">62%</td><td class="n">+18.9%</td><td class="n">46%</td></tr>
-<tr><td>5%</td><td class="n">56%</td><td class="n">+21.4%</td><td class="n">47%</td></tr>
-<tr><td>8%</td><td class="n">49%</td><td class="n">+25.2%</td><td class="n">47%</td></tr>
-<tr><td>12%</td><td class="n">42%</td><td class="n">+30.6%</td><td class="n">48%</td></tr></table></div>
-<ul><li>كلما كان الدخول أعمق كان <b>الارتداد أكبر</b> إذا حصل، لكن <b>احتمال الرجوع فوق الدعم أقل</b>.</li>
-<li>الدخول الأعمى بأمر معلّق تقريباً بلا أفضلية: نحو 46–48% نجاح مقابل 50–52% خسارة.</li>
-<li>الأفضل انتظار <b>إغلاق أسبوعي فوق الدعم</b> بعد الكسر (تنبيه الكسر الكاذب في الأعلى): 47.5% نجاح مقابل 42% خسارة.</li>
-<li>لو دخلت بأوامر معلّقة، قسّم الكمية على المستويات (1% و3% و5% و8%) ولا تدخل كل المبلغ في مستوى واحد.</li></ul>
-</details>
-
-<details class="card"><summary><h2>متى ينكسر المستوى؟ نتيجة الدراسة</h2></summary>
-<div class="kp">
-<div class="k"><b class="sup">~37%</b><span>احتمال كسر الدعم في كل لمسة جديدة، وفي الباقي (~63%) يرتد</span></div>
-<div class="k"><b class="res">~53%</b><span>احتمال كسر المقاومة في كل لمسة، فهي أضعف من الدعم</span></div>
-<div class="k"><b>2–3</b><span>متوسط عدد الارتدادات قبل أن ينكسر المستوى</span></div>
-</div>
-<ul style="margin-top:12px">
-<li>عدد الارتدادات السابقة <b>لا يجعل المستوى أضعف بشكل واضح</b>. احتمال الكسر يبقى بين 33% و41% للدعم سواء كانت اللمسة الثانية أو السادسة.</li>
-<li>بعد 10 ارتدادات أو أكثر ينخفض الكسر إلى نحو 25–30%، لكن العينة صغيرة.</li>
-<li>الترند (السعر فوق أو تحت متوسط 40 أسبوعاً) يغيّر الاحتمال 3–4 نقاط فقط.</li>
-<li><b>الخلاصة العملية:</b> لا يوجد رقم «بعد كذا لمسة ينكسر». كل لمسة دعم فيها احتمال كسر تقريبي 1 من 3، فاعتمد وقف خسارة تحت المنطقة بدل انتظار عدد معين.</li>
-</ul>
-<div class="tb" style="margin-top:12px"><table class="st" id="st"></table></div>
-<p class="note">الكسر = إغلاق أسبوعي أبعد من المستوى بـ10%. الارتداد = حركة 15% بعيداً عن المستوى. المنطقة = ±3%. العينة: كل لمسات أسهم S&amp;P 500 الحالية، أكثر من __N__ ألف لمسة.</p>
-</details>
-</div>
-</div>
 <div class="tab" data-tab="contra" hidden>
-<section class="card"><h2>عكس المتداولين</h2>
-<p class="note">اختبرت 8 سلوكيات شائعة للمتداولين على كل تاريخ أسهم S&amp;P 500 (<span id="ctn"></span> إشارة). لكل سلوك قست عائد السهم بعد 60 يوم تداول، وقارنته بمتوسط بقية الأسهم في الشهر نفسه، حتى لا تخدعنا فترات صعود السوق كله أو هبوطه.</p>
+<section class="card"><h2>سلوك المتداولين: هل ننجح بعكسهم؟</h2>
+<p class="note">اختبرت 8 سلوكيات شائعة على كل تاريخ أسهم هذا السوق (<span id="ctn"></span> إشارة). لكل سلوك قست عائد السهم بعد 60 يوم تداول، وقارنته بمتوسط بقية أسهم السوق نفسه في الشهر نفسه.</p>
 <div id="cts"></div>
-<ul>
-<li>العكس <b>لا ينجح دائماً</b>. ينجح عند الذعر والمطاردة المتأخرة، ويفشل في حالات أخرى يكون المتداولون فيها على حق.</li>
-<li>القاعدة المشتركة: السهم الذي هبط بعنف يميل للتعويض خلال 60 يوماً، والسهم الذي اخترق قمته للتو يصعد أقل من غيره.</li>
+<ul data-only="us">
+<li>العكس <b>لا ينجح دائماً</b>. ينجح عند الذعر والمطاردة المتأخرة، ويفشل في حالات يكون المتداولون فيها على حق.</li>
+<li>السهم الذي هبط بعنف يميل للتعويض خلال 60 يوماً، والسهم الذي اخترق قمته للتو يصعد أقل من غيره.</li>
 <li>«تجنّب الشراء» لا يعني البيع على المكشوف: هذه الأسهم ما زالت تصعد في المتوسط، لكن أقل من بقية السوق.</li>
-<li>الأسهم المفحوصة هي أعضاء المؤشر اليوم فقط، والشركات التي انهارت وخرجت غير محسوبة. لذلك نتائج «الشراء بعد الهبوط» أفضل من الواقع بعض الشيء.</li>
+<li>الأسهم المفحوصة هي أعضاء المؤشر اليوم فقط، فنتائج «الشراء بعد الهبوط» أفضل من الواقع بعض الشيء.</li>
+</ul>
+<ul data-only="sa">
+<li><b>السوق السعودي لا يتبع النموذج الأمريكي.</b> «عكس المتداولين» لم يُثبت أفضلية ثابتة هنا في أي سلوك.</li>
+<li>الجدول أعلاه يبيّن الحالات التي كان المتداولون فيها على حق. في هذه الحالات تقترح الأداة الشراء <b>مع</b> المتداولين، بشرط أن يكون متوسط الربح بعد 60 يوماً 3% أو أكثر.</li>
+<li>البيانات السعودية أقصر (منذ 2010 تقريباً) وعدد الأسهم أقل، فالنتائج أقل ثقة من الأمريكية، وتتحدّث تلقائياً مع كل يوم جديد.</li>
+<li>السوق السعودي فيه حدّ تذبذب يومي ±10%، فإشارات «الهبوط الحاد» و«القفزة» أقل عدداً ومعناها مختلف.</li>
 </ul></section>
 <section class="card"><h2>الأسهم المقترحة الآن</h2>
-<p class="note">أسهم ظهرت عليها خلال آخر 10 أيام تداول إشارة من السلوكيات التي نجح عكسها في الدراسة. «الهدف» هو متوسط العائد التاريخي بعد 60 يوم تداول. السهم الذي وصل إلى الهدف يُحذف من القائمة، والذي قطع نصف الطريق تظهر عليه علامة تنبيه.</p>
+<p class="note">أسهم ظهرت عليها خلال آخر 10 أيام تداول إشارة أثبتت بيانات هذا السوق أفضليتها. «الهدف» هو متوسط العائد التاريخي بعد 60 يوم تداول. السهم الذي لمس هدفه يُحذف، والذي قطع نصف الطريق تظهر عليه علامة.</p>
 <div id="ctc"></div>
-<details class="sub2"><summary><b>نموذج تقييم فرص الشراء (الدرجة A / B / C)</b></summary>
+<details class="sub2" data-only="us"><summary><b>نموذج تقييم فرص الشراء (الدرجة A / B / C)</b></summary>
 <p class="note">كل فرصة شراء تأخذ احتمالاً من نموذج إحصائي يقرأ 11 عاملاً: حجم الهبوط اليومي، الفجوة عند الافتتاح، حجم التداول، البُعد عن قمة السنة، موقع السعر من متوسط 200 يوم، RSI، تذبذب السهم، زخم 60 يوماً، قوة الإغلاق، اتجاه السوق العام، ونوع الإشارة. «النجاح» = أن يلمس السهم الهدف خلال 60 يوم تداول.</p>
 <p class="note">تدرّب على <span id="cmtr"></span> إشارة، واختُبر على <span id="cmte"></span> إشارة منذ <span id="cmts"></span> لم يتدرّب عليها:</p>
 <div class="tb"><table class="st" id="cmtb"></table></div>
-<p class="note"><b>تنبيه مهم:</b> هذا القياس بدون وقف خسارة. الدرجة A تذهب غالباً لأسهم عالية التذبذب وبعيدة عن قمتها: تلمس الهدف كثيراً، لكنها قد تنزل بقوة قبل ذلك. النسبة تخبرك باحتمال لمس الهدف، لا بحجم الهبوط في الطريق.</p>
+<p class="note"><b>تنبيه:</b> هذا القياس بدون وقف خسارة. الدرجة A تذهب غالباً لأسهم عالية التذبذب وبعيدة عن قمتها: تلمس الهدف كثيراً، لكنها قد تنزل بقوة قبل ذلك.</p>
 </details></section>
 </div>
+
 <div class="tab" data-tab="perf" hidden>
 <section class="card"><h2>أداء الأداة</h2>
-<p class="note">كل اقتراح يُسجَّل تلقائياً أول يوم يظهر فيه، سواء دخلت الصفقة أو لا، ثم تُحسم نتيجته من الأسعار اللاحقة: <b>صح</b> إذا وصل الهدف الأول قبل الوقف، و<b>خطأ</b> إذا ضرب الوقف أو انتهت المدة دون الوصول. التتبع بدأ في <span id="pfs"></span>، وعدد الاقتراحات المسجّلة <span id="pft"></span>.</p>
+<p class="note">كل اقتراح يُسجَّل تلقائياً أول يوم يظهر فيه، سواء دخلت الصفقة أو لا، ثم تُحسم نتيجته من الأسعار اللاحقة: <b>صح</b> إذا وصل الهدف الأول قبل الوقف، و<b>خطأ</b> إذا ضرب الوقف أو انتهت المدة دون الوصول. التتبع في هذا السوق بدأ في <span id="pfs"></span>، وعدد الاقتراحات المسجّلة <span id="pft"></span>.</p>
 <div id="pfc"></div>
 <ul>
 <li><b>تعديل الاحتمال:</b> النسبة المعروضة لكل نوع تبدأ من نتيجة الاختبار التاريخي، ثم تتحرك نحو النتيجة الفعلية كلما حُسمت اقتراحات أكثر.</li>
-<li><b>إيقاف تلقائي:</b> إذا حُسم 15 اقتراحاً أو أكثر من نوع وكانت نسبة الصح أقل من 45%، تتوقف الأداة عن عرضه. يستمر تتبّعه في الخلفية، ويرجع إذا تحسّنت نتيجته.</li>
+<li><b>إيقاف تلقائي:</b> إذا حُسم 15 اقتراحاً أو أكثر من نوع وكانت نسبة الصح أقل من 45%، تتوقف الأداة عن عرضه، ويرجع إذا تحسّنت نتيجته.</li>
 <li>الخطأ لا يصل إلى الصفر في أي سوق. الهدف الواقعي هو رفع نسبة الصح وحذف الأنواع التي يثبت ضعفها.</li>
 </ul></section>
 <section class="card"><h2>التداول التجريبي</h2>
-<p class="note">الأداة تتداول بأموال افتراضية فقط، ولا ترسل أي أمر لأي وسيط. مع كل تحديث تعيد تنفيذ <b id="lbn"></b> صفقة تجريبية على كل التاريخ بقواعد خروج مختلفة (هدف، وقف، درجة)، وتختار القاعدة الأعلى ربحاً صافياً على البيانات القديمة، ثم تعرض نتيجتها على السنوات الأخيرة التي لم ترها. الأرقام بعد خصم 0.2% تكلفة لكل صفقة.</p>
+<p class="note">الأداة تتداول بأموال افتراضية فقط، ولا ترسل أي أمر لأي وسيط. مع كل تحديث تعيد تنفيذ <b id="lbn"></b> صفقة تجريبية على تاريخ هذا السوق بقواعد خروج مختلفة (هدف، وقف، درجة)، وتختار القاعدة الأعلى ربحاً صافياً على البيانات القديمة بشرط ألا تخسر على السنوات الأخيرة التي لم ترها. الأرقام بعد خصم 0.2% تكلفة لكل صفقة.</p>
 <div id="lbc"></div>
 <h2 style="margin-top:14px">المحفظة التجريبية الحية</h2>
 <p class="note">كل اقتراح جديد تدخله الأداة افتراضياً عند افتتاح أول جلسة بعد ظهوره، وتخرج منه بالقاعدة الفائزة وقت الدخول.</p>
 <div id="lbp" class="kp"></div><div id="lbr"></div>
 <ul>
-<li>أقل نسبة خطأ لا تعني أعلى ربح: هدف صغير يرفع نسبة الصح لكنه يقصّ الأرباح الكبيرة، وخسارة واحدة تمحو عدة أرباح. لذلك الاختيار هنا بالربح الصافي للصفقة.</li>
-<li>الأسهم المفحوصة هي أعضاء المؤشر اليوم فقط، فأرباح شراء الأسهم المنهارة مضخّمة: الشركات التي لم تتعافَ خرجت من المؤشر وغير محسوبة.</li>
+<li>أقل نسبة خطأ لا تعني أعلى ربح: هدف صغير يرفع نسبة الصح لكنه يقصّ الأرباح الكبيرة. لذلك الاختيار هنا بالربح الصافي للصفقة.</li>
+<li>الأسهم المفحوصة هي المدرجة اليوم فقط، فأرباح شراء الأسهم المنهارة مضخّمة.</li>
 <li>القواعد بدون وقف تمرّ بفترات هبوط عميق قبل التعافي.</li>
 </ul></section>
 <section class="card"><h2>تعلّم النماذج</h2>
-<p class="note">مع كل تحديث يومي تعيد الأداة بناء كل الإشارات التاريخية ونتائجها، وتدرّب نسخة جديدة من كل نموذج على كل شيء ما عدا السنوات الأخيرة، ثم تقارنها بالنسخة المستخدمة على تلك السنوات التي لم ترها. النسخة الجديدة تُعتمد فقط إذا ميّزت بين الصح والخطأ أفضل. بيانات كل يوم جديد تدخل في التدريب تلقائياً.</p>
+<p class="note">مع كل تحديث تعيد الأداة بناء كل الإشارات التاريخية ونتائجها، وتدرّب نسخة جديدة من كل نموذج على كل شيء ما عدا السنوات الأخيرة، ثم تقارنها بالنسخة المستخدمة على تلك السنوات. النسخة الجديدة تُعتمد فقط إذا ميّزت بين الصح والخطأ أفضل.</p>
 <div id="pfm"></div>
 <p class="note">«قدرة التمييز» مقياس من 0.5 (عشوائي) إلى 1 (مثالي). القيم حول 0.6 إلى 0.7 تعني أفضلية حقيقية لكنها بعيدة عن اليقين.</p></section>
 <section class="card"><h2>آخر الاقتراحات المحسومة</h2><div id="pfr"></div></section>
 </div>
+
 <div class="tab" data-tab="journal" hidden>
 <section class="card"><h2>سجل صفقاتي</h2>
-<p class="note">اضغط «دخلت» على أي سهم لتسجيل الصفقة، ثم «فزت» أو «خسرت» عند إغلاقها. أقرأ هذا السجل في التحديث اليومي لأقارن نتائجك بالدراسة.</p>
+<p class="note">اضغط «دخلت» على أي سهم لتسجيل الصفقة، ثم «فزت» أو «خسرت» عند إغلاقها. السجل مشترك بين السوقين.</p>
 <div id="jst" class="kp"></div><div id="jl"></div></section>
 </div>
 </div>
 <script>
-const D=__DATA__;
-const G={'1':'أول لمسة','2-3':'2–3','4-6':'4–6','7+':'7+'};
-let h='<tr><th>الارتدادات السابقة</th><th>دعم · ترند صاعد</th><th>دعم · ترند هابط</th><th>مقاومة · ترند صاعد</th><th>مقاومة · ترند هابط</th></tr>';
-for(const g in G){h+=`<tr><td>${G[g]}</td>`;for(const k of['S|up','S|dn','R|up','R|dn']){const[v,n]=D.st[k+'|'+g];h+=`<td class="n">${v}% <span class="note">(${n.toLocaleString('en')})</span></td>`}h+='</tr>'}
-document.getElementById('st').innerHTML=h;
-let sk='ad',dir=1;D.cur.forEach(c=>c.ad=Math.abs(c.dist));
-function col(b){return b>=40?'var(--res)':b>=37?'var(--warn)':'var(--sup)'}
-function draw(){const fs=fs_.value,fh=+fh_.value,q=q_.value.trim().toUpperCase();
-const r=D.cur.filter(c=>(!fs||c.side==fs)&&c.holds>=fh&&(!q||c.s.includes(q))).sort((a,b)=>(a[sk]>b[sk]?1:a[sk]<b[sk]?-1:0)*dir);
-tb.innerHTML=r.map(c=>`<tr class="${c.br>=40?'hi':''}"><td data-l="الرمز"><b>${c.s}</b>${c.br>=40?' <span class="pill res">خطر كسر</span>':''}${tiers(c)} <button class="btn" data-enter="${c.s}|${c.side}|zone">دخلت</button></td><td data-l="السعر" class="n">${c.price}</td><td data-l="المستوى" class="n">${c.level}</td><td data-l="البعد %" class="n">${c.dist>0?'+':''}${c.dist}</td><td data-l="الارتدادات" class="n">${c.holds}</td><td data-l="النوع"><span class="pill ${c.side=='دعم'?'sup':'res'}">${c.side}</span></td><td data-l="الترند">${c.tr}</td><td data-l="احتمال الكسر" class="n">${c.br}%<span class="bar"><i style="width:${c.br}%;background:${col(c.br)}"></i></span></td></tr>`).join('');
-cnt.textContent=r.length+' سهم'}
-const fs_=document.getElementById('fs'),fh_=document.getElementById('fh'),q_=document.getElementById('q'),tb=document.getElementById('tb'),cnt=document.getElementById('cnt');
-[fs_,fh_].forEach(e=>e.onchange=draw);q_.oninput=draw;
-document.querySelectorAll('th[data-k]').forEach(t=>t.onclick=()=>{const k=t.dataset.k;dir=sk==k?-dir:-1;sk=k;draw()});
-draw();
-const fk=document.getElementById('fk');const F=D.fake||[];
-function fst(f){if(f.hit>0)return `<span class="pill wn">وصل الهدف ${f.hit} — فات الدخول</span>`;const adv=f.side=='دعم'?f.chg:-f.chg;return adv>=2.5?`<span class="pill wn">قطع نصف الطريق للهدف 1</span>`:`<span class="pill sup">لم يتحرك للهدف بعد</span>`}
-fk.innerHTML=F.length?F.map((f,i)=>`<div class="fi ${f.hit>0?'dim':''}"><b class="sym">${f.s}</b> <span class="pill ${f.side=='دعم'?'sup':'res'}">${f.side=='دعم'?'شراء':'نزول، ليس شراء'}</span> ${f.grade?`<span class="pill ${({A:'sup',B:'wn',C:'res'})[f.grade]}">درجة ${f.grade} · ${f.adj??f.pr}%</span>`:''} ${fst(f)}<div class="fg"><span><i>المستوى</i>${f.level}</span><span><i>${f.side=='دعم'?'أدنى سعر':'أعلى سعر'}</i>${f.ext}</span><span><i>الاختراق</i>${f.pen}%</span><span><i>إغلاق الإشارة</i>${f.close}</span><span><i>السعر الآن</i>${f.cur} (${f.chg>0?'+':''}${f.chg}%)</span><span><i>أسبوع الإشارة</i>${f.wk}</span><span><i>الموقع في نطاق السنة</i>${f.pos}%</span><span><i>الارتدادات</i>${f.holds}</span><span><i>النمط</i>${f.kind}</span></div><div class="tg"><span><i>هدف 1</i> ${f.T[0]}</span><span><i>هدف 2</i> ${f.T[1]}</span><span><i>هدف 3</i> ${f.T[2]}</span><span><i>الوقف</i> ${f.ext}</span></div>${f.side!='دعم'?'':`<div style="margin-top:8px"><button class="btn" data-enter="${i}|${f.side}|fake">دخلت</button></div>`}</div>`).join(''):'<p class="none">لا يوجد كسر كاذب قائم الآن: الإشارات السابقة وصلت هدفاً أو ضربت الوقف، ولم تظهر إشارة جديدة.</p>';
-
-function tiers(c){if(c.side!='دعم')return'';const r=d=>(c.level*(1-d)).toFixed(2);return `<div class="tg" style="font-size:13px"><i>دخول متدرّج:</i> <span>−1% ${r(.01)}</span><span>−3% ${r(.03)}</span><span>−5% ${r(.05)}</span><span>−8% ${r(.08)}</span></div>`}
+const ALL=__DATA__,DATE='__DATE__';let MKT='us';try{MKT=localStorage.getItem('rr-mkt')||'us'}catch(e){}
+if(!ALL[MKT])MKT='us';
+let D=ALL[MKT],F=[],F4=[],CC=[];
+const $=id=>document.getElementById(id),sg=x=>(x>0?'+':'')+x+'%',pc=x=>x==null?'—':(x>0?'+':'')+x+'%',num=x=>(x||0).toLocaleString('en'),GP={A:'sup',B:'wn',C:'res'};
+const sym=s=>`<b class="sym">${s.replace('.SR','')}</b>${D.names&&D.names[s]?` <span class="note">${D.names[s]}</span>`:''}`;
 const CL={panic:['هبوط حاد 7%+ بحجم تداول عالٍ','يبيعون بذعر','شراء'],fomo:['قفزة 7%+ بحجم تداول عالٍ','يطاردون الصعود ويشترون','تجنّب الشراء'],hi52:['اختراق قمة 52 أسبوعاً','يشترون الاختراق','تجنّب الشراء'],lo52:['كسر قاع 52 أسبوعاً','يبيعون أو يضربهم الوقف','شراء'],rsi70:['RSI فوق 70 (تشبع شراء)','يبيعون','شراء أو احتفاظ'],rsi30:['RSI تحت 30 (تشبع بيع)','يشترون','تجنّب الشراء'],golden:['التقاطع الذهبي (متوسط 50 فوق 200)','يشترون','تجنّب الشراء'],death:['تقاطع الموت (متوسط 50 تحت 200)','يبيعون','شراء']};
-const CT=D.ct||{st:{},cand:[],n:0};const sg=x=>(x>0?'+':'')+x+'%';
-document.getElementById('ctn').textContent=(CT.n||0).toLocaleString('en');
-const VD={win:['العكس نجح','sup'],lose:['المتداولون على حق','res'],none:['لا فرق واضح','wn']};
-document.getElementById('cts').innerHTML=Object.keys(CL).filter(k=>CT.st[k]).sort((a,b)=>'win none lose'.indexOf(CT.st[a].vd)-'win none lose'.indexOf(CT.st[b].vd)).map(k=>{const s=CT.st[k],L=CL[k],v=VD[s.vd];return `<div class="fi"><b>${L[0]}</b> <span class="pill ${v[1]}">${v[0]}</span><div class="fg"><span style="font-family:var(--f)"><i>المتداولون</i>${L[1]}</span><span style="font-family:var(--f)"><i>العكس</i>${L[2]}</span><span><i>عدد الحالات</i>${s.n.toLocaleString('en')}</span><span><i>متوسط العائد بعد 60 يوماً</i>${sg(s.raw60)}</span><span><i>الفرق عن بقية السوق</i>${sg(s.ex60)}</span><span><i>قبل 2010 / بعد 2010</i>${sg(s.h1)} / ${sg(s.h2)}</span></div></div>`}).join('');
-const CC=CT.cand.filter(c=>c.vd=='win').map(c=>{const buy=c.dir>0,raw=CT.st[c.k].raw60,tgt=c.tgt??+(c.sig*(1+raw/100)).toFixed(2);let st=['لم يتحرك بعد','sup'],o=0;
- if(buy){if(Math.max(c.cur,c.mx||0)>=tgt){st=['وصل الهدف — فات الدخول','wn'];o=2}else if(c.chg>=raw/2){st=['قطع نصف الطريق للهدف','wn'];o=1}else if(c.chg<=-8){st=['نزل أكثر بعد الإشارة — انتظر استقراراً','res'];o=1}}
- return {...c,buy,tgt,st,o}}).filter(c=>c.o<2).sort((a,b)=>(b.buy-a.buy)||((b.adj??b.pr??0)-(a.adj??a.pr??0))||b.date.localeCompare(a.date));
-document.getElementById('ctc').innerHTML=CC.length?CC.map((c,i)=>`<div class="fi ${c.o==2?'dim':''}"><b class="sym">${c.s}</b> <span class="pill ${c.buy?'sup':'res'}">${c.buy?'شراء عكس المتداولين':'تجنّب الشراء'}</span> ${c.buy&&c.grade?`<span class="pill ${({A:'sup',B:'wn',C:'res'})[c.grade]}">درجة ${c.grade} · ${c.adj??c.pr}%</span>`:''} ${c.buy?`<span class="pill ${c.st[1]}">${c.st[0]}</span>`:''}<div class="fg"><span style="font-family:var(--f)"><i>الإشارة</i>${CL[c.k][0]}</span><span><i>التاريخ</i>${c.date}</span><span><i>سعر الإشارة</i>${c.sig}</span><span><i>السعر الآن</i>${c.cur} (${sg(c.chg)})</span>${c.buy?`<span><i>الهدف (متوسط 60 يوماً)</i>${c.tgt}</span>`:''}</div>${c.buy&&c.o<2?`<div style="margin-top:8px"><button class="btn" data-enter="${i}|شراء|ct">دخلت</button></div>`:''}</div>`).join(''):'<p class="none">لا توجد إشارات جديدة خلال آخر 10 أيام تداول.</p>';
-const MI=D.model;if(MI){document.getElementById('mtr').textContent=MI.n_train.toLocaleString('en');document.getElementById('mte').textContent=MI.n_test.toLocaleString('en');document.getElementById('mts').textContent=MI.since||'2015';
-document.getElementById('mtb').innerHTML='<tr><th>الدرجة</th><th>نجاح فعلي (كل الإشارات)</th><th>نجاح فعلي (إشارات الوسط)</th></tr>'+['A','B','C'].map(g=>`<tr><td>${g}</td><td class="n">${MI.test[g][1]}% <span class="note">(${MI.test[g][0]})</span></td><td class="n">${MI.test_mid[g][1]}% <span class="note">(${MI.test_mid[g][0]})</span></td></tr>`).join('')+`<tr><td>بدون نموذج</td><td class="n">${MI.base_test}%</td><td class="n">${MI.base_test_mid}%</td></tr>`}
-const F4=D.fake4||[];
-document.getElementById('fk4').innerHTML=F4.length?F4.map((f,i)=>`<div class="fi"><b class="sym">${f.s}</b> <span class="pill sup">شراء</span> <span class="pill sup">لم يتحرك للهدف بعد</span><div class="fg"><span><i>المستوى</i>${f.level}</span><span><i>أدنى سعر</i>${f.ext}</span><span><i>الاختراق</i>${f.pen}%</span><span><i>إغلاق الإشارة</i>${f.close}</span><span><i>السعر الآن</i>${f.cur} (${f.chg>0?'+':''}${f.chg}%)</span><span style="font-family:var(--f)"><i>شمعة الإشارة</i>${f.wk}</span><span><i>الموقع في نطاق السنة</i>${f.pos}%</span><span><i>الارتدادات</i>${f.holds}</span></div><div class="tg"><span><i>هدف 1 (3%)</i> ${f.T[0]}</span><span><i>هدف 2 (5%)</i> ${f.T[1]}</span><span><i>هدف 3 (8%)</i> ${f.T[2]}</span><span><i>الوقف</i> ${f.ext}</span></div><div style="margin-top:8px"><button class="btn" data-enter="${i}|دعم|fake4">دخلت</button></div></div>`).join(''):'<p class="none">لا يوجد كسر كاذب قائم على فريم 4 ساعات الآن.</p>';
-const CM=D.cmodel;if(CM){document.getElementById('cmtr').textContent=CM.n_train.toLocaleString('en');document.getElementById('cmte').textContent=CM.n_test.toLocaleString('en');document.getElementById('cmts').textContent=CM.since||'2015';
-document.getElementById('cmtb').innerHTML='<tr><th>الدرجة</th><th>لمس الهدف فعلياً</th><th>عدد الإشارات</th></tr>'+['A','B','C'].map(g=>`<tr><td>${g}</td><td class="n">${CM.test[g][1]}%</td><td class="n">${CM.test[g][0].toLocaleString('en')}</td></tr>`).join('')+`<tr><td>بدون نموذج</td><td class="n">${CM.base_test}%</td><td class="n">${CM.n_test.toLocaleString('en')}</td></tr>`}
-const PF=D.perf||{cats:{},recent:[],total:0,since:''};const PN={'fake|A':'كسر كاذب أسبوعي · درجة A','fake|B':'كسر كاذب أسبوعي · درجة B','fake|C':'كسر كاذب أسبوعي · درجة C','fake4':'كسر كاذب 4 ساعات','ct|panic':'عكس المتداولين · هبوط حاد','ct|lo52':'عكس المتداولين · قاع 52 أسبوعاً'};
-document.getElementById('pfs').textContent=PF.since;document.getElementById('pft').textContent=PF.total;
-document.getElementById('pfc').innerHTML=Object.keys(PN).filter(k=>PF.cats[k]).map(k=>{const c=PF.cats[k];return `<div class="fi"><b>${PN[k]}</b> <span class="pill ${c.on?'sup':'res'}">${c.on?'فعّال':'موقوف تلقائياً'}</span><div class="fg"><span><i>اقتراحات</i>${c.n}</span><span><i>مفتوحة</i>${c.open}</span><span><i>صح / خطأ</i>${c.w} / ${c.l}</span><span><i>نسبة الصح الفعلية</i>${c.rate==null?'—':c.rate+'%'}</span><span><i>المتوقع من الاختبار</i>${c.prior}%</span><span><i>التقدير المعدّل</i>${c.adj}%</span></div></div>`}).join('');
-document.getElementById('pfm').innerHTML=[['نموذج الكسر الكاذب الأسبوعي',D.model],['نموذج عكس المتداولين',D.cmodel]].filter(x=>x[1]&&x[1].auc_new!=null).map(([n,m])=>`<div class="fi"><b>${n}</b> <span class="pill ${m.retrained?'sup':'wn'}">${m.retrained?'نسخة مُعاد تدريبها':'النسخة الأصلية ما زالت الأفضل'}</span><div class="fg"><span><i>إشارات تاريخية مستخدمة</i>${m.total.toLocaleString('en')}</span><span><i>فترة الاختبار منذ</i>${m.since}</span><span><i>قدرة تمييز النسخة الجديدة</i>${m.auc_new}</span><span><i>قدرة تمييز النسخة السابقة</i>${m.auc_old}</span></div></div>`).join('')||'<p class="none">إعادة التدريب غير متاحة في هذا التشغيل؛ النماذج الأصلية مستخدمة.</p>';
-const LB=PF.labs||{},pc=x=>x==null?'—':(x>0?'+':'')+x+'%';
-const rule=(r,k)=>[r.T?`هدف +${Math.round(r.T*100)}%`:'بدون هدف',r.S=='wick'?'وقف: إغلاق تحت الذيل':r.S?`وقف −${Math.round(r.S*100)}%`:'بدون وقف',({all:'كل الدرجات',AB:'درجات A و B',A:'درجة A فقط'})[r.f],k=='ct'?'مدة 60 يوم تداول':'مدة 13 أسبوعاً'].join(' · ');
-document.getElementById('lbn').textContent=Object.values(LB).reduce((a,v)=>a+(v?v.sims:0),0).toLocaleString('en');
-document.getElementById('lbc').innerHTML=[['fake','الكسر الكاذب الأسبوعي (وسط النطاق)'],['ct','عكس المتداولين']].filter(x=>LB[x[0]]).map(([k,n])=>{const v=LB[k],row=(nm,r,cls)=>`<div style="margin-top:8px"><b class="${cls}">${nm}</b> <span class="note">${rule(r,k)}</span><div class="fg"><span><i>متوسط الصفقة (بيانات قديمة)</i>${pc(r.tr.avg)}</span><span><i>نسبة الصح · عدد الصفقات</i>${r.tr.win}% · ${r.tr.n.toLocaleString('en')}</span><span><i>متوسط الصفقة (سنوات لم ترها)</i>${pc(r.va.avg)}</span><span><i>نسبة الصح · عدد الصفقات</i>${r.va.win}% · ${r.va.n.toLocaleString('en')}</span></div></div>`;
-return `<div class="fi"><b>${n}</b> <span class="note">${v.signals.toLocaleString('en')} إشارة تاريخية · الاختبار منذ ${v.since}</span>${row('القاعدة الفائزة',v.champ,'sup')}${row('القاعدة السابقة',v.base,'')}</div>`}).join('')||'<p class="none">المختبر غير متاح في هذا التشغيل.</p>';
-const PP=PF.paper;if(PP){const a=PP.all,c=PP.champ;document.getElementById('lbp').innerHTML=`<div class="k"><b>${a.n}</b><span>صفقة تجريبية (${a.pending} بانتظار الدخول، ${a.open} مفتوحة، ${a.closed} مغلقة)</span></div><div class="k"><b class="${(a.total||0)>=0?'sup':'res'}">${pc(a.total)}</b><span>مجموع نتائج المغلقة · نسبة الصح ${a.win==null?'—':a.win+'%'}</span></div><div class="k"><b>${pc(c.closed?c.total:null)}</b><span>الصفقات المطابقة للقاعدة الفائزة فقط (${c.n} صفقة، ${c.closed} مغلقة)</span></div>`;
-document.getElementById('lbr').innerHTML=PP.recent.length?PP.recent.map(e=>`<div class="fi"><b class="sym">${e.s}</b> <span class="pill ${e.ret>0?'sup':'res'}">${pc(e.ret)}</span> <span class="note">دخول ${e.entry} · خروج ${e.exit}</span></div>`).join(''):'<p class="none">لم تُغلق أي صفقة تجريبية بعد. أول الصفقات تدخل عند افتتاح الجلسة القادمة.</p>'}
-const KN={fake:'كسر كاذب أسبوعي',fake4:'كسر كاذب 4 ساعات',ct:'عكس المتداولين'};
-document.getElementById('pfr').innerHTML=PF.recent.length?PF.recent.map(e=>`<div class="fi"><b class="sym">${e.s}</b> <span class="pill ${e.status=='win'?'sup':'res'}">${e.status=='win'?'صح':'خطأ'}</span> <span class="note">${KN[e.kind]} · إشارة ${e.d} · حُسمت ${e.res}</span><div class="tg"><span><i>سعر الإشارة</i> ${e.entry}</span><span><i>الهدف</i> ${e.tgt}</span></div></div>`).join(''):'<p class="none">لم يُحسم أي اقتراح بعد. النتائج تظهر هنا تلقائياً مع التحديث اليومي.</p>';
+const VD={win:['العكس نجح','sup'],lose:['المتداولون على حق','res'],none:['لا فرق واضح','wn']},KN={fake:'كسر كاذب أسبوعي',fake4:'كسر كاذب 4 ساعات',ct:'سلوك المتداولين'},ACT={buy_contra:['شراء عكس المتداولين','sup'],buy_with:['شراء مع المتداولين','sup'],avoid:['تجنّب الشراء','res']};
+const catName=k=>k.startsWith('fake|')?'كسر كاذب أسبوعي · درجة '+k.slice(5):k=='fake4'?'كسر كاذب 4 ساعات':'سلوك المتداولين · '+((CL[k.slice(3)]||[k])[0]);
+const gradeTable=(m,mid)=>'<tr><th>الدرجة</th><th>نجاح فعلي</th>'+(mid?'<th>نجاح فعلي (إشارات الوسط)</th>':'<th>عدد الإشارات</th>')+'</tr>'+['A','B','C'].map(g=>`<tr><td>${g}</td><td class="n">${m.test[g][1]??'—'}%${mid?` <span class="note">(${m.test[g][0]})</span>`:''}</td><td class="n">${mid?`${m.test_mid[g][1]??'—'}% <span class="note">(${m.test_mid[g][0]})</span>`:num(m.test[g][0])}</td></tr>`).join('')+`<tr><td>بدون نموذج</td><td class="n">${m.base_test}%</td><td class="n">${mid?(m.base_test_mid??'—')+'%':num(m.n_test)}</td></tr>`;
+function render(){
+ D=ALL[MKT];const us=MKT=='us';
+ $('sub').textContent=(us?'أسهم S&P 500 الأمريكية':'أسهم السوق السعودي (تداول)')+' · '+D.stocks+' سهماً · آخر تحديث: '+DATE;
+ document.querySelectorAll('#mk button').forEach(b=>{b.classList.toggle('on',b.dataset.mk==MKT);b.hidden=!ALL[b.dataset.mk]});
+ document.querySelectorAll('[data-only]').forEach(e=>e.hidden=e.dataset.only!=MKT);
+ // false breakouts
+ const MI=D.model;F=D.fake||[];
+ $('fknote').textContent=us?'في اختبار تاريخي على إشارات الوسط (1,881 إشارة): وصل السعر +5% قبل الوقف في 60%، و+8% في 49%.':(MI&&MI.base_test_mid!=null?`النمط أضعف في السوق السعودي: إشارات الوسط الحديثة وصلت +5% قبل الوقف في ${MI.base_test_mid}% فقط، مقابل نحو 60% في السوق الأمريكي.`:'');
+ const fst=f=>{const adv=f.side=='دعم'?f.chg:-f.chg;return adv>=2.5?'<span class="pill wn">قطع نصف الطريق للهدف 1</span>':'<span class="pill sup">لم يتحرك للهدف بعد</span>'};
+ $('fk').innerHTML=F.length?F.map((f,i)=>`<div class="fi">${sym(f.s)} <span class="pill ${f.side=='دعم'?'sup':'res'}">${f.side=='دعم'?'شراء':'نزول، ليس شراء'}</span> ${f.grade?`<span class="pill ${GP[f.grade]}">درجة ${f.grade} · ${f.adj??f.pr}%</span>`:''} ${fst(f)}<div class="fg"><span><i>المستوى</i>${f.level}</span><span><i>${f.side=='دعم'?'أدنى سعر':'أعلى سعر'}</i>${f.ext}</span><span><i>الاختراق</i>${f.pen}%</span><span><i>إغلاق الإشارة</i>${f.close}</span><span><i>السعر الآن</i>${f.cur} (${sg(f.chg)})</span><span><i>أسبوع الإشارة</i>${f.wk}</span><span><i>الموقع في نطاق السنة</i>${f.pos}%</span><span><i>الارتدادات</i>${f.holds}</span><span><i>النمط</i>${f.kind}</span></div><div class="tg"><span><i>هدف 1</i> ${f.T[0]}</span><span><i>هدف 2</i> ${f.T[1]}</span><span><i>هدف 3</i> ${f.T[2]}</span><span><i>الوقف</i> ${f.ext}</span></div>${f.side!='دعم'?'':`<div style="margin-top:8px"><button class="btn" data-enter="${i}|شراء|fake">دخلت</button></div>`}</div>`).join(''):'<p class="none">لا يوجد كسر كاذب قائم الآن في وسط النطاق.</p>';
+ if(MI){$('mtr').textContent=num(MI.n_train);$('mte').textContent=num(MI.n_test);$('mts').textContent=MI.since||'2015';$('mtb').innerHTML=MI.test_mid?gradeTable(MI,true):gradeTable(MI,false);
+  $('mnote').textContent=(!us&&!MI.retrained?`الإشارات التاريخية في السوق السعودي قليلة (${num(MI.total)})، فالنموذج المستخدم هو المدرَّب على السوق الأمريكي بعد اختباره على الإشارات السعودية الحديثة أعلاه. يُستبدل تلقائياً بنموذج سعودي عندما تكفي البيانات ويثبت أنه أفضل. `:'')+'النموذج يرفع الاحتمال ولا يضمن الصفقة. الأفضل تجنّب الدرجة C. لا يُطبّق على إشارات النزول.'}
+ $('sec4h').hidden=!D.h4;F4=D.fake4||[];
+ $('fk4').innerHTML=F4.length?F4.map((f,i)=>`<div class="fi">${sym(f.s)} <span class="pill sup">شراء</span> <span class="pill sup">لم يتحرك للهدف بعد</span><div class="fg"><span><i>المستوى</i>${f.level}</span><span><i>أدنى سعر</i>${f.ext}</span><span><i>الاختراق</i>${f.pen}%</span><span><i>إغلاق الإشارة</i>${f.close}</span><span><i>السعر الآن</i>${f.cur} (${sg(f.chg)})</span><span style="font-family:var(--f)"><i>شمعة الإشارة</i>${f.wk}</span><span><i>الموقع في نطاق السنة</i>${f.pos}%</span><span><i>الارتدادات</i>${f.holds}</span></div><div class="tg"><span><i>هدف 1 (3%)</i> ${f.T[0]}</span><span><i>هدف 2 (5%)</i> ${f.T[1]}</span><span><i>هدف 3 (8%)</i> ${f.T[2]}</span><span><i>الوقف</i> ${f.ext}</span></div><div style="margin-top:8px"><button class="btn" data-enter="${i}|شراء|fake4">دخلت</button></div></div>`).join(''):'<p class="none">لا يوجد كسر كاذب قائم على فريم 4 ساعات الآن.</p>';
+ // crowd behaviour
+ const CT=D.ct||{st:{},cand:[],n:0};$('ctn').textContent=num(CT.n);
+ $('cts').innerHTML=Object.keys(CL).filter(k=>CT.st[k]).sort((a,b)=>'win none lose'.indexOf(CT.st[a].vd)-'win none lose'.indexOf(CT.st[b].vd)).map(k=>{const s=CT.st[k],L=CL[k],v=VD[s.vd];return `<div class="fi"><b>${L[0]}</b> <span class="pill ${v[1]}">${v[0]}</span><div class="fg"><span style="font-family:var(--f)"><i>المتداولون</i>${L[1]}</span><span style="font-family:var(--f)"><i>العكس</i>${L[2]}</span><span><i>عدد الحالات</i>${num(s.n)}</span><span><i>متوسط العائد بعد 60 يوماً</i>${sg(s.raw60)}</span><span><i>الفرق عن بقية السوق</i>${sg(s.ex60)}</span><span><i>النصف الأول / الثاني من التاريخ</i>${sg(s.h1)} / ${sg(s.h2)}</span></div></div>`}).join('');
+ CC=CT.cand.map(c=>{const buy=c.act!='avoid',raw=CT.st[c.k].raw60,tgt=c.tgt??+(c.sig*(1+raw/100)).toFixed(2);let st=['لم يتحرك بعد','sup'],o=0;
+  if(buy){if(Math.max(c.cur,c.mx||0)>=tgt)o=2;else if(c.chg>=raw/2){st=['قطع نصف الطريق للهدف','wn'];o=1}else if(c.chg<=-8){st=['نزل أكثر بعد الإشارة — انتظر استقراراً','res'];o=1}}
+  return {...c,buy,tgt,st,o}}).filter(c=>c.o<2).sort((a,b)=>(b.buy-a.buy)||((b.adj??b.pr??0)-(a.adj??a.pr??0))||b.date.localeCompare(a.date));
+ $('ctc').innerHTML=CC.length?CC.map((c,i)=>`<div class="fi">${sym(c.s)} <span class="pill ${ACT[c.act][1]}">${ACT[c.act][0]}</span> ${c.buy&&c.grade?`<span class="pill ${GP[c.grade]}">درجة ${c.grade} · ${c.adj??c.pr}%</span>`:''} ${c.buy?`<span class="pill ${c.st[1]}">${c.st[0]}</span>`:''}<div class="fg"><span style="font-family:var(--f)"><i>الإشارة</i>${CL[c.k][0]}</span><span><i>التاريخ</i>${c.date}</span><span><i>سعر الإشارة</i>${c.sig}</span><span><i>السعر الآن</i>${c.cur} (${sg(c.chg)})</span>${c.buy?`<span><i>الهدف (متوسط 60 يوماً)</i>${c.tgt}</span>`:''}</div>${c.buy?`<div style="margin-top:8px"><button class="btn" data-enter="${i}|شراء|ct">دخلت</button></div>`:''}</div>`).join(''):'<p class="none">لا توجد إشارات مدعومة بالدراسة في هذا السوق خلال آخر 10 أيام تداول.</p>';
+ const CM=D.cmodel;if(CM&&us){$('cmtr').textContent=num(CM.n_train);$('cmte').textContent=num(CM.n_test);$('cmts').textContent=CM.since||'2015';$('cmtb').innerHTML=gradeTable(CM,false)}
+ // performance
+ const PF=D.perf||{cats:{},recent:[],total:0,since:''};$('pfs').textContent=PF.since;$('pft').textContent=PF.total;
+ $('pfc').innerHTML=Object.keys(PF.cats).filter(k=>us||k.startsWith('fake|')||PF.cats[k].n>0).map(k=>{const c=PF.cats[k];return `<div class="fi"><b>${catName(k)}</b> <span class="pill ${c.on?'sup':'res'}">${c.on?'فعّال':'موقوف تلقائياً'}</span><div class="fg"><span><i>اقتراحات</i>${c.n}</span><span><i>مفتوحة</i>${c.open}</span><span><i>صح / خطأ</i>${c.w} / ${c.l}</span><span><i>نسبة الصح الفعلية</i>${c.rate==null?'—':c.rate+'%'}</span><span><i>المتوقع من الاختبار</i>${c.prior}%</span><span><i>التقدير المعدّل</i>${c.adj}%</span></div></div>`}).join('');
+ const LB=PF.labs||{},rule=(r,k)=>[r.T?`هدف +${Math.round(r.T*100)}%`:'بدون هدف',r.S=='wick'?'وقف: إغلاق تحت الذيل':r.S?`وقف −${Math.round(r.S*100)}%`:'بدون وقف',({all:'كل الدرجات',AB:'درجات A و B',A:'درجة A فقط'})[r.f],k=='ct'?'مدة 60 يوم تداول':'مدة 13 أسبوعاً'].join(' · ');
+ $('lbn').textContent=num(Object.values(LB).reduce((a,v)=>a+(v?v.sims:0),0));
+ $('lbc').innerHTML=[['fake','الكسر الكاذب الأسبوعي (وسط النطاق)'],['ct','شراء الأسهم الهابطة (هبوط حاد، قاع 52 أسبوعاً)']].map(([k,n])=>{const v=LB[k];if(!v)return `<div class="fi"><b>${n}</b><p class="none">الإشارات التاريخية في هذا السوق أقل من أن تكفي لاختبار موثوق.</p></div>`;
+  const row=(t,r,cls)=>`<div style="margin-top:8px"><b class="${cls}">${t}</b> <span class="note">${rule(r,k)}</span><div class="fg"><span><i>متوسط الصفقة (بيانات قديمة)</i>${pc(r.tr.avg)}</span><span><i>نسبة الصح · عدد الصفقات</i>${r.tr.win}% · ${num(r.tr.n)}</span><span><i>متوسط الصفقة (سنوات لم ترها)</i>${pc(r.va.avg)}</span><span><i>نسبة الصح · عدد الصفقات</i>${r.va.win}% · ${num(r.va.n)}</span></div></div>`;
+  return `<div class="fi"><b>${n}</b> <span class="note">${num(v.signals)} إشارة تاريخية · الاختبار منذ ${v.since}</span>${v.valid_ok?row('القاعدة الفائزة',v.champ,'sup'):`<p class="none res" style="margin-top:8px">لا توجد قاعدة رابحة على السنوات الأخيرة في هذا السوق. أفضل قاعدة على البيانات القديمة خسرت عند اختبارها:</p>`+row('أفضل قاعدة قديمة',v.champ,'res')}${row('القاعدة الأساسية',v.base,'')}</div>`}).join('');
+ const PP=PF.paper;if(PP){const a=PP.all,c=PP.champ;$('lbp').innerHTML=`<div class="k"><b>${a.n}</b><span>صفقة تجريبية (${a.pending} بانتظار الدخول، ${a.open} مفتوحة، ${a.closed} مغلقة)</span></div><div class="k"><b class="${(a.total||0)>=0?'sup':'res'}">${pc(a.total)}</b><span>مجموع نتائج المغلقة · نسبة الصح ${a.win==null?'—':a.win+'%'}</span></div><div class="k"><b>${pc(c.closed?c.total:null)}</b><span>الصفقات المطابقة للقاعدة الفائزة فقط (${c.n} صفقة، ${c.closed} مغلقة)</span></div>`;
+  $('lbr').innerHTML=PP.recent.length?PP.recent.map(e=>`<div class="fi">${sym(e.s)} <span class="pill ${e.ret>0?'sup':'res'}">${pc(e.ret)}</span> <span class="note">دخول ${e.entry} · خروج ${e.exit}</span></div>`).join(''):'<p class="none">لم تُغلق أي صفقة تجريبية بعد.</p>'}
+ $('pfm').innerHTML=[['نموذج الكسر الكاذب الأسبوعي',D.model],['نموذج شراء الأسهم الهابطة',D.cmodel]].filter(x=>x[1]&&x[1].auc_old!=null).map(([n,m])=>`<div class="fi"><b>${n}</b> <span class="pill ${m.retrained?'sup':'wn'}">${m.retrained?'نسخة مُعاد تدريبها على هذا السوق':us?'النسخة الأصلية ما زالت الأفضل':'النموذج الأمريكي ما زال الأفضل هنا'}</span><div class="fg"><span><i>إشارات تاريخية في هذا السوق</i>${num(m.total)}</span><span><i>فترة الاختبار منذ</i>${m.since}</span><span><i>قدرة تمييز النسخة الجديدة</i>${m.auc_new??'بيانات غير كافية'}</span><span><i>قدرة تمييز النسخة المستخدمة سابقاً</i>${m.auc_old}</span></div></div>`).join('')||'<p class="none">البيانات في هذا السوق غير كافية لتقييم النماذج.</p>';
+ $('pfr').innerHTML=PF.recent.length?PF.recent.map(e=>`<div class="fi">${sym(e.s)} <span class="pill ${e.status=='win'?'sup':'res'}">${e.status=='win'?'صح':'خطأ'}</span> <span class="note">${KN[e.kind]} · إشارة ${e.d} · حُسمت ${e.res}</span><div class="tg"><span><i>سعر الإشارة</i> ${e.entry}</span><span><i>الهدف</i> ${e.tgt}</span></div></div>`).join(''):'<p class="none">لم يُحسم أي اقتراح بعد. النتائج تظهر هنا تلقائياً مع التحديث اليومي.</p>';
+}
+render();
+document.querySelectorAll('#mk button').forEach(b=>b.onclick=()=>{MKT=b.dataset.mk;try{localStorage.setItem('rr-mkt',MKT)}catch(e){}render()});
 function go(n){if(!document.querySelector(`[data-tab="${n}"]`))n='radar';document.querySelectorAll('.tab').forEach(e=>e.hidden=e.dataset.tab!=n);document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.go==n));window.scrollTo(0,0)}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{location.hash=b.dataset.go;go(b.dataset.go)});
 addEventListener('hashchange',()=>go(location.hash.slice(1)));go(location.hash.slice(1)||'radar');
-
-const esc=v=>String(v??'').replace(/[&<>"']/g,m=>'&#'+m.charCodeAt(0)+';');let DB=null,TR=[];const jl=document.getElementById('jl'),jst=document.getElementById('jst');
+// trade journal (shared database)
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>'&#'+m.charCodeAt(0)+';');let DB=null,TR=[];const jl=$('jl'),jst=$('jst');
 function jrender(){
  if(!DB){jl.innerHTML='<p class="none">السجل غير متاح هنا. افتح الصفحة وأنت مسجّل الدخول في claude.ai.</p>';jst.innerHTML='';return}
  const done=TR.filter(x=>x.status!='open'),w=done.filter(x=>x.status=='win').length;
  jst.innerHTML=`<div class="k"><b>${TR.length}</b><span>صفقة مسجّلة</span></div><div class="k"><b class="sup">${done.length?Math.round(100*w/done.length)+'%':'—'}</b><span>نسبة الفوز (${w} من ${done.length})</span></div><div class="k"><b>${TR.length-done.length}</b><span>صفقة مفتوحة</span></div>`;
  if(!TR.length){jl.innerHTML='<p class="none">لا توجد صفقات بعد. اضغط «دخلت» على سهم لتبدأ السجل.</p>';return}
  const lab={open:'مفتوحة',win:'فوز',loss:'خسارة'};
- jl.innerHTML=TR.slice().sort((a,b)=>(b.opened||'').localeCompare(a.opened||'')).map(x=>`<div class="jr"><div><b class="sym">${esc(x.s)}</b> <span class="pill ${x.side=='مقاومة'?'res':'sup'}">${esc(x.side)}</span> <span class="note">${({fake4:'كسر كاذب 4 ساعات',fake:'كسر كاذب',zone:'منطقة ارتداد',ct:'عكس المتداولين'})[x.kind]||''} · ${(x.opened||'').slice(0,10)}</span> <b class="st-${x.status}">${lab[x.status]}</b></div>
+ jl.innerHTML=TR.slice().sort((a,b)=>(b.opened||'').localeCompare(a.opened||'')).map(x=>`<div class="jr"><div><b class="sym">${esc(String(x.s||'').replace('.SR',''))}</b> <span class="pill sup">${esc(x.side)}</span> <span class="note">${({fake4:'كسر كاذب 4 ساعات',fake:'كسر كاذب',zone:'منطقة ارتداد',ct:'سلوك المتداولين'})[x.kind]||''} · ${(x.opened||'').slice(0,10)}</span> <b class="st-${x.status}">${lab[x.status]}</b></div>
  <div class="tg"><span><i>الدخول</i> ${esc(x.entry)}</span><span><i>المستوى</i> ${esc(x.level)}</span>${x.stop?`<span><i>الوقف</i> ${esc(x.stop)}</span>`:''}</div>
  <div class="acts">${x.status=='open'?`<button class="btn w" data-res="${esc(x.id)}|win">فزت</button><button class="btn l" data-res="${esc(x.id)}|loss">خسرت</button>`:`<button class="btn x" data-res="${esc(x.id)}|open">إعادة فتح</button>`}<button class="btn x" data-del="${esc(x.id)}">حذف</button></div></div>`).join('')}
-document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b||b.dataset.go)return;
+function alertMsg(m){jl.insertAdjacentHTML('afterbegin',`<p class="none st-loss">${m}</p>`)}
+document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b||b.dataset.go||b.dataset.mk)return;
+ if(!(b.dataset.enter||b.dataset.res||b.dataset.del))return;
  if(!DB){alertMsg('السجل يحتاج تسجيل الدخول في claude.ai');return}
  try{b.disabled=true;
  if(b.dataset.enter){const[k0,side,kind]=b.dataset.enter.split('|');let r;
-  if(kind=='fake'||kind=='fake4'){const f=(kind=='fake'?F:F4)[+k0];r={s:f.s,side,kind,entry:f.cur,level:f.level,stop:f.ext,holds:f.holds,pen:f.pen}}
-  else if(kind=='ct'){const c=CC[+k0];r={s:c.s,side:'شراء',kind,entry:c.cur,level:c.sig,stop:null,sig:c.k}}
-  else{const c=D.cur.find(c=>c.s==k0);r={s:c.s,side,kind,entry:c.price,level:c.level,stop:null,holds:c.holds,br:c.br}}
-  await DB.collection('trades').add({...r,status:'open',opened:new Date().toISOString()});b.textContent='سُجّلت ✓'}
+  if(kind=='ct'){const c=CC[+k0];r={s:c.s,side,kind,entry:c.cur,level:c.sig,stop:null,sig:c.k}}
+  else{const f=(kind=='fake'?F:F4)[+k0];r={s:f.s,side,kind,entry:f.cur,level:f.level,stop:f.ext,holds:f.holds,pen:f.pen}}
+  await DB.collection('trades').add({...r,mk:MKT,status:'open',opened:new Date().toISOString()});b.textContent='سُجّلت ✓'}
  else if(b.dataset.res){const[id,st]=b.dataset.res.split('|');await DB.collection('trades').doc(id).update({status:st,closed:st=='open'?null:new Date().toISOString()})}
  else if(b.dataset.del){await DB.collection('trades').doc(b.dataset.del).delete()}
  }catch(err){alertMsg('لم يُحفظ: '+(err&&err.message||err))}finally{if(!b.dataset.enter)b.disabled=false;else setTimeout(()=>{b.disabled=false;b.textContent='دخلت'},2500)}});
-function alertMsg(m){jl.insertAdjacentHTML('afterbegin',`<p class="none st-loss">${m}</p>`)}
 jl.innerHTML='<p class="none">جاري تحميل السجل…</p>';
 (async()=>{const db=window.claude?.use?await window.claude.use('db'):null;DB=db;if(!db){jrender();return}
  const tm=setTimeout(()=>{if(!TR.length)jl.innerHTML='<p class="none">تعذّر الوصول إلى السجل الآن. حاول لاحقاً.</p>'},10000);
