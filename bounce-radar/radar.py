@@ -18,7 +18,7 @@ def get(s):
             ct=contrarian(s,Dd)  # computed here so the daily rows can be dropped
             if FCOLLECT is not None: fake_hist(list(W.values()))
             I=get4h(s)
-            return list(W.values()),ct,(I[0] if I and MK['h4'] else None),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Dd[-150:]],patterns(s,Dd)+(I[1] if I else [])
+            return list(W.values()),ct,(I[0] if I and MK['h4'] else None),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Dd[-150:]],patterns(s,Dd)+(I[1] if I else []),gaps(s,Dd)
         except Exception: pass
 def get4h(s):
     # One hourly download (about 250 days). Returns (4-hour bars for the weekly-level false breakouts, intraday pattern signals).
@@ -77,6 +77,26 @@ def _tz():
 # Signal: a daily close below the lower line, then within 5 sessions a close back inside. Only the two shapes whose
 # "return inside" trade was profitable in both halves of history and in both markets are reported:
 # falling wedge and falling channel. Target = the pattern's upper line, stop = a close below the breakdown low.
+# --- Gap down in an already beaten-down stock (more than 30% below its 52-week high, opens 2%+ lower).
+# GAP_STATS: what followed such gaps since 2015, by gap size: dd50/dd75/dd90 = typical / deep / extreme further fall
+# within 20 sessions from the next open, dlow = session of the low, r20 = median 20-session return, fill = gap closed.
+GAP_STATS={"us": {"2-4%": {"n": 7219, "day_extra": -2.1, "dd50": -7.5, "dd75": -14.2, "dd90": -21.9, "dlow": 7, "r20": 4.8, "pos": 63, "bounce": 14.0, "fill5": 71, "fill20": 87, "fill60": 95, "ladder": {"3": [70, 5.2], "5": [55, 5.3], "8": [37, 6.1], "12": [22, 8.0]}}, "4-7%": {"n": 2106, "day_extra": -2.9, "dd50": -8.6, "dd75": -16.4, "dd90": -25.0, "dlow": 5, "r20": 7.4, "pos": 65, "bounce": 18.2, "fill5": 61, "fill20": 85, "fill60": 93, "ladder": {"3": [78, 8.3], "5": [64, 8.4], "8": [44, 8.8], "12": [29, 9.0]}}, "7-12%": {"n": 766, "day_extra": -4.5, "dd50": -12.2, "dd75": -22.2, "dd90": -37.1, "dlow": 4, "r20": 9.3, "pos": 68, "bounce": 29.0, "fill5": 49, "fill20": 79, "fill60": 90, "ladder": {"3": [84, 12.8], "5": [74, 13.9], "8": [60, 15.4], "12": [45, 17.5]}}, ">12%": {"n": 318, "day_extra": -4.1, "dd50": -14.6, "dd75": -26.7, "dd90": -41.4, "dlow": 4, "r20": 8.2, "pos": 68, "bounce": 29.9, "fill5": 18, "fill20": 53, "fill60": 74, "ladder": {"3": [85, 11.9], "5": [76, 13.8], "8": [62, 17.2], "12": [51, 21.9]}}}, "sa": {"2-4%": {"n": 3062, "day_extra": -1.1, "dd50": -6.0, "dd75": -11.4, "dd90": -18.7, "dlow": 6, "r20": 1.8, "pos": 57, "bounce": 9.4, "fill5": 70, "fill20": 86, "fill60": 92, "ladder": {"3": [59, 1.7], "5": [42, 2.1], "8": [26, 2.8], "12": [14, 3.4]}}, "4-7%": {"n": 1203, "day_extra": -1.0, "dd50": -5.7, "dd75": -10.3, "dd90": -17.7, "dlow": 4, "r20": 4.1, "pos": 64, "bounce": 11.5, "fill5": 57, "fill20": 80, "fill60": 87, "ladder": {"3": [60, 4.4], "5": [43, 5.1], "8": [26, 5.3], "12": [13, 5.1]}}, "7-12%": {"n": 863, "day_extra": 0.0, "dd50": -6.1, "dd75": -11.7, "dd90": -19.6, "dlow": 4, "r20": 5.1, "pos": 66, "bounce": 13.5, "fill5": 46, "fill20": 72, "fill60": 85, "ladder": {"3": [70, 5.0], "5": [53, 5.3], "8": [35, 5.7], "12": [21, 5.2]}}}}
+def gaps(s,Dd):
+    now=ny_now()
+    if Dd and ny_date(Dd[-1][0])==now.date() and (now.hour,now.minute)<MK['close']: Dd=Dd[:-1]
+    n=len(Dd)
+    if n<300: return []
+    c=[x[4] for x in Dd];cur=c[-1]
+    for i in range(n-1,n-6,-1):   # most recent gap in the last 5 sessions
+        pc=c[i-1];g=Dd[i][1]/pc-1
+        if g>-0.02 or pc>=0.7*max(c[i-253:i-1]): continue
+        if max(x[2] for x in Dd[i:])>=pc: return []   # gap already closed: target reached
+        b='2-4%' if g>-0.04 else '4-7%' if g>-0.07 else '7-12%' if g>-0.12 else '>12%';st=GAP_STATS[MK['id']].get(b)
+        if not st: return []
+        ref=Dd[i+1][1] if i+1<n else c[i]   # the study's entry: the open after the gap day
+        return [dict(s=s,date=ny_date(Dd[i][0]).isoformat(),gap=round(g*100,1),b=b,pc=round(pc,2),ref=round(ref,2),cur=round(cur,2),chg=round((cur/ref-1)*100,1),age=n-1-i,
+            low=round(min(x[3] for x in Dd[i:]),2),typ=round(ref*(1+st['dd50']/100),2),deep=round(ref*(1+st['dd75']/100),2),ext=round(ref*(1+st['dd90']/100),2),up=round((pc/cur-1)*100,1))]
+    return []
 PAT_STATS={"us": {"d": {"falling_wedge": {"n": 573, "far": 81, "stopd": 19, "rew": 3.9, "risk": 5.3, "exp": 1.93}, "down_channel": {"n": 1065, "far": 54, "stopd": 41, "rew": 11.2, "risk": 6.0, "exp": 3.0}}, "h4": {"falling_wedge": {"n": 68, "far": 71, "stopd": 29, "rew": 2.9, "risk": 2.9, "exp": 1.39}, "down_channel": {"n": 133, "far": 47, "stopd": 50, "rew": 7.9, "risk": 3.3, "exp": 1.92}}, "h1": {"falling_wedge": {"n": 198, "far": 79, "stopd": 21, "rew": 1.6, "risk": 1.9, "exp": 0.79}, "down_channel": {"n": 446, "far": 56, "stopd": 43, "rew": 4.0, "risk": 1.8, "exp": 1.22}}}, "sa": {"d": {"falling_wedge": {"n": 142, "far": 73, "stopd": 27, "rew": 3.7, "risk": 4.8, "exp": 1.31}, "down_channel": {"n": 304, "far": 52, "stopd": 44, "rew": 10.4, "risk": 6.2, "exp": 3.03}}, "h4": {"falling_wedge": {"n": 65, "far": 60, "stopd": 40, "rew": 2.9, "risk": 3.1, "exp": 0.49}, "down_channel": {"n": 119, "far": 57, "stopd": 42, "rew": 5.9, "risk": 3.5, "exp": 2.05}}, "h1": {"falling_wedge": {"n": 138, "far": 72, "stopd": 28, "rew": 1.2, "risk": 2.2, "exp": 0.23}, "down_channel": {"n": 268, "far": 46, "stopd": 50, "rew": 4.3, "risk": 2.2, "exp": 1.13}}}}
 PAT_ALL={"us": {"d": {"n": 16713, "far": 39, "stopd": 43, "exp": 0.16}, "h4": {"n": 1764, "far": 37, "stopd": 50, "exp": 0.04}, "h1": {"n": 5713, "far": 41, "stopd": 45, "exp": -0.03}}, "sa": {"d": {"n": 2104, "far": 41, "stopd": 46, "exp": 0.11}, "h4": {"n": 761, "far": 38, "stopd": 53, "exp": 0.04}, "h1": {"n": 1995, "far": 40, "stopd": 47, "exp": -0.05}}}
 # per timeframe: line-fit tolerance, breakout margin, minimum slope to call a line falling, minimum width,
@@ -342,7 +362,7 @@ def fakeouts(s,lv,B):
 # background and is switched back on if its record recovers.
 LOGF=os.path.join(H,'log.txt')
 PRIOR={'fake|A':(68,20),'fake|B':(66,20),'fake|C':(57,20),'fake4':(60,20),'ct|panic':(71,20),'ct|lo52':(78,20)}  # (expected win %, weight)
-HORIZON={'fake':91,'fake4':45,'ct':88,'pat':60,'pat4':30,'pat1':14}  # calendar days before an unresolved suggestion counts as a miss
+HORIZON={'gap':30,'fake':91,'fake4':45,'ct':88,'pat':60,'pat4':30,'pat1':14}  # calendar days before an unresolved suggestion counts as a miss
 def resolve(e,tl,now):
     # returns ('win'|'loss', date) or None while still open
     d0=d.date.fromisoformat(e['d'])
@@ -360,7 +380,7 @@ def resolve(e,tl,now):
     if loss: return 'loss',loss
     if (now.date()-d0).days>HORIZON[e['kind']]: return 'loss',now.date().isoformat()
     return None
-def selflearn(fake,fake4,ccand,tails,labs,pats=()):
+def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=()):
     now=ny_now();today=now.date().isoformat()
     try: log=json.load(open(LOGF,encoding='utf8'))
     except Exception: log=[]
@@ -374,6 +394,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=()):
         return i
     for f in fake:
         if f['side']=='دعم': f['cat']='fake|'+(f.get('grade') or 'B');f['lid']=add('fake',f['s'],f['wk'],f['level'],f['close'],f['T'][0],f['ext'],f['cat'],f.get('pr'),f.get('grade'))
+    for g in gps: g['cat']='gap|'+g['b'];g['lid']=add('gap',g['s'],g['date'],g['b'],g['ref'],g['pc'],None,g['cat'],None)
     for p in pats:
         kd={'d':'pat','h4':'pat4','h1':'pat1'}[p['tf']];p['cat']=kd+'|'+p['typ'];p['lid']=add(kd,p['s'],p['date'][:10],p['typ']+'|'+p['date'][10:],p['close'],p['tgt'],p['stop'],p['cat'],None)
     for f in fake4: f['cat']='fake4';f['lid']=add('fake4',f['s'],f['wk'][:10],f['level'],f['close'],f['T'][0],f['ext'],'fake4',None)
@@ -398,6 +419,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=()):
             if r: e['status'],e['res']=r;done.append(e)
     cats={}
     pri=dict(PRIOR)
+    for b,v in GAP_STATS[MK['id']].items(): pri['gap|'+b]=(v['fill20'],20)   # expected: the gap closes within 20 sessions
     for tf,kd in (('d','pat'),('h4','pat4'),('h1','pat1')):  # expected hit rate of each pattern on this market and timeframe
         for typ,v in PAT_STATS[MK['id']].get(tf,{}).items(): pri[kd+'|'+typ]=(round(100*v['far']/max(1,v['far']+v['stopd'])),20)
     tm=MODEL['info'].get('test_mid') or MODEL['info'].get('test') or {}
@@ -413,13 +435,14 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=()):
         if 'cat' in f and f.get('pr') is not None: f['adj']=max(1,min(99,f['pr']+cats[f['cat']]['adj']-cats[f['cat']]['prior']))
     for x in fake4: x['adj']=cats['fake4']['adj']
     for p in pats: p['adj']=cats[p['cat']]['adj']
+    for g in gps: g['adj']=cats[g['cat']]['adj']
     for c in ccand:
         if 'cat' in c and c.get('pr') is not None: c['adj']=max(1,min(99,c['pr']+cats[c['cat']]['adj']-cats[c['cat']]['prior']))
     ok=lambda x:'cat' not in x or cats[x['cat']]['on']
     recent=sorted([e for e in mine if e['status']!='open'],key=lambda e:e['res'],reverse=True)[:25]
     perf=dict(cats=cats,paper=pp,labs=labs,total=len(mine),recent=[dict(s=e['s'],kind=e['kind'],d=e['d'],res=e['res'],status=e['status'],entry=e['entry'],tgt=e['tgt']) for e in recent],
         today=[dict(s=e['s'],kind=e['kind'],status=e['status']) for e in done],since=min([e['first'] for e in mine],default=today))
-    return [f for f in fake if ok(f)],[f for f in fake4 if ok(f)],[c for c in ccand if ok(c)],[p for p in pats if ok(p)],perf
+    return [f for f in fake if ok(f)],[f for f in fake4 if ok(f)],[c for c in ccand if ok(c)],[p for p in pats if ok(p)],[g for g in gps if ok(g)],perf
 # --- Continuous learning: every run rebuilds the full history of signals and their outcomes, refits each scoring
 # model on everything except the most recent years, and compares it there (data it never saw) with the model in use.
 # The challenger replaces the champion only if it separates wins from losses better on that recent period.
@@ -495,7 +518,7 @@ def relearn(data,old,years,pos_idx=None):
 # forward with the champion rule (virtual money only: nothing is ever sent to a broker).
 COST=0.002  # round-trip cost assumed per simulated trade
 GRID={'ct':([0.04,0.06,0.08,0.10,0.15,None],[0.05,0.08,0.12,0.20,None],(0.06,None)),'fake':([0.03,0.05,0.08,0.12,None],['wick',0.05,0.08,0.12,None],(0.05,'wick'))}
-MAXD={'ct':60,'fake':65,'fake4':30,'pat':40,'pat4':20,'pat1':7};DEFAULT_PT={'pat':dict(T=None,S='wick',f='all'),'pat4':dict(T=None,S='wick',f='all'),'pat1':dict(T=None,S='wick',f='all'),'ct':dict(T=0.06,S=None,f='all'),'fake':dict(T=0.05,S='wick',f='all'),'fake4':dict(T=0.03,S='wick',f='all')}
+MAXD={'gap':20,'ct':60,'fake':65,'fake4':30,'pat':40,'pat4':20,'pat1':7};DEFAULT_PT={'gap':dict(T=None,S=None,f='all'),'pat':dict(T=None,S='wick',f='all'),'pat4':dict(T=None,S='wick',f='all'),'pat1':dict(T=None,S='wick',f='all'),'ct':dict(T=0.06,S=None,f='all'),'fake':dict(T=0.05,S='wick',f='all'),'fake4':dict(T=0.03,S='wick',f='all')}
 def lab(kind,data,model,years,pos_idx=None):
     try: import numpy as np
     except Exception: return None
@@ -610,10 +633,10 @@ def run_market(mid,base):
         print(P+'ERROR',f'only {okn} of {len(S)} stocks downloaded (index data: {bool(SPY)})');return None
     MODEL=relearn(FCOLLECT,MODEL,5,FEATS.index('pos'));CMODEL=relearn(COLLECT,CMODEL,3)
     labs={'fake':lab('fake',FCOLLECT,MODEL,5,FEATS.index('pos')),'ct':plab(COLLECT,CMODEL,[x[0] for x in data if x])}
-    fake=[];fake4=[];tails={};pats=[]
+    fake=[];fake4=[];tails={};pats=[];gps=[]
     for s,X in zip(S,data):
         if not X or len(X[0])<260: continue
-        B,ct,X4,tl,pts=X;tails[s]=tl;pats+=pts
+        B,ct,X4,tl,pts,gp=X;tails[s]=tl;pats+=pts;gps+=gp
         if ct:
             cev+=ct[0];ccand+=ct[2]
             for m,x in ct[1].items():
@@ -642,7 +665,8 @@ def run_market(mid,base):
     ccand=keep
     for c in ccand: c.pop('f',None)
     pats.sort(key=lambda p:({'d':0,'h4':1,'h1':2}[p['tf']],p['age'],-p['rew']/max(p['risk'],0.1)))
-    fake,fake4,ccand,pats,perf=selflearn(fake,fake4,ccand,tails,labs,pats)
+    gps.sort(key=lambda g:(g['age'],g['gap']))
+    fake,fake4,ccand,pats,gps,perf=selflearn(fake,fake4,ccand,tails,labs,pats,gps)
     print(P+'SUMMARY',okn,'stocks',len(FCOLLECT),'historical false-breakout signals',len(COLLECT),'historical contrarian signals')
     print(P+'MODELS',json.dumps({k:{x:m['info'].get(x) for x in ('retrained','transfer','auc_new','auc_old','n_train','n_test','since','total')} for k,m in (('fake',MODEL),('ct',CMODEL))}))
     print(P+'LAB',json.dumps({k:(v and dict(champ=v['champ'],base=v['base'],sims=v['sims'])) for k,v in labs.items()}))
@@ -651,9 +675,10 @@ def run_market(mid,base):
     print(P+'FAKEOUTS',json.dumps(fake,ensure_ascii=False))
     print(P+'FAKEOUTS_4H',json.dumps(fake4,ensure_ascii=False))
     print(P+'PATTERNS',json.dumps(pats))
+    print(P+'GAPS',json.dumps(gps))
     print(P+'CONTRARIAN_STATS',json.dumps(cst))
     print(P+'CONTRARIAN_CANDIDATES',json.dumps(ccand))
-    return dict(fake=fake,fake4=fake4,pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
+    return dict(fake=fake,fake4=fake4,gaps=gps,gstats=GAP_STATS[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
 DATAF=os.path.join(H,'data.txt')   # last full result, so the light intraday refresh can rebuild the page
 def render(D,out):
     tp=os.path.join(H,'template.html')
