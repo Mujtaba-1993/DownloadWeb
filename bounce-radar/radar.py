@@ -16,6 +16,7 @@ def get(s):
                 if k in W: x=W[k];W[k]=[x[0],min(x[1],l),max(x[2],h),c,x[4]+(v or 0)]
                 else: W[k]=[a,l,h,c,v or 0]
             ct=contrarian(s,Dd)  # computed here so the daily rows can be dropped
+            if FCOLLECT is not None: fake_hist(list(W.values()))
             return list(W.values()),ct,get4h(s),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4]) for x in Dd[-150:]]
         except Exception: pass
 def get4h(s):
@@ -309,11 +310,78 @@ def selflearn(fake,fake4,ccand,tails):
     perf=dict(cats=cats,total=len(log),recent=[dict(s=e['s'],kind=e['kind'],d=e['d'],res=e['res'],status=e['status'],entry=e['entry'],tgt=e['tgt']) for e in recent],
         today=[dict(s=e['s'],kind=e['kind'],status=e['status']) for e in done],since=min([e['first'] for e in log],default=today))
     return [f for f in fake if ok(f)],[f for f in fake4 if ok(f)],[c for c in ccand if ok(c)],perf
+# --- Continuous learning: every run rebuilds the full history of signals and their outcomes, refits each scoring
+# model on everything except the most recent years, and compares it there (data it never saw) with the model in use.
+# The challenger replaces the champion only if it separates wins from losses better on that recent period.
+FCOLLECT=None
+def levels_pit(B):
+    # point-in-time levels: each has the dates it held and the date it broke, so history can be replayed honestly
+    idx={b[0]:i for i,b in enumerate(B)};out=[]
+    for t,p in zigzag(B):
+        if any(abs(L['p']-p)/p<=TOL and L['t0']<t and (L['brk'] is None or L['brk']>t) for L in out): continue
+        L={'p':p,'t0':t,'holds':[t],'brk':None};out.append(L);st='away'
+        for j in range(idx[t]+1,len(B)):
+            lo,hi,c=B[j][1:4]
+            if st=='away':
+                if hi>=p*(1+2*TOL+.05): side,st='S','wait'
+                elif lo<=p*(1-2*TOL-.05): side,st='R','wait'
+            elif st=='wait':
+                if (side=='S' and lo<=p*(1+TOL)) or (side=='R' and hi>=p*(1-TOL)): st='touch'
+            else:
+                if (side=='S' and c<p*(1-BRK)) or (side=='R' and c>p*(1+BRK)): L['brk']=B[j][0];break
+                if (side=='S' and hi>=p*(1+REV)) or (side=='R' and lo<=p*(1-REV)): L['holds'].append(B[j][0]);st='wait'
+    return out
+def fake_hist(B):
+    if len(B)<260: return
+    Ls=levels_pit(B)
+    for i in range(60,len(B)-14):
+        t=B[i][0];last=B[i];prev=B[i-1];c=last[3];lo=min(last[1],prev[1])
+        for L in Ls:
+            p=L['p']
+            if not(p<=c<=p*1.03) or not(p*0.92<=lo<=p*0.99): continue
+            h=sum(1 for x in L['holds'] if x<t)
+            if L['t0']>=t or (L['brk'] and L['brk']<=t) or h<3: continue
+            if min(x[3] for x in B[i-5:i-1])>p and (prev[3]<p or last[1]<=p*0.99):
+                f=feats(B,i,p,lo,h,SPY)
+                if not f: continue
+                y=0
+                for x in B[i+1:i+14]:
+                    if x[2]>=c*1.05: y=1;break
+                    if x[3]<lo: break
+                FCOLLECT.append((t,None,[f[n] for n in FEATS],y))
+def relearn(data,old,years,pos_idx=None):
+    # returns the model to use (old or retrained) with fresh validation numbers in ['info']
+    try: import numpy as np
+    except Exception: return old
+    if len(data)<1500: return old
+    now=ny_now();cutd=d.datetime(now.year-years,now.month,1,tzinfo=d.timezone.utc);cut_ts=cutd.timestamp()
+    T=np.array([a[0] for a in data],float);X=np.array([a[2] for a in data],float);Y=np.array([a[3] for a in data],float)
+    tr=T<cut_ts;te=~tr
+    if tr.sum()<1000 or te.sum()<150: return old
+    def auc(p,y):
+        r=p.argsort().argsort()+1;n1=y.sum();n0=len(y)-n1
+        return float((r[y==1].sum()-n1*(n1+1)/2)/(n1*n0)) if n1 and n0 else 0.5
+    def pred(m): return 1/(1+np.exp(-(((X-np.array(m['mu']))/np.array(m['sd']))@np.array(m['w'])+m['b'])))
+    mu=X[tr].mean(0);sd=X[tr].std(0)+1e-9;Z=(X[tr]-mu)/sd;w=np.zeros(X.shape[1]);b=0.0
+    for _ in range(3000):
+        p=1/(1+np.exp(-(Z@w+b)));w-=0.3*(Z.T@(p-Y[tr])/tr.sum()+0.01*w);b-=0.3*(p-Y[tr]).mean()
+    new=dict(w=[float(x) for x in w],b=float(b),mu=[float(x) for x in mu],sd=[float(x) for x in sd])
+    Pn=pred(new);new['cut']=[float(np.quantile(Pn[tr],1/3)),float(np.quantile(Pn[tr],2/3))]
+    an=auc(Pn[te],Y[te]);ao=auc(pred(old)[te],Y[te]);use=new if an>ao+0.003 else dict(old)
+    P=pred(use);cut=use['cut']
+    def grades(m): return {g:[int((m&sel).sum()),round(100*float(Y[m&sel].mean()),1) if (m&sel).sum() else None] for g,sel in (('C',P<cut[0]),('B',(P>=cut[0])&(P<cut[1])),('A',P>=cut[1]))}
+    info=dict(n_train=int(tr.sum()) if use is new else old['info']['n_train'],n_test=int(te.sum()),base_test=round(100*float(Y[te].mean()),1),test=grades(te),
+        retrained=use is new,auc_new=round(an,3),auc_old=round(ao,3),since=cutd.date().isoformat(),total=len(data))
+    if pos_idx is not None:
+        mid=(X[:,pos_idx]>=MID[0])&(X[:,pos_idx]<=MID[1]);info['test_mid']=grades(te&mid);info['base_test_mid']=round(100*float(Y[te&mid].mean()),1) if (te&mid).sum() else None
+    use['info']=info;return use
 def grp(h): return '1' if h==1 else '2-3' if h<=3 else '4-6' if h<=6 else '7+'
 def main(out):
-    SPY.update(spy_map())
+    global MODEL,CMODEL,FCOLLECT,COLLECT
+    SPY.update(spy_map());FCOLLECT=[];COLLECT=[]
     S=open(os.path.join(H,'tickers.txt')).read().split();ev=[];cand=[];cev=[];cbase={};ccand=[]
     with cf.ThreadPoolExecutor(12) as ex: data=list(ex.map(get,S))
+    MODEL=relearn(FCOLLECT,MODEL,5,FEATS.index('pos'));CMODEL=relearn(COLLECT,CMODEL,3)
     fake=[];fake4=[];tails={}
     okn=sum(1 for x in data if x)
     if okn<450: sys.exit(f'ERROR: only {okn} of {len(S)} stocks downloaded; not writing the page')
@@ -360,6 +428,7 @@ def main(out):
     html=open(tp,encoding='utf8').read().replace('__DATA__',json.dumps(dict(st=st,cur=cur,fake=fake,fake4=fake4,model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev))),ensure_ascii=False)).replace('__DATE__',d.date.today().isoformat()).replace('__N__',str(len(ev)//1000))
     open(out,'w',encoding='utf8').write(html)
     print(len([x for x in data if x]),'stocks',len(ev),'events',len(cur),'candidates')
+    print('MODELS',json.dumps({k:{x:m['info'].get(x) for x in ('retrained','auc_new','auc_old','n_train','n_test','since','total')} for k,m in (('fake',MODEL),('ct',CMODEL))}))
     print('PERF',json.dumps(dict(cats=perf['cats'],resolved_today=perf['today']),ensure_ascii=False))
     print('FAKEOUTS',json.dumps(fake,ensure_ascii=False))
     print('FAKEOUTS_4H',json.dumps(fake4,ensure_ascii=False))
