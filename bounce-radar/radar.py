@@ -654,12 +654,46 @@ def run_market(mid,base):
     print(P+'CONTRARIAN_STATS',json.dumps(cst))
     print(P+'CONTRARIAN_CANDIDATES',json.dumps(ccand))
     return dict(fake=fake,fake4=fake4,pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
+DATAF=os.path.join(H,'data.txt')   # last full result, so the light intraday refresh can rebuild the page
+def render(D,out):
+    tp=os.path.join(H,'template.html')
+    if not os.path.exists(tp): tp=os.path.join(H,'template.txt')  # name used by the copy stored with the artifact
+    json.dump(D,open(DATAF,'w',encoding='utf8'),ensure_ascii=False)
+    open(out,'w',encoding='utf8').write(open(tp,encoding='utf8').read().replace('__DATA__',json.dumps(D,ensure_ascii=False)).replace('__DATE__',D.get('date') or d.date.today().isoformat()))
+def intraday(out,mid):
+    # Light refresh while a market is open: only the 1-hour and 4-hour pattern signals of that market are rescanned.
+    # Models, studies, paper trades and everything daily stay as the last full run left them.
+    global MK
+    MK=MARKETS[mid];D=json.load(open(DATAF,encoding='utf8'))
+    if not D.get(mid): sys.exit('ERROR: no full data for this market yet; run the daily update first')
+    S=[l.split('\t')[0].strip() for l in open(os.path.join(H,MK['tickers']),encoding='utf8').read().splitlines() if l.strip()]
+    with cf.ThreadPoolExecutor(12) as ex: res=list(ex.map(get4h,S))
+    okn=sum(1 for r in res if r)
+    if okn<MK['minok']: sys.exit(f'ERROR: only {okn} of {len(S)} stocks downloaded; page left unchanged')
+    pats=[p for r in res if r for p in r[1]]
+    try: log=json.load(open(LOGF,encoding='utf8'))
+    except Exception: log=[]
+    have={e['id'] for e in log};today=ny_now().date().isoformat();cats=D[mid]['perf']['cats'];new=[]
+    for p in pats:
+        kd={'h4':'pat4','h1':'pat1'}[p['tf']];p['cat']=kd+'|'+p['typ'];p['lid']=f"{kd}|{p['s']}|{p['date'][:10]}|{p['typ']}|{p['date'][10:]}"
+        v=PAT_STATS[mid].get(p['tf'],{}).get(p['typ']);p['adj']=(cats.get(p['cat']) or {}).get('adj') or (round(100*v['far']/max(1,v['far']+v['stopd'])) if v else 50)
+        if (cats.get(p['cat']) or {}).get('on') is False: continue
+        if p['lid'] not in have:
+            have.add(p['lid']);new.append(p)
+            log.append(dict(id=p['lid'],mk=mid,kind=kd,s=p['s'],d=p['date'][:10],entry=p['close'],tgt=p['tgt'],stop=p['stop'],cat=p['cat'],pr=None,first=today,status='open',res=None,grade=None))
+    json.dump(log,open(LOGF,'w',encoding='utf8'),ensure_ascii=False)
+    pats=[p for p in pats if (cats.get(p['cat']) or {}).get('on') is not False]
+    pats.sort(key=lambda p:({'h4':1,'h1':2}[p['tf']],p['age'],-p['rew']/max(p['risk'],0.1)))
+    D[mid]['pats']=[p for p in D[mid].get('pats',[]) if p['tf']=='d']+pats;D[mid]['intraday_at']=ny_now().strftime('%Y-%m-%d %H:%M')
+    render(D,out)
+    print('INTRADAY',mid,okn,'stocks',len(pats),'live signals')
+    print('NEW',json.dumps(new))
 def main(out):
     base=(MODEL,CMODEL);D={}
     for mid in MARKETS: D[mid]=run_market(mid,base)
     if not D['us']: sys.exit('ERROR: US market data could not be downloaded; not writing the page')
-    tp=os.path.join(H,'template.html')
-    if not os.path.exists(tp): tp=os.path.join(H,'template.txt')  # name used by the copy stored with the artifact
-    html=open(tp,encoding='utf8').read().replace('__DATA__',json.dumps(D,ensure_ascii=False)).replace('__DATE__',d.date.today().isoformat())
-    open(out,'w',encoding='utf8').write(html)
-if __name__=='__main__': main(sys.argv[1])
+    D['date']=d.date.today().isoformat()
+    render(D,out)
+if __name__=='__main__':
+    if len(sys.argv)>3 and sys.argv[2]=='--intraday': intraday(sys.argv[1],sys.argv[3])
+    else: main(sys.argv[1])
