@@ -128,20 +128,21 @@ def track(B):
     return levels,ev
 def fakeouts(s,lv,B):
     # Weekly false breakout: price traded 1-8% through a strong level (>=3 holds) and a CLOSED weekly candle
-    # closed back inside the zone. Signals from the last 4 closed weeks are tracked: dropped once a weekly close
+    # closed back inside the zone. The 4 weekly closes before the break must all be on the right side of the level
+    # (clean 'above -> pierce -> close back above' shape, not chop around the level). Signals from the last 4 closed weeks are tracked: dropped once a weekly close
     # goes beyond the wick (stop), flagged once price has already reached target 1/2/3.
     ny=ny_now();C=B
     if ny_date(B[-1][0]).isocalendar()[:2]==ny.date().isocalendar()[:2] and (ny.weekday()<4 or (ny.weekday()==4 and (ny.hour,ny.minute)<(16,15))): C=B[:-1]  # week not closed
     if len(C)<10: return []
     out=[];seen=set();cur=B[-1][3]
     for k in range(4):
-        i=len(C)-1-k;last=C[i];prev=C[i-1];before=C[i-3][3];w=C[i-1:i+1];after=B[i+1:]
+        i=len(C)-1-k;last=C[i];prev=C[i-1];pre=[x[3] for x in C[i-5:i-1]];w=C[i-1:i+1];after=B[i+1:]
         lo=min(x[1] for x in w);hi=max(x[2] for x in w);wk=ny_date(last[0]).isoformat();c=last[3]
         for L in lv:
             p=L['p']
             if not L['a'] or L['h']<3: continue
-            up=before>p and p<=c<=p*(1+TOL) and p*0.92<=lo<=p*0.99 and (prev[3]<p or last[1]<=p*0.99)
-            dn=before<p and p*(1-TOL)<=c<=p and p*1.01<=hi<=p*1.08 and (prev[3]>p or last[2]>=p*1.01)
+            up=min(pre)>p and p<=c<=p*(1+TOL) and p*0.92<=lo<=p*0.99 and (prev[3]<p or last[1]<=p*0.99)
+            dn=max(pre)<p and p*(1-TOL)<=c<=p and p*1.01<=hi<=p*1.08 and (prev[3]>p or last[2]>=p*1.01)
             if not(up or dn) or (round(p,2),up) in seen: continue
             seen.add((round(p,2),up))
             if up:
