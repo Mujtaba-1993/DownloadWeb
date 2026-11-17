@@ -80,21 +80,29 @@ def _tz():
 # --- Gap down in an already beaten-down stock (more than 30% below its 52-week high, opens 2%+ lower).
 # GAP_STATS: what followed such gaps since 2015, by gap size: dd50/dd75/dd90 = typical / deep / extreme further fall
 # within 20 sessions from the next open, dlow = session of the low, r20 = median 20-session return, fill = gap closed.
-GAP_STATS={"us": {"2-4%": {"n": 7219, "day_extra": -2.1, "dd50": -7.5, "dd75": -14.2, "dd90": -21.9, "dlow": 7, "r20": 4.8, "pos": 63, "bounce": 14.0, "fill5": 71, "fill20": 87, "fill60": 95, "ladder": {"3": [70, 5.2], "5": [55, 5.3], "8": [37, 6.1], "12": [22, 8.0]}}, "4-7%": {"n": 2106, "day_extra": -2.9, "dd50": -8.6, "dd75": -16.4, "dd90": -25.0, "dlow": 5, "r20": 7.4, "pos": 65, "bounce": 18.2, "fill5": 61, "fill20": 85, "fill60": 93, "ladder": {"3": [78, 8.3], "5": [64, 8.4], "8": [44, 8.8], "12": [29, 9.0]}}, "7-12%": {"n": 766, "day_extra": -4.5, "dd50": -12.2, "dd75": -22.2, "dd90": -37.1, "dlow": 4, "r20": 9.3, "pos": 68, "bounce": 29.0, "fill5": 49, "fill20": 79, "fill60": 90, "ladder": {"3": [84, 12.8], "5": [74, 13.9], "8": [60, 15.4], "12": [45, 17.5]}}, ">12%": {"n": 318, "day_extra": -4.1, "dd50": -14.6, "dd75": -26.7, "dd90": -41.4, "dlow": 4, "r20": 8.2, "pos": 68, "bounce": 29.9, "fill5": 18, "fill20": 53, "fill60": 74, "ladder": {"3": [85, 11.9], "5": [76, 13.8], "8": [62, 17.2], "12": [51, 21.9]}}}, "sa": {"2-4%": {"n": 3062, "day_extra": -1.1, "dd50": -6.0, "dd75": -11.4, "dd90": -18.7, "dlow": 6, "r20": 1.8, "pos": 57, "bounce": 9.4, "fill5": 70, "fill20": 86, "fill60": 92, "ladder": {"3": [59, 1.7], "5": [42, 2.1], "8": [26, 2.8], "12": [14, 3.4]}}, "4-7%": {"n": 1203, "day_extra": -1.0, "dd50": -5.7, "dd75": -10.3, "dd90": -17.7, "dlow": 4, "r20": 4.1, "pos": 64, "bounce": 11.5, "fill5": 57, "fill20": 80, "fill60": 87, "ladder": {"3": [60, 4.4], "5": [43, 5.1], "8": [26, 5.3], "12": [13, 5.1]}}, "7-12%": {"n": 863, "day_extra": 0.0, "dd50": -6.1, "dd75": -11.7, "dd90": -19.6, "dlow": 4, "r20": 5.1, "pos": 66, "bounce": 13.5, "fill5": 46, "fill20": 72, "fill60": 85, "ladder": {"3": [70, 5.0], "5": [53, 5.3], "8": [35, 5.7], "12": [21, 5.2]}}}}
+GAP_STATS={"us": {"2-4%": {"trig": 34, "r20": 5.0, "r20m": 6.2, "pos": 66, "dd50": -7.7, "dd75": -13.6, "dd90": -20.8, "fill": 66, "up": 7.1, "trade": 3.2, "n": 2443}, "4-7%": {"trig": 43, "r20": 6.6, "r20m": 7.7, "pos": 69, "dd50": -8.2, "dd75": -14.6, "dd90": -22.2, "fill": 66, "up": 9.1, "trade": 5.0, "n": 890}, "7%+": {"trig": 65, "r20": 11.5, "r20m": 14.2, "pos": 75, "dd50": -9.1, "dd75": -15.5, "dd90": -24.0, "fill": 58, "up": 17.8, "trade": 11.9, "n": 695}}, "sa": {"2-4%": {"trig": 37, "r20": 1.2, "r20m": 1.8, "pos": 55, "dd50": -5.9, "dd75": -11.1, "dd90": -17.4, "fill": 59, "up": 6.2, "trade": 1.6, "n": 1049}, "4-7%": {"trig": 48, "r20": 1.6, "r20m": 3.2, "pos": 56, "dd50": -5.5, "dd75": -10.4, "dd90": -15.8, "fill": 60, "up": 7.3, "trade": 2.8, "n": 544}, "7%+": {"trig": 60, "r20": 4.5, "r20m": 5.5, "pos": 64, "dd50": -5.7, "dd75": -9.9, "dd90": -15.5, "fill": 51, "up": 12.4, "trade": 4.7, "n": 518}}}
+GAP_CMP={"us": {"now": {"trig": 78, "r20": 5.6, "r20m": 6.6, "pos": 64, "dd50": -8.1, "dd75": -15.2, "dd90": -24.4, "fill": 80, "up": 4.7, "trade": 2.5, "n": 7970}, "conf": {"trig": 39, "r20": 6.2, "r20m": 7.9, "pos": 68, "dd50": -8.0, "dd75": -14.2, "dd90": -21.7, "fill": 64, "up": 8.8, "trade": 5.1, "n": 4028}}, "sa": {"now": {"trig": 78, "r20": 2.2, "r20m": 3.8, "pos": 58, "dd50": -6.1, "dd75": -11.5, "dd90": -19.6, "fill": 74, "up": 4.0, "trade": 1.7, "n": 3783}, "conf": {"trig": 44, "r20": 2.0, "r20m": 3.0, "pos": 57, "dd50": -5.7, "dd75": -10.6, "dd90": -16.8, "fill": 57, "up": 7.3, "trade": 2.6, "n": 2111}}}
 def gaps(s,Dd):
+    # Shown only once ALL conditions are complete: the stock is more than 30% below its 52-week high, gapped down 2%+,
+    # at least 3 sessions have passed, the gap is still open, and a session has closed higher than the one before it
+    # (the first such close is the confirmation). Entry = the open after the confirmation; target = the gap closing.
+    # This rule was the best of six tested: average trade +5.1% (US) against +2.5% for buying right after the gap.
     now=ny_now()
     if Dd and ny_date(Dd[-1][0])==now.date() and (now.hour,now.minute)<MK['close']: Dd=Dd[:-1]
     n=len(Dd)
     if n<300: return []
     c=[x[4] for x in Dd];cur=c[-1]
-    for i in range(n-1,n-6,-1):   # most recent gap in the last 5 sessions
+    for i in range(n-4,n-14,-1):   # gap day: 3 to 12 sessions ago
         pc=c[i-1];g=Dd[i][1]/pc-1
         if g>-0.02 or pc>=0.7*max(c[i-253:i-1]): continue
-        if max(x[2] for x in Dd[i:])>=pc: return []   # gap already closed: target reached
-        b='2-4%' if g>-0.04 else '4-7%' if g>-0.07 else '7-12%' if g>-0.12 else '>12%';st=GAP_STATS[MK['id']].get(b)
+        k=next((k for k in range(i+3,min(i+11,n)) if c[k]>c[k-1]),None)   # confirmation session
+        if k is None or n-1-k>2: return []                                # not confirmed yet, or confirmed too long ago
+        if max(x[2] for x in Dd[i:])>=pc: return []                       # gap already closed: target reached
+        b='2-4%' if g>-0.04 else '4-7%' if g>-0.07 else '7%+';st=GAP_STATS[MK['id']].get(b)
         if not st: return []
-        ref=Dd[i+1][1] if i+1<n else c[i]   # the study's entry: the open after the gap day
-        return [dict(s=s,date=ny_date(Dd[i][0]).isoformat(),gap=round(g*100,1),b=b,pc=round(pc,2),ref=round(ref,2),cur=round(cur,2),chg=round((cur/ref-1)*100,1),age=n-1-i,
+        ref=Dd[k+1][1] if k+1<n else c[k]
+        if ref>=pc or cur>=pc: return []
+        return [dict(s=s,date=ny_date(Dd[i][0]).isoformat(),conf=ny_date(Dd[k][0]).isoformat(),gap=round(g*100,1),b=b,pc=round(pc,2),ref=round(ref,2),cur=round(cur,2),chg=round((cur/ref-1)*100,1),age=n-1-k,
             low=round(min(x[3] for x in Dd[i:]),2),typ=round(ref*(1+st['dd50']/100),2),deep=round(ref*(1+st['dd75']/100),2),ext=round(ref*(1+st['dd90']/100),2),up=round((pc/cur-1)*100,1))]
     return []
 PAT_STATS={"us": {"d": {"falling_wedge": {"n": 573, "far": 81, "stopd": 19, "rew": 3.9, "risk": 5.3, "exp": 1.93}, "down_channel": {"n": 1065, "far": 54, "stopd": 41, "rew": 11.2, "risk": 6.0, "exp": 3.0}}, "h4": {"falling_wedge": {"n": 68, "far": 71, "stopd": 29, "rew": 2.9, "risk": 2.9, "exp": 1.39}, "down_channel": {"n": 133, "far": 47, "stopd": 50, "rew": 7.9, "risk": 3.3, "exp": 1.92}}, "h1": {"falling_wedge": {"n": 198, "far": 79, "stopd": 21, "rew": 1.6, "risk": 1.9, "exp": 0.79}, "down_channel": {"n": 446, "far": 56, "stopd": 43, "rew": 4.0, "risk": 1.8, "exp": 1.22}}}, "sa": {"d": {"falling_wedge": {"n": 142, "far": 73, "stopd": 27, "rew": 3.7, "risk": 4.8, "exp": 1.31}, "down_channel": {"n": 304, "far": 52, "stopd": 44, "rew": 10.4, "risk": 6.2, "exp": 3.03}}, "h4": {"falling_wedge": {"n": 65, "far": 60, "stopd": 40, "rew": 2.9, "risk": 3.1, "exp": 0.49}, "down_channel": {"n": 119, "far": 57, "stopd": 42, "rew": 5.9, "risk": 3.5, "exp": 2.05}}, "h1": {"falling_wedge": {"n": 138, "far": 72, "stopd": 28, "rew": 1.2, "risk": 2.2, "exp": 0.23}, "down_channel": {"n": 268, "far": 46, "stopd": 50, "rew": 4.3, "risk": 2.2, "exp": 1.13}}}}
@@ -394,7 +402,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=()):
         return i
     for f in fake:
         if f['side']=='دعم': f['cat']='fake|'+(f.get('grade') or 'B');f['lid']=add('fake',f['s'],f['wk'],f['level'],f['close'],f['T'][0],f['ext'],f['cat'],f.get('pr'),f.get('grade'))
-    for g in gps: g['cat']='gap|'+g['b'];g['lid']=add('gap',g['s'],g['date'],g['b'],g['ref'],g['pc'],None,g['cat'],None)
+    for g in gps: g['cat']='gap|'+g['b'];g['lid']=add('gap',g['s'],g['conf'],g['b'],g['ref'],g['pc'],None,g['cat'],None)
     for p in pats:
         kd={'d':'pat','h4':'pat4','h1':'pat1'}[p['tf']];p['cat']=kd+'|'+p['typ'];p['lid']=add(kd,p['s'],p['date'][:10],p['typ']+'|'+p['date'][10:],p['close'],p['tgt'],p['stop'],p['cat'],None)
     for f in fake4: f['cat']='fake4';f['lid']=add('fake4',f['s'],f['wk'][:10],f['level'],f['close'],f['T'][0],f['ext'],'fake4',None)
@@ -419,7 +427,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=()):
             if r: e['status'],e['res']=r;done.append(e)
     cats={}
     pri=dict(PRIOR)
-    for b,v in GAP_STATS[MK['id']].items(): pri['gap|'+b]=(v['fill20'],20)   # expected: the gap closes within 20 sessions
+    for b,v in GAP_STATS[MK['id']].items(): pri['gap|'+b]=(v['fill'],20)   # expected: the gap closes within 20 sessions
     for tf,kd in (('d','pat'),('h4','pat4'),('h1','pat1')):  # expected hit rate of each pattern on this market and timeframe
         for typ,v in PAT_STATS[MK['id']].get(tf,{}).items(): pri[kd+'|'+typ]=(round(100*v['far']/max(1,v['far']+v['stopd'])),20)
     tm=MODEL['info'].get('test_mid') or MODEL['info'].get('test') or {}
@@ -678,7 +686,7 @@ def run_market(mid,base):
     print(P+'GAPS',json.dumps(gps))
     print(P+'CONTRARIAN_STATS',json.dumps(cst))
     print(P+'CONTRARIAN_CANDIDATES',json.dumps(ccand))
-    return dict(fake=fake,fake4=fake4,gaps=gps,gstats=GAP_STATS[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
+    return dict(fake=fake,fake4=fake4,gaps=gps,gstats=GAP_STATS[mid],gcmp=GAP_CMP[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
 DATAF=os.path.join(H,'data.txt')   # last full result, so the light intraday refresh can rebuild the page
 def render(D,out):
     tp=os.path.join(H,'template.html')
