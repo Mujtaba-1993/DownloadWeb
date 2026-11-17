@@ -17,26 +17,32 @@ def get(s):
                 else: W[k]=[a,l,h,c,v or 0]
             ct=contrarian(s,Dd)  # computed here so the daily rows can be dropped
             if FCOLLECT is not None: fake_hist(list(W.values()))
-            return list(W.values()),ct,(get4h(s) if MK['h4'] else None),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Dd[-150:]],patterns(s,Dd)
+            I=get4h(s)
+            return list(W.values()),ct,(I[0] if I and MK['h4'] else None),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Dd[-150:]],patterns(s,Dd)+(I[1] if I else [])
         except Exception: pass
 def get4h(s):
-    # 4-hour bars from Yahoo hourly data (last ~2 years): 09:30-13:30 and 13:30-16:00 local. Only closed bars are returned.
+    # One hourly download (about 250 days). Returns (4-hour bars for the weekly-level false breakouts, intraday pattern signals).
+    # 4-hour bars = the two halves of the session; only closed bars are used.
     import time
     for _ in range(3):
         try:
-            now=int(time.time());u=f"https://query1.finance.yahoo.com/v8/finance/chart/{s}?period1={now-120*86400}&period2={now}&interval=1h"
+            now=int(time.time());u=f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(s)}?period1={now-250*86400}&period2={now}&interval=1h"
             r=json.load(urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'}),timeout=40))['chart']['result'][0]
-            q=r['indicators']['quote'][0];off=r['meta']['gmtoffset'];W={}
-            for a,l,h,c in zip(r['timestamp'],q['low'],q['high'],q['close']):
-                if not(l and h and c): continue
-                loc=a+off;k=(loc//86400,0 if (loc%86400)<13*3600+1800 else 1)
-                if k in W: x=W[k];W[k]=[x[0],min(x[1],l),max(x[2],h),c]
-                else: W[k]=[a,l,h,c]
-            ks=sorted(W);B=[W[k] for k in ks];cur=B[-1][3] if B else None
-            if ks:
-                nl=now+off;end=ks[-1][0]*86400+(13*3600+1800 if ks[-1][1]==0 else 16*3600)
-                if nl<end: B=B[:-1]
-            return B,cur,off
+            q=r['indicators']['quote'][0];off=r['meta']['gmtoffset'];split=MK['split'];W={};H1=[]
+            for a,o,h,l,c,v in zip(r['timestamp'],q['open'],q['high'],q['low'],q['close'],q['volume']):
+                if not(o and l and h and c): continue
+                H1.append((a,o,h,l,c,v or 0));loc=a+off;k=(loc//86400,0 if (loc%86400)<split else 1)
+                if k in W: x=W[k];W[k]=[x[0],x[1],max(x[2],h),min(x[3],l),c,x[5]+(v or 0)]
+                else: W[k]=[a,o,h,l,c,v or 0]
+            if not H1: return None
+            ks=sorted(W);H4=[tuple(W[k]) for k in ks];cur=H1[-1][4];nl=now+off
+            end=ks[-1][0]*86400+(split if ks[-1][1]==0 else MK['close'][0]*3600+MK['close'][1]*60)
+            if nl<end: H4=H4[:-1]
+            if H1[-1][0]+3600>now: H1=H1[:-1]
+            pts=patterns(s,H4,'h4')+patterns(s,H1,'h1')
+            for p in pts: p['cur']=round(cur,2);p['chg']=round((cur/p['close']-1)*100,1)
+            pts=[p for p in pts if p['stop']<cur<p['tgt']]
+            return ([[x[0],x[3],x[2],x[4]] for x in H4],cur,off),pts
         except Exception: pass
 def fakeouts4h(s,lv,X,W):
     # Same shape on 4-hour bars: 8 closes above a strong weekly level, a 1.5-5% pierce within 3 bars, then a 4h close
@@ -59,8 +65,8 @@ def fakeouts4h(s,lv,X,W):
     return out
 # --- Markets. Everything below runs once per market; MK is the market being processed.
 # wd: days to shift so the trading week groups correctly (Saudi week is Sunday-Thursday).
-MARKETS={'us':dict(id='us',tickers='tickers.txt',index='SPY',wd=0,tz='America/New_York',off=-5,close=(16,15),h4=True,minok=450),
-         'sa':dict(id='sa',tickers='tickers_sa.txt',index=['1120.SR','1010.SR','2010.SR','7010.SR','1150.SR','1211.SR','2280.SR','1050.SR','1060.SR','4030.SR','2020.SR','1140.SR'],wd=1,tz='Asia/Riyadh',off=3,close=(15,30),h4=False,minok=200,with_crowd=True)}
+MARKETS={'us':dict(id='us',tickers='tickers.txt',index='SPY',wd=0,tz='America/New_York',off=-5,close=(16,15),split=13*3600+1800,h4=True,minok=450),
+         'sa':dict(id='sa',tickers='tickers_sa.txt',index=['1120.SR','1010.SR','2010.SR','7010.SR','1150.SR','1211.SR','2280.SR','1050.SR','1060.SR','4030.SR','2020.SR','1140.SR'],wd=1,tz='Asia/Riyadh',off=3,close=(15,30),split=12*3600+1800,h4=False,minok=200,with_crowd=True)}
 MK=MARKETS['us']
 def _tz():
     try:
@@ -71,11 +77,15 @@ def _tz():
 # Signal: a daily close below the lower line, then within 5 sessions a close back inside. Only the two shapes whose
 # "return inside" trade was profitable in both halves of history and in both markets are reported:
 # falling wedge and falling channel. Target = the pattern's upper line, stop = a close below the breakdown low.
-PAT_STATS={"us": {"falling_wedge": {"n": 573, "far": 81, "stopd": 19, "rew": 3.9, "risk": 5.3, "exp": 1.93}, "down_channel": {"n": 1065, "far": 54, "stopd": 41, "rew": 11.2, "risk": 6.0, "exp": 3.0}}, "sa": {"falling_wedge": {"n": 142, "far": 73, "stopd": 27, "rew": 3.7, "risk": 4.8, "exp": 1.31}, "down_channel": {"n": 304, "far": 52, "stopd": 44, "rew": 10.4, "risk": 6.2, "exp": 3.03}}}
-PAT_ALL={"us": {"n": 16713, "far": 39, "stopd": 43, "exp": 0.16}, "sa": {"n": 2104, "far": 41, "stopd": 46, "exp": 0.11}}
-def patterns(s,Dd):
-    now=ny_now()
-    if Dd and ny_date(Dd[-1][0])==now.date() and (now.hour,now.minute)<MK['close']: Dd=Dd[:-1]
+PAT_STATS={"us": {"d": {"falling_wedge": {"n": 573, "far": 81, "stopd": 19, "rew": 3.9, "risk": 5.3, "exp": 1.93}, "down_channel": {"n": 1065, "far": 54, "stopd": 41, "rew": 11.2, "risk": 6.0, "exp": 3.0}}, "h4": {"falling_wedge": {"n": 68, "far": 71, "stopd": 29, "rew": 2.9, "risk": 2.9, "exp": 1.39}, "down_channel": {"n": 133, "far": 47, "stopd": 50, "rew": 7.9, "risk": 3.3, "exp": 1.92}}, "h1": {"falling_wedge": {"n": 198, "far": 79, "stopd": 21, "rew": 1.6, "risk": 1.9, "exp": 0.79}, "down_channel": {"n": 446, "far": 56, "stopd": 43, "rew": 4.0, "risk": 1.8, "exp": 1.22}}}, "sa": {"d": {"falling_wedge": {"n": 142, "far": 73, "stopd": 27, "rew": 3.7, "risk": 4.8, "exp": 1.31}, "down_channel": {"n": 304, "far": 52, "stopd": 44, "rew": 10.4, "risk": 6.2, "exp": 3.03}}, "h4": {"falling_wedge": {"n": 65, "far": 60, "stopd": 40, "rew": 2.9, "risk": 3.1, "exp": 0.49}, "down_channel": {"n": 119, "far": 57, "stopd": 42, "rew": 5.9, "risk": 3.5, "exp": 2.05}}, "h1": {"falling_wedge": {"n": 138, "far": 72, "stopd": 28, "rew": 1.2, "risk": 2.2, "exp": 0.23}, "down_channel": {"n": 268, "far": 46, "stopd": 50, "rew": 4.3, "risk": 2.2, "exp": 1.13}}}}
+PAT_ALL={"us": {"d": {"n": 16713, "far": 39, "stopd": 43, "exp": 0.16}, "h4": {"n": 1764, "far": 37, "stopd": 50, "exp": 0.04}, "h1": {"n": 5713, "far": 41, "stopd": 45, "exp": -0.03}}, "sa": {"d": {"n": 2104, "far": 41, "stopd": 46, "exp": 0.11}, "h4": {"n": 761, "far": 38, "stopd": 53, "exp": 0.04}, "h1": {"n": 1995, "far": 40, "stopd": 47, "exp": -0.05}}}
+# per timeframe: line-fit tolerance, breakout margin, minimum slope to call a line falling, minimum width,
+# and how many closed bars back a "returned inside" signal still counts as fresh
+PCFG={'d':dict(tol=0.025,brk=0.01,F=0.03,wmin=0.02,fresh=6),'h4':dict(tol=0.02,brk=0.005,F=0.03,wmin=0.02,fresh=4),'h1':dict(tol=0.015,brk=0.004,F=0.02,wmin=0.012,fresh=7)}
+def patterns(s,Dd,tf='d'):
+    # Dd rows: (ts,open,high,low,close,volume). Intraday callers pass closed bars only.
+    cfg=PCFG[tf];now=ny_now()
+    if tf=='d' and Dd and ny_date(Dd[-1][0])==now.date() and (now.hour,now.minute)<MK['close']: Dd=Dd[:-1]
     Dd=Dd[-460:];n=len(Dd)
     if n<300: return []
     K=5;h=[x[2] for x in Dd];l=[x[3] for x in Dd];c=[x[4] for x in Dd];PH=[];PL=[];pat=None;st=None;out=[]
@@ -91,29 +101,29 @@ def patterns(s,Dd):
             A=PH[-3:];B=PL[-3:];x0=min(A[0][0],B[0][0])
             if 25<=i-x0<=150:
                 mu,bu,du=fit(A);ml,bl,dl=fit(B)
-                if du<=0.025 and dl<=0.025:
+                if du<=cfg['tol'] and dl<=cfg['tol']:
                     u0,u1,l0,l1=mu*x0+bu,mu*i+bu,ml*x0+bl,ml*i+bl
                     if min(u0,u1,l0,l1)>0 and u1>l1 and u0>l0:
                         mid=(u0+l0)/2;cu=(u1-u0)/mid;cl=(l1-l0)/mid;w0=(u0-l0)/mid;w1=(u1-l1)/mid
-                        if w1>=0.02 and w0<=0.6 and cu<=-0.03 and cl<=-0.03 and l1<c[i]<u1:
+                        if w1>=cfg['wmin'] and w0<=0.6 and cu<=-cfg['F'] and cl<=-cfg['F'] and l1<c[i]<u1:
                             pat=dict(typ='falling_wedge' if w1<0.7*w0 else 'down_channel',mu=mu,bu=bu,ml=ml,bl=bl,born=i)
                         else: pat=None
         if pat is None: continue
         u=pat['bu']+pat['mu']*i;lo=pat['bl']+pat['ml']*i
         if st is None:
             if i-pat['born']>40 or u<=lo: pat=None
-            elif c[i]<lo*0.99 and i>pat['born']: st=(i,l[i])
-            elif c[i]>u*1.01: pat=None
+            elif c[i]<lo*(1-cfg['brk']) and i>pat['born']: st=(i,l[i])
+            elif c[i]>u*(1+cfg['brk']): pat=None
         else:
             i0,ext=st;ext=min(ext,l[i]);st=(i0,ext)
             if c[i]>lo:
-                if i>=n-6:   # a fresh signal: returned inside within the last 5 sessions
+                if i>=n-cfg['fresh']:   # a fresh signal: returned inside within the last few closed bars
                     e=c[i];alive=True;tg=u
                     for jj in range(i+1,n):
                         if h[jj]>=pat['bu']+pat['mu']*jj or c[jj]<ext: alive=False;break
                     cur=c[-1];tgn=pat['bu']+pat['mu']*(n-1)
                     if alive and tg>e*1.01 and tgn>cur*1.01:
-                        out.append(dict(s=s,typ=pat['typ'],date=ny_date(Dd[i][0]).isoformat(),close=round(e,2),cur=round(cur,2),chg=round((cur/e-1)*100,1),tgt=round(tg,2),stop=round(ext,2),rew=round((tg/e-1)*100,1),risk=round((1-ext/e)*100,1),age=n-1-i))
+                        out.append(dict(s=s,tf=tf,typ=pat['typ'],date=ny_date(Dd[i][0]).isoformat() if tf=='d' else d.datetime.fromtimestamp(Dd[i][0],_tz()).strftime('%Y-%m-%d %H:%M'),close=round(e,2),cur=round(cur,2),chg=round((cur/e-1)*100,1),tgt=round(tg,2),stop=round(ext,2),rew=round((tg/e-1)*100,1),risk=round((1-ext/e)*100,1),age=n-1-i))
                 pat=None;st=None
             elif i-i0>=5: pat=None;st=None
     return out
@@ -331,8 +341,8 @@ def fakeouts(s,lv,B):
 # backtest rate) and pause a category whose live record turns bad; a paused category keeps being logged in the
 # background and is switched back on if its record recovers.
 LOGF=os.path.join(H,'log.txt')
-PRIOR={'pat|falling_wedge':(80,20),'pat|down_channel':(56,20),'fake|A':(68,20),'fake|B':(66,20),'fake|C':(57,20),'fake4':(60,20),'ct|panic':(71,20),'ct|lo52':(78,20)}  # (expected win %, weight)
-HORIZON={'fake':91,'fake4':45,'ct':88,'pat':60}  # calendar days before an unresolved suggestion counts as a miss
+PRIOR={'fake|A':(68,20),'fake|B':(66,20),'fake|C':(57,20),'fake4':(60,20),'ct|panic':(71,20),'ct|lo52':(78,20)}  # (expected win %, weight)
+HORIZON={'fake':91,'fake4':45,'ct':88,'pat':60,'pat4':30,'pat1':14}  # calendar days before an unresolved suggestion counts as a miss
 def resolve(e,tl,now):
     # returns ('win'|'loss', date) or None while still open
     d0=d.date.fromisoformat(e['d'])
@@ -364,7 +374,8 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=()):
         return i
     for f in fake:
         if f['side']=='دعم': f['cat']='fake|'+(f.get('grade') or 'B');f['lid']=add('fake',f['s'],f['wk'],f['level'],f['close'],f['T'][0],f['ext'],f['cat'],f.get('pr'),f.get('grade'))
-    for p in pats: p['cat']='pat|'+p['typ'];p['lid']=add('pat',p['s'],p['date'],p['typ'],p['close'],p['tgt'],p['stop'],p['cat'],None)
+    for p in pats:
+        kd={'d':'pat','h4':'pat4','h1':'pat1'}[p['tf']];p['cat']=kd+'|'+p['typ'];p['lid']=add(kd,p['s'],p['date'][:10],p['typ']+'|'+p['date'][10:],p['close'],p['tgt'],p['stop'],p['cat'],None)
     for f in fake4: f['cat']='fake4';f['lid']=add('fake4',f['s'],f['wk'][:10],f['level'],f['close'],f['T'][0],f['ext'],'fake4',None)
     for c in ccand:
         if c.get('act','').startswith('buy'): c['cat']='ct|'+c['k'];c['lid']=add('ct',c['s'],c['date'],c['k'],c['sig'],c['tgt'],None,c['cat'],c.get('pr'),c.get('grade'))
@@ -372,7 +383,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=()):
     for e in mine:
         if 'pt' not in e or e['pt']['status']=='pending':  # the exit rule is frozen once the paper trade is actually entered
             lb=labs.get(e['kind']) or {};ch=lb['champ'] if lb.get('valid_ok') else DEFAULT_PT[e['kind']];g=e.get('grade')
-            if e['kind']=='pat': ch=dict(ch,T=round(e['tgt']/e['entry']-1,4))  # target = the pattern's upper line
+            if e['kind'].startswith('pat'): ch=dict(ch,T=round(e['tgt']/e['entry']-1,4))  # target = the pattern's upper line
             e['pt']=dict(T=ch['T'],S=ch['S'],maxd=MAXD[e['kind']],ok=ch['f']=='all' or (g in ('A','B') if ch['f']=='AB' else g=='A'),status='pending')
         if e['pt']['status']!='closed' and e['s'] in tails: paper(e,tails[e['s']])
     def pstat(E):
@@ -386,7 +397,10 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=()):
             r=resolve(e,tails[e['s']],now)
             if r: e['status'],e['res']=r;done.append(e)
     cats={}
-    pri=dict(PRIOR);tm=MODEL['info'].get('test_mid') or MODEL['info'].get('test') or {}
+    pri=dict(PRIOR)
+    for tf,kd in (('d','pat'),('h4','pat4'),('h1','pat1')):  # expected hit rate of each pattern on this market and timeframe
+        for typ,v in PAT_STATS[MK['id']].get(tf,{}).items(): pri[kd+'|'+typ]=(round(100*v['far']/max(1,v['far']+v['stopd'])),20)
+    tm=MODEL['info'].get('test_mid') or MODEL['info'].get('test') or {}
     for g,v in tm.items():  # expected rate per grade = what the model in use achieved on this market's recent unseen signals
         if v and v[1] is not None and v[0]>=15: pri['fake|'+g]=(round(v[1]),20)
     for c in list(pri)+sorted({e['cat'] for e in mine}-set(pri)):
@@ -481,7 +495,7 @@ def relearn(data,old,years,pos_idx=None):
 # forward with the champion rule (virtual money only: nothing is ever sent to a broker).
 COST=0.002  # round-trip cost assumed per simulated trade
 GRID={'ct':([0.04,0.06,0.08,0.10,0.15,None],[0.05,0.08,0.12,0.20,None],(0.06,None)),'fake':([0.03,0.05,0.08,0.12,None],['wick',0.05,0.08,0.12,None],(0.05,'wick'))}
-MAXD={'ct':60,'fake':65,'fake4':30,'pat':40};DEFAULT_PT={'pat':dict(T=None,S='wick',f='all'),'ct':dict(T=0.06,S=None,f='all'),'fake':dict(T=0.05,S='wick',f='all'),'fake4':dict(T=0.03,S='wick',f='all')}
+MAXD={'ct':60,'fake':65,'fake4':30,'pat':40,'pat4':20,'pat1':7};DEFAULT_PT={'pat':dict(T=None,S='wick',f='all'),'pat4':dict(T=None,S='wick',f='all'),'pat1':dict(T=None,S='wick',f='all'),'ct':dict(T=0.06,S=None,f='all'),'fake':dict(T=0.05,S='wick',f='all'),'fake4':dict(T=0.03,S='wick',f='all')}
 def lab(kind,data,model,years,pos_idx=None):
     try: import numpy as np
     except Exception: return None
@@ -627,7 +641,7 @@ def run_market(mid,base):
         seen.add((c['s'],c['act']));keep.append(c)
     ccand=keep
     for c in ccand: c.pop('f',None)
-    pats.sort(key=lambda p:(p['age'],-p['rew']/max(p['risk'],0.1)))
+    pats.sort(key=lambda p:({'d':0,'h4':1,'h1':2}[p['tf']],p['age'],-p['rew']/max(p['risk'],0.1)))
     fake,fake4,ccand,pats,perf=selflearn(fake,fake4,ccand,tails,labs,pats)
     print(P+'SUMMARY',okn,'stocks',len(FCOLLECT),'historical false-breakout signals',len(COLLECT),'historical contrarian signals')
     print(P+'MODELS',json.dumps({k:{x:m['info'].get(x) for x in ('retrained','transfer','auc_new','auc_old','n_train','n_test','since','total')} for k,m in (('fake',MODEL),('ct',CMODEL))}))
