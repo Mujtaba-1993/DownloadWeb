@@ -59,7 +59,7 @@ body{font-size:16px}h1{font-size:22px}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 </style>
 <div class="w" dir="rtl">
-<header><h1>رادار الارتدادات</h1><p class="sub">أسهم S&amp;P 500 التي يقف سعرها الآن قرب مستوى ارتد منه السعر 3 مرات أو أكثر ولم ينكسر بعد. بيانات أسبوعية منذ بداية كل سهم، آخر تحديث: __DATE__.</p></header>
+<header><h1>رادار الارتدادات</h1><p class="sub">كسر كاذب مؤكد بإغلاق أسبوعي، وفرص عكس المتداولين، في أسهم S&amp;P 500. آخر تحديث: __DATE__.</p></header>
 
 <nav class="tabs" role="tablist"><button data-go="radar">الرادار</button><button data-go="contra">عكس المتداولين</button><button data-go="journal">سجل صفقاتي</button></nav>
 <div class="tab" data-tab="radar">
@@ -77,6 +77,7 @@ body{font-size:16px}h1{font-size:22px}
 
 
 
+<div hidden>
 <section class="card"><h2>الأسهم القريبة الآن من منطقة ارتداد</h2>
 <div class="ctl">
 <label>النوع <select id="fs"><option value="">الكل</option><option>دعم</option><option>مقاومة</option></select></label>
@@ -120,6 +121,7 @@ body{font-size:16px}h1{font-size:22px}
 <div class="tb" style="margin-top:12px"><table class="st" id="st"></table></div>
 <p class="note">الكسر = إغلاق أسبوعي أبعد من المستوى بـ10%. الارتداد = حركة 15% بعيداً عن المستوى. المنطقة = ±3%. العينة: كل لمسات أسهم S&amp;P 500 الحالية، أكثر من __N__ ألف لمسة.</p>
 </details>
+</div>
 </div>
 <div class="tab" data-tab="contra" hidden>
 <section class="card"><h2>عكس المتداولين</h2>
