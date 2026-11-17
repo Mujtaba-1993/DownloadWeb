@@ -44,22 +44,25 @@ def track(B):
                 if (side=='S' and c<p*(1-BRK)) or (side=='R' and c>p*(1+BRK)): ev.append((L['h'],1,side,tr));L['a']=False;break
                 if (side=='S' and hi>=p*(1+REV)) or (side=='R' and lo<=p*(1-REV)): ev.append((L['h'],0,side,tr));L['h']+=1;st='wait'
     return levels,ev
-PIERCE=0.01
-def fakeouts(s,lv,Dd):
-    # latest daily candle closed back inside the zone after trading through a strong level (>=3 holds)
-    if len(Dd)<8: return []
+def fakeouts(s,lv,B):
+    # weekly false breakout: within the last 2 closed weeks price traded 1-8% through a strong level (>=3 holds)
+    # and the latest closed weekly candle closed back inside the zone. Backtest (S&P 500, all history):
+    # weekly 47.5% hit +8% before closing below the wick vs 42.2% stopped; daily only 36.2% vs 49.7%.
     ny=d.datetime.now(d.timezone.utc)-d.timedelta(hours=5)
-    lastday=(d.datetime.fromtimestamp(Dd[-1][0],d.timezone.utc)-d.timedelta(hours=5)).date()
-    if lastday==ny.date() and (ny.hour,ny.minute)<(16,15): Dd=Dd[:-1]  # today's candle not closed yet
-    out=[];last=Dd[-1];prev=Dd[-2];before=Dd[-7][3];w=Dd[-5:]
+    lw=(d.datetime.fromtimestamp(B[-1][0],d.timezone.utc)-d.timedelta(hours=5)).date()
+    if lw.isocalendar()[:2]==ny.date().isocalendar()[:2] and (ny.weekday()<4 or (ny.weekday()==4 and (ny.hour,ny.minute)<(16,15))): B=B[:-1]  # week not closed
+    if len(B)<6: return []
+    out=[];last=B[-1];prev=B[-2];before=B[-4][3];w=B[-2:]
+    wk=(d.datetime.fromtimestamp(last[0],d.timezone.utc)-d.timedelta(hours=5)).date().isoformat()
     for L in lv:
         p=L['p']
         if not L['a'] or L['h']<3: continue
-        if before>p and p<=last[3]<=p*(1+TOL) and min(x[1] for x in w)<=p*(1-PIERCE) and (prev[3]<p or last[1]<=p*(1-PIERCE)):
-            out.append(dict(s=s,side='دعم',level=round(p,2),holds=L['h'],close=round(last[3],2),ext=round(min(x[1] for x in w),2),pen=round((1-min(x[1] for x in w)/p)*100,1),kind='ذيل في نفس الشمعة' if prev[3]>=p else 'رجوع بعد إغلاق تحت المستوى'))
-        if before<p and p*(1-TOL)<=last[3]<=p and max(x[2] for x in w)>=p*(1+PIERCE) and (prev[3]>p or last[2]>=p*(1+PIERCE)):
-            out.append(dict(s=s,side='مقاومة',level=round(p,2),holds=L['h'],close=round(last[3],2),ext=round(max(x[2] for x in w),2),pen=round((max(x[2] for x in w)/p-1)*100,1),kind='ذيل في نفس الشمعة' if prev[3]<=p else 'رجوع بعد إغلاق فوق المستوى'))
-    return [o for o in out if o['pen']<=8]  # deeper moves are real breaks, not fakeouts
+        lo=min(x[1] for x in w);hi=max(x[2] for x in w)
+        if before>p and p<=last[3]<=p*(1+TOL) and p*0.92<=lo<=p*0.99 and (prev[3]<p or last[1]<=p*0.99):
+            out.append(dict(s=s,side='دعم',level=round(p,2),holds=L['h'],close=round(last[3],2),ext=round(lo,2),pen=round((1-lo/p)*100,1),wk=wk,kind='ذيل في نفس الشمعة' if prev[3]>=p else 'رجوع بعد إغلاق تحت المستوى'))
+        if before<p and p*(1-TOL)<=last[3]<=p and p*1.01<=hi<=p*1.08 and (prev[3]>p or last[2]>=p*1.01):
+            out.append(dict(s=s,side='مقاومة',level=round(p,2),holds=L['h'],close=round(last[3],2),ext=round(hi,2),pen=round((hi/p-1)*100,1),wk=wk,kind='ذيل في نفس الشمعة' if prev[3]<=p else 'رجوع بعد إغلاق فوق المستوى'))
+    return out
 def grp(h): return '1' if h==1 else '2-3' if h<=3 else '4-6' if h<=6 else '7+'
 def main(out):
     S=open(os.path.join(H,'tickers.txt')).read().split();ev=[];cand=[]
@@ -69,7 +72,7 @@ def main(out):
         if not X or len(X[0])<260: continue
         B,Dd=X
         lv,e=track(B)
-        fake+=fakeouts(s,lv,Dd);ev+=e;last=B[-1][3];sma=sum(x[3] for x in B[-41:-1])/40
+        fake+=fakeouts(s,lv,B);ev+=e;last=B[-1][3];sma=sum(x[3] for x in B[-41:-1])/40
         for L in lv:
             if L['a'] and L['h']>=3 and abs(last-L['p'])/L['p']<=NEAR:
                 cand.append(dict(s=s,price=round(last,2),level=round(L['p'],2),holds=L['h'],side='دعم' if last>=L['p'] else 'مقاومة',dist=round((last/L['p']-1)*100,1),tr='صاعد' if last>sma else 'هابط'))
