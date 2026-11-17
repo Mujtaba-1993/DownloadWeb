@@ -17,7 +17,7 @@ def get(s):
                 else: W[k]=[a,l,h,c,v or 0]
             ct=contrarian(s,Dd)  # computed here so the daily rows can be dropped
             if FCOLLECT is not None: fake_hist(list(W.values()))
-            return list(W.values()),ct,get4h(s),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4]) for x in Dd[-150:]]
+            return list(W.values()),ct,get4h(s),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Dd[-150:]]
         except Exception: pass
 def get4h(s):
     # 4-hour bars from Yahoo hourly data (last ~2 years): 09:30-13:30 and 13:30-16:00 local. Only closed bars are returned.
@@ -94,7 +94,9 @@ def contrarian(s,Dd):
             kk=d.datetime.fromtimestamp(t[i],d.timezone.utc).isocalendar()[:2]
             cf[(k,i)]=[c[i]/c[i-1]-1,min(v[i]/av,8) if av>0 else 1.0,c[i]/max(c[hq[0]] if hq else c[i],c[i])-1,c[i]/((cs[i+1]-cs[i-199])/200)-1,
                 rsi,SPY.get(kk,0.0),(sum((x-m)**2 for x in r)/20)**.5,c[i]/c[i-60]-1,o[i]/c[i-1]-1,(c[i]-lw[i])/rg if rg>0 else 0.5,1.0 if k=='panic' else 0.0]
-            if COLLECT is not None and i+60<n: COLLECT.append((t[i],k,cf[(k,i)],1 if max(hi[i+1:i+61])>=c[i]*(1+CT_TGT[k]) else 0))
+            if COLLECT is not None and i+60<n:
+                e=o[i+1]
+                COLLECT.append((t[i],k,cf[(k,i)],1 if max(hi[i+1:i+61])>=c[i]*(1+CT_TGT[k]) else 0,([x/e-1 for x in hi[i+1:i+61]],[x/e-1 for x in lw[i+1:i+61]],[x/e-1 for x in c[i+1:i+61]],0.0)))
         if i+1>=n:
             if i>=n-10: cand.append((k,i))
             return
@@ -275,20 +277,33 @@ def resolve(e,tl,now):
     if loss: return 'loss',loss
     if (now.date()-d0).days>HORIZON[e['kind']]: return 'loss',now.date().isoformat()
     return None
-def selflearn(fake,fake4,ccand,tails):
+def selflearn(fake,fake4,ccand,tails,labs):
     now=ny_now();today=now.date().isoformat()
     try: log=json.load(open(LOGF,encoding='utf8'))
     except Exception: log=[]
     have={e['id'] for e in log}
-    def add(kind,s,dt,key,entry,tgt,stop,cat,pr):
+    def add(kind,s,dt,key,entry,tgt,stop,cat,pr,grade=None):
         i=f"{kind}|{s}|{dt}|{key}"
-        if i not in have: have.add(i);log.append(dict(id=i,kind=kind,s=s,d=dt,entry=entry,tgt=tgt,stop=stop,cat=cat,pr=pr,first=today,status='open',res=None))
+        if i in have and grade:
+            for e in log:
+                if e['id']==i and not e.get('grade') and 'pt' not in e: e['grade']=grade;e['pr']=pr
+        if i not in have: have.add(i);log.append(dict(id=i,kind=kind,s=s,d=dt,entry=entry,tgt=tgt,stop=stop,cat=cat,pr=pr,first=today,status='open',res=None,grade=grade))
         return i
     for f in fake:
-        if f['side']=='دعم': f['cat']='fake|'+(f.get('grade') or 'B');f['lid']=add('fake',f['s'],f['wk'],f['level'],f['close'],f['T'][0],f['ext'],f['cat'],f.get('pr'))
+        if f['side']=='دعم': f['cat']='fake|'+(f.get('grade') or 'B');f['lid']=add('fake',f['s'],f['wk'],f['level'],f['close'],f['T'][0],f['ext'],f['cat'],f.get('pr'),f.get('grade'))
     for f in fake4: f['cat']='fake4';f['lid']=add('fake4',f['s'],f['wk'][:10],f['level'],f['close'],f['T'][0],f['ext'],'fake4',None)
     for c in ccand:
-        if c['vd']=='win' and c['dir']>0: c['cat']='ct|'+c['k'];c['lid']=add('ct',c['s'],c['date'],c['k'],c['sig'],c['tgt'],None,c['cat'],None)
+        if c['vd']=='win' and c['dir']>0: c['cat']='ct|'+c['k'];c['lid']=add('ct',c['s'],c['date'],c['k'],c['sig'],c['tgt'],None,c['cat'],c.get('pr'),c.get('grade'))
+    for e in log:
+        if 'pt' not in e:  # the exit rule is frozen when the paper trade is opened
+            ch=(labs.get(e['kind']) or {}).get('champ') or DEFAULT_PT[e['kind']];g=e.get('grade')
+            e['pt']=dict(T=ch['T'],S=ch['S'],maxd=MAXD[e['kind']],ok=ch['f']=='all' or (g in ('A','B') if ch['f']=='AB' else g=='A'),status='pending')
+        if e['pt']['status']!='closed' and e['s'] in tails: paper(e,tails[e['s']])
+    def pstat(E):
+        cl=[e['pt']['ret'] for e in E if e['pt']['status']=='closed']
+        return dict(n=len(E),open=sum(e['pt']['status']=='open' for e in E),pending=sum(e['pt']['status']=='pending' for e in E),closed=len(cl),win=round(100*sum(r>0 for r in cl)/len(cl)) if cl else None,avg=round(sum(cl)/len(cl),2) if cl else None,total=round(sum(cl),1) if cl else 0,
+            unreal=round(sum(e['pt']['ret'] for e in E if e['pt']['status']=='open'),1))
+    pp=dict(all=pstat(log),champ=pstat([e for e in log if e['pt']['ok']]),recent=[dict(s=e['s'],kind=e['kind'],ret=e['pt']['ret'],exit=e['pt']['exit'],entry=e['pt']['entry']) for e in sorted([e for e in log if e['pt']['status']=='closed'],key=lambda e:e['pt']['exit'],reverse=True)[:20]])
     done=[]
     for e in log:
         if e['status']=='open' and e['s'] in tails:
@@ -307,7 +322,7 @@ def selflearn(fake,fake4,ccand,tails):
         if 'cat' in c and c.get('pr') is not None: c['adj']=max(1,min(99,c['pr']+cats[c['cat']]['adj']-cats[c['cat']]['prior']))
     ok=lambda x:'cat' not in x or cats[x['cat']]['on']
     recent=sorted([e for e in log if e['status']!='open'],key=lambda e:e['res'],reverse=True)[:25]
-    perf=dict(cats=cats,total=len(log),recent=[dict(s=e['s'],kind=e['kind'],d=e['d'],res=e['res'],status=e['status'],entry=e['entry'],tgt=e['tgt']) for e in recent],
+    perf=dict(cats=cats,paper=pp,labs=labs,total=len(log),recent=[dict(s=e['s'],kind=e['kind'],d=e['d'],res=e['res'],status=e['status'],entry=e['entry'],tgt=e['tgt']) for e in recent],
         today=[dict(s=e['s'],kind=e['kind'],status=e['status']) for e in done],since=min([e['first'] for e in log],default=today))
     return [f for f in fake if ok(f)],[f for f in fake4 if ok(f)],[c for c in ccand if ok(c)],perf
 # --- Continuous learning: every run rebuilds the full history of signals and their outcomes, refits each scoring
@@ -348,7 +363,7 @@ def fake_hist(B):
                 for x in B[i+1:i+14]:
                     if x[2]>=c*1.05: y=1;break
                     if x[3]<lo: break
-                FCOLLECT.append((t,None,[f[n] for n in FEATS],y))
+                FW=B[i+1:i+14];FCOLLECT.append((t,None,[f[n] for n in FEATS],y,([x[2]/c-1 for x in FW],[x[1]/c-1 for x in FW],[x[3]/c-1 for x in FW],lo/c-1)))
 def relearn(data,old,years,pos_idx=None):
     # returns the model to use (old or retrained) with fresh validation numbers in ['info']
     try: import numpy as np
@@ -375,6 +390,55 @@ def relearn(data,old,years,pos_idx=None):
     if pos_idx is not None:
         mid=(X[:,pos_idx]>=MID[0])&(X[:,pos_idx]<=MID[1]);info['test_mid']=grades(te&mid);info['base_test_mid']=round(100*float(Y[te&mid].mean()),1) if (te&mid).sum() else None
     use['info']=info;return use
+# --- Strategy lab + paper trading. Every run replays thousands of simulated trades over all history with a grid of
+# exit rules (target, stop, grade filter). The rule with the best average net result on the older data becomes the
+# champion; its result on the recent years it never saw is reported next to it. New suggestions are then paper-traded
+# forward with the champion rule (virtual money only: nothing is ever sent to a broker).
+COST=0.002  # round-trip cost assumed per simulated trade
+GRID={'ct':([0.04,0.06,0.08,0.10,0.15,None],[0.05,0.08,0.12,0.20,None],(0.06,None)),'fake':([0.03,0.05,0.08,0.12,None],['wick',0.05,0.08,0.12,None],(0.05,'wick'))}
+MAXD={'ct':60,'fake':65,'fake4':30};DEFAULT_PT={'ct':dict(T=0.06,S=None,f='all'),'fake':dict(T=0.05,S='wick',f='all'),'fake4':dict(T=0.03,S='wick',f='all')}
+def lab(kind,data,model,years,pos_idx=None):
+    try: import numpy as np
+    except Exception: return None
+    if pos_idx is not None: data=[a for a in data if MID[0]<=a[2][pos_idx]<=MID[1]]
+    if len(data)<600: return None
+    now=ny_now();cut=d.datetime(now.year-years,now.month,1,tzinfo=d.timezone.utc).timestamp()
+    T_=np.array([a[0] for a in data],float);X=np.array([a[2] for a in data],float)
+    H=np.array([a[4][0] for a in data]);L=np.array([a[4][1] for a in data]);C=np.array([a[4][2] for a in data]);W=np.array([a[4][3] for a in data])
+    P=1/(1+np.exp(-(((X-np.array(model['mu']))/np.array(model['sd']))@np.array(model['w'])+model['b'])));c0,c1=model['cut']
+    F={'all':np.ones(len(data),bool),'AB':P>=c0,'A':P>=c1};tr=T_<cut;va=~tr;K=H.shape[1];rows=np.arange(len(data))
+    def first(m):
+        i=m.argmax(1);i[~m.any(1)]=K;return i
+    def sim(T,S):
+        ti=first(H>=T) if T else np.full(len(data),K);R=C[:,-1].copy()
+        if S=='wick':
+            si=first(C<W[:,None]);st=(si<ti)&(si<K);R[st]=C[rows[st],si[st]];tg=(ti<=si)&(ti<K)
+        else:
+            si=first(L<=-S) if S else np.full(len(data),K);st=(si<=ti)&(si<K);R[st]=-S if S else 0;tg=(ti<si)&(ti<K)
+        if T: R[tg]=T
+        return R-COST
+    def stat(R,m): return dict(n=int(m.sum()),win=round(100*float((R[m]>0).mean())),avg=round(100*float(R[m].mean()),2)) if m.sum() else dict(n=0,win=None,avg=None)
+    Ts,Ss,base=GRID[kind];res=[]
+    for T in Ts:
+        for S in Ss:
+            R=sim(T,S)
+            for f,m in F.items():
+                if (m&tr).sum()>=150 and (m&va).sum()>=30: res.append(dict(T=T,S=S,f=f,tr=stat(R,m&tr),va=stat(R,m&va)))
+    if not res: return None
+    res.sort(key=lambda r:-r['tr']['avg']);Rb=sim(*base)
+    return dict(champ=res[0],top=res[:5],base=dict(T=base[0],S=base[1],f='all',tr=stat(Rb,tr),va=stat(Rb,va)),sims=len(data)*len(Ts)*len(Ss),signals=len(data),since=d.datetime.fromtimestamp(cut,d.timezone.utc).date().isoformat())
+def paper(e,tl):
+    # forward virtual trade: bought at the open of the first session after the suggestion was first shown
+    pt=e['pt'];bars=[b for b in tl if b[0]>e['first']]
+    if not bars: return
+    en=bars[0][4];pt['entry']=round(en,2);T,S=pt['T'],pt['S'];r=None
+    for k,b in enumerate(bars):
+        if isinstance(S,float) and b[2]<=en*(1-S): r=-S
+        elif T and b[1]>=en*(1+T): r=T
+        elif S=='wick' and e['stop'] and b[3]<e['stop']: r=b[3]/en-1
+        elif k+1>=pt['maxd']: r=b[3]/en-1
+        if r is not None: pt.update(status='closed',ret=round(100*(r-COST),2),exit=b[0]);return
+    pt.update(status='open',ret=round(100*(bars[-1][3]/en-1),2))
 def grp(h): return '1' if h==1 else '2-3' if h<=3 else '4-6' if h<=6 else '7+'
 def main(out):
     global MODEL,CMODEL,FCOLLECT,COLLECT
@@ -382,6 +446,7 @@ def main(out):
     S=open(os.path.join(H,'tickers.txt')).read().split();ev=[];cand=[];cev=[];cbase={};ccand=[]
     with cf.ThreadPoolExecutor(12) as ex: data=list(ex.map(get,S))
     MODEL=relearn(FCOLLECT,MODEL,5,FEATS.index('pos'));CMODEL=relearn(COLLECT,CMODEL,3)
+    labs={'fake':lab('fake',FCOLLECT,MODEL,5,FEATS.index('pos')),'ct':lab('ct',COLLECT,CMODEL,3)}
     fake=[];fake4=[];tails={}
     okn=sum(1 for x in data if x)
     if okn<450: sys.exit(f'ERROR: only {okn} of {len(S)} stocks downloaded; not writing the page')
@@ -422,13 +487,15 @@ def main(out):
         seen.add((c['s'],c['vd'],c['dir']));keep.append(c)
     ccand=keep
     for c in ccand: c.pop('f',None)
-    fake,fake4,ccand,perf=selflearn(fake,fake4,ccand,tails)
+    fake,fake4,ccand,perf=selflearn(fake,fake4,ccand,tails,labs)
     tp=os.path.join(H,'template.html')
     if not os.path.exists(tp): tp=os.path.join(H,'template.txt')  # name used by the copy stored with the artifact
     html=open(tp,encoding='utf8').read().replace('__DATA__',json.dumps(dict(st=st,cur=cur,fake=fake,fake4=fake4,model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev))),ensure_ascii=False)).replace('__DATE__',d.date.today().isoformat()).replace('__N__',str(len(ev)//1000))
     open(out,'w',encoding='utf8').write(html)
     print(len([x for x in data if x]),'stocks',len(ev),'events',len(cur),'candidates')
     print('MODELS',json.dumps({k:{x:m['info'].get(x) for x in ('retrained','auc_new','auc_old','n_train','n_test','since','total')} for k,m in (('fake',MODEL),('ct',CMODEL))}))
+    print('LAB',json.dumps({k:(v and dict(champ=v['champ'],base=v['base'],sims=v['sims'])) for k,v in labs.items()}))
+    print('PAPER',json.dumps(dict(all=perf['paper']['all'],champ=perf['paper']['champ'])))
     print('PERF',json.dumps(dict(cats=perf['cats'],resolved_today=perf['today']),ensure_ascii=False))
     print('FAKEOUTS',json.dumps(fake,ensure_ascii=False))
     print('FAKEOUTS_4H',json.dumps(fake4,ensure_ascii=False))

@@ -60,7 +60,7 @@ body{font-size:16px}h1{font-size:22px}
 .tabs{display:flex;gap:6px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding-block:8px;z-index:5}
 .tabs button{flex:1;min-width:0;font:inherit;font-size:13px;font-weight:600;padding:10px 2px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--mut);cursor:pointer}
 .tabs button{transition:color .2s,transform .15s}.tabs button:active{transform:scale(.97)}.tabs button.on{border:1.5px solid transparent;background:linear-gradient(#141a10,#141a10) padding-box,var(--rgb) border-box;color:var(--acc);animation:spin 4s linear infinite,pulse 2.4s ease-in-out infinite}
-.tab{display:grid;gap:20px;min-width:0}.tab[hidden]{display:none}.fg span{direction:ltr;text-align:right}.fi.dim{opacity:.6}.pill.wn{color:var(--warn)}
+.tab{display:grid;gap:20px;min-width:0}.tab>*{min-width:0}.tab[hidden]{display:none}.fg span{direction:ltr;text-align:right}.fi.dim{opacity:.6}.pill.wn{color:var(--warn)}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 </style>
 <div class="w" dir="rtl">
@@ -168,6 +168,17 @@ body{font-size:16px}h1{font-size:22px}
 <li><b>إيقاف تلقائي:</b> إذا حُسم 15 اقتراحاً أو أكثر من نوع وكانت نسبة الصح أقل من 45%، تتوقف الأداة عن عرضه. يستمر تتبّعه في الخلفية، ويرجع إذا تحسّنت نتيجته.</li>
 <li>الخطأ لا يصل إلى الصفر في أي سوق. الهدف الواقعي هو رفع نسبة الصح وحذف الأنواع التي يثبت ضعفها.</li>
 </ul></section>
+<section class="card"><h2>التداول التجريبي</h2>
+<p class="note">الأداة تتداول بأموال افتراضية فقط، ولا ترسل أي أمر لأي وسيط. مع كل تحديث تعيد تنفيذ <b id="lbn"></b> صفقة تجريبية على كل التاريخ بقواعد خروج مختلفة (هدف، وقف، درجة)، وتختار القاعدة الأعلى ربحاً صافياً على البيانات القديمة، ثم تعرض نتيجتها على السنوات الأخيرة التي لم ترها. الأرقام بعد خصم 0.2% تكلفة لكل صفقة.</p>
+<div id="lbc"></div>
+<h2 style="margin-top:14px">المحفظة التجريبية الحية</h2>
+<p class="note">كل اقتراح جديد تدخله الأداة افتراضياً عند افتتاح أول جلسة بعد ظهوره، وتخرج منه بالقاعدة الفائزة وقت الدخول.</p>
+<div id="lbp" class="kp"></div><div id="lbr"></div>
+<ul>
+<li>أقل نسبة خطأ لا تعني أعلى ربح: هدف صغير يرفع نسبة الصح لكنه يقصّ الأرباح الكبيرة، وخسارة واحدة تمحو عدة أرباح. لذلك الاختيار هنا بالربح الصافي للصفقة.</li>
+<li>الأسهم المفحوصة هي أعضاء المؤشر اليوم فقط، فأرباح شراء الأسهم المنهارة مضخّمة: الشركات التي لم تتعافَ خرجت من المؤشر وغير محسوبة.</li>
+<li>القواعد بدون وقف تمرّ بفترات هبوط عميق قبل التعافي.</li>
+</ul></section>
 <section class="card"><h2>تعلّم النماذج</h2>
 <p class="note">مع كل تحديث يومي تعيد الأداة بناء كل الإشارات التاريخية ونتائجها، وتدرّب نسخة جديدة من كل نموذج على كل شيء ما عدا السنوات الأخيرة، ثم تقارنها بالنسخة المستخدمة على تلك السنوات التي لم ترها. النسخة الجديدة تُعتمد فقط إذا ميّزت بين الصح والخطأ أفضل. بيانات كل يوم جديد تدخل في التدريب تلقائياً.</p>
 <div id="pfm"></div>
@@ -220,6 +231,13 @@ const PF=D.perf||{cats:{},recent:[],total:0,since:''};const PN={'fake|A':'كسر
 document.getElementById('pfs').textContent=PF.since;document.getElementById('pft').textContent=PF.total;
 document.getElementById('pfc').innerHTML=Object.keys(PN).filter(k=>PF.cats[k]).map(k=>{const c=PF.cats[k];return `<div class="fi"><b>${PN[k]}</b> <span class="pill ${c.on?'sup':'res'}">${c.on?'فعّال':'موقوف تلقائياً'}</span><div class="fg"><span><i>اقتراحات</i>${c.n}</span><span><i>مفتوحة</i>${c.open}</span><span><i>صح / خطأ</i>${c.w} / ${c.l}</span><span><i>نسبة الصح الفعلية</i>${c.rate==null?'—':c.rate+'%'}</span><span><i>المتوقع من الاختبار</i>${c.prior}%</span><span><i>التقدير المعدّل</i>${c.adj}%</span></div></div>`}).join('');
 document.getElementById('pfm').innerHTML=[['نموذج الكسر الكاذب الأسبوعي',D.model],['نموذج عكس المتداولين',D.cmodel]].filter(x=>x[1]&&x[1].auc_new!=null).map(([n,m])=>`<div class="fi"><b>${n}</b> <span class="pill ${m.retrained?'sup':'wn'}">${m.retrained?'نسخة مُعاد تدريبها':'النسخة الأصلية ما زالت الأفضل'}</span><div class="fg"><span><i>إشارات تاريخية مستخدمة</i>${m.total.toLocaleString('en')}</span><span><i>فترة الاختبار منذ</i>${m.since}</span><span><i>قدرة تمييز النسخة الجديدة</i>${m.auc_new}</span><span><i>قدرة تمييز النسخة السابقة</i>${m.auc_old}</span></div></div>`).join('')||'<p class="none">إعادة التدريب غير متاحة في هذا التشغيل؛ النماذج الأصلية مستخدمة.</p>';
+const LB=PF.labs||{},pc=x=>x==null?'—':(x>0?'+':'')+x+'%';
+const rule=(r,k)=>[r.T?`هدف +${Math.round(r.T*100)}%`:'بدون هدف',r.S=='wick'?'وقف: إغلاق تحت الذيل':r.S?`وقف −${Math.round(r.S*100)}%`:'بدون وقف',({all:'كل الدرجات',AB:'درجات A و B',A:'درجة A فقط'})[r.f],k=='ct'?'مدة 60 يوم تداول':'مدة 13 أسبوعاً'].join(' · ');
+document.getElementById('lbn').textContent=Object.values(LB).reduce((a,v)=>a+(v?v.sims:0),0).toLocaleString('en');
+document.getElementById('lbc').innerHTML=[['fake','الكسر الكاذب الأسبوعي (وسط النطاق)'],['ct','عكس المتداولين']].filter(x=>LB[x[0]]).map(([k,n])=>{const v=LB[k],row=(nm,r,cls)=>`<div style="margin-top:8px"><b class="${cls}">${nm}</b> <span class="note">${rule(r,k)}</span><div class="fg"><span><i>متوسط الصفقة (بيانات قديمة)</i>${pc(r.tr.avg)}</span><span><i>نسبة الصح · عدد الصفقات</i>${r.tr.win}% · ${r.tr.n.toLocaleString('en')}</span><span><i>متوسط الصفقة (سنوات لم ترها)</i>${pc(r.va.avg)}</span><span><i>نسبة الصح · عدد الصفقات</i>${r.va.win}% · ${r.va.n.toLocaleString('en')}</span></div></div>`;
+return `<div class="fi"><b>${n}</b> <span class="note">${v.signals.toLocaleString('en')} إشارة تاريخية · الاختبار منذ ${v.since}</span>${row('القاعدة الفائزة',v.champ,'sup')}${row('القاعدة السابقة',v.base,'')}</div>`}).join('')||'<p class="none">المختبر غير متاح في هذا التشغيل.</p>';
+const PP=PF.paper;if(PP){const a=PP.all,c=PP.champ;document.getElementById('lbp').innerHTML=`<div class="k"><b>${a.n}</b><span>صفقة تجريبية (${a.pending} بانتظار الدخول، ${a.open} مفتوحة، ${a.closed} مغلقة)</span></div><div class="k"><b class="${(a.total||0)>=0?'sup':'res'}">${pc(a.total)}</b><span>مجموع نتائج المغلقة · نسبة الصح ${a.win==null?'—':a.win+'%'}</span></div><div class="k"><b>${pc(c.closed?c.total:null)}</b><span>الصفقات المطابقة للقاعدة الفائزة فقط (${c.n} صفقة، ${c.closed} مغلقة)</span></div>`;
+document.getElementById('lbr').innerHTML=PP.recent.length?PP.recent.map(e=>`<div class="fi"><b class="sym">${e.s}</b> <span class="pill ${e.ret>0?'sup':'res'}">${pc(e.ret)}</span> <span class="note">دخول ${e.entry} · خروج ${e.exit}</span></div>`).join(''):'<p class="none">لم تُغلق أي صفقة تجريبية بعد. أول الصفقات تدخل عند افتتاح الجلسة القادمة.</p>'}
 const KN={fake:'كسر كاذب أسبوعي',fake4:'كسر كاذب 4 ساعات',ct:'عكس المتداولين'};
 document.getElementById('pfr').innerHTML=PF.recent.length?PF.recent.map(e=>`<div class="fi"><b class="sym">${e.s}</b> <span class="pill ${e.status=='win'?'sup':'res'}">${e.status=='win'?'صح':'خطأ'}</span> <span class="note">${KN[e.kind]} · إشارة ${e.d} · حُسمت ${e.res}</span><div class="tg"><span><i>سعر الإشارة</i> ${e.entry}</span><span><i>الهدف</i> ${e.tgt}</span></div></div>`).join(''):'<p class="none">لم يُحسم أي اقتراح بعد. النتائج تظهر هنا تلقائياً مع التحديث اليومي.</p>';
 function go(n){if(!document.querySelector(`[data-tab="${n}"]`))n='radar';document.querySelectorAll('.tab').forEach(e=>e.hidden=e.dataset.tab!=n);document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.go==n));window.scrollTo(0,0)}
