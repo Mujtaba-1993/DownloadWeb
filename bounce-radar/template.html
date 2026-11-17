@@ -86,6 +86,21 @@ body{font-size:16px}h1{font-size:22px}
 <p class="note">«دعم» = السعر فوق المستوى ويقترب منه نزولاً. «مقاومة» = السعر تحته. احتمال الكسر مأخوذ من الدراسة حسب النوع والترند وعدد الارتدادات. كل الرموز من S&amp;P 500 المدرجة في NYSE وناسداك، وابحث عنها في تطبيق سهم بالرمز. البيانات لقطة من تاريخ التحديث وليست مباشرة. هذه قراءة فنية وليست توصية.</p>
 </section>
 
+<details class="card"><summary><h2>مستويات الدخول في منطقة وقف الخسارة</h2></summary>
+<p class="note">المتداولون يضعون وقف الخسارة عادة تحت الدعم الواضح مباشرة. عندما يضرب السعر هذه الأوامر قد يرتد بقوة. اختبرت الدخول بأمر معلّق على عمق 1% إلى 12% تحت دعم قوي (3 ارتدادات أو أكثر) على كل تاريخ أسهم S&amp;P 500.</p>
+<div class="tb"><table class="st"><tr><th>عمق الدخول تحت الدعم</th><th>رجع وأغلق فوق الدعم خلال 4 أسابيع</th><th>وسيط أقصى ارتداد من سعر الدخول</th><th>+10% قبل −8%</th></tr>
+<tr><td>1%</td><td class="n">73%</td><td class="n">+17.8%</td><td class="n">46%</td></tr>
+<tr><td>2%</td><td class="n">68%</td><td class="n">+18.1%</td><td class="n">46%</td></tr>
+<tr><td>3%</td><td class="n">62%</td><td class="n">+18.9%</td><td class="n">46%</td></tr>
+<tr><td>5%</td><td class="n">56%</td><td class="n">+21.4%</td><td class="n">47%</td></tr>
+<tr><td>8%</td><td class="n">49%</td><td class="n">+25.2%</td><td class="n">47%</td></tr>
+<tr><td>12%</td><td class="n">42%</td><td class="n">+30.6%</td><td class="n">48%</td></tr></table></div>
+<ul><li>كلما كان الدخول أعمق كان <b>الارتداد أكبر</b> إذا حصل، لكن <b>احتمال الرجوع فوق الدعم أقل</b>.</li>
+<li>الدخول الأعمى بأمر معلّق تقريباً بلا أفضلية: نحو 46–48% نجاح مقابل 50–52% خسارة.</li>
+<li>الأفضل انتظار <b>إغلاق أسبوعي فوق الدعم</b> بعد الكسر (تنبيه الكسر الكاذب في الأعلى): 47.5% نجاح مقابل 42% خسارة.</li>
+<li>لو دخلت بأوامر معلّقة، قسّم الكمية على المستويات (1% و3% و5% و8%) ولا تدخل كل المبلغ في مستوى واحد.</li></ul>
+</details>
+
 <details class="card"><summary><h2>متى ينكسر المستوى؟ نتيجة الدراسة</h2></summary>
 <div class="kp">
 <div class="k"><b class="sup">~37%</b><span>احتمال كسر الدعم في كل لمسة جديدة، وفي الباقي (~63%) يرتد</span></div>
@@ -112,7 +127,7 @@ let sk='ad',dir=1;D.cur.forEach(c=>c.ad=Math.abs(c.dist));
 function col(b){return b>=40?'var(--res)':b>=37?'var(--warn)':'var(--sup)'}
 function draw(){const fs=fs_.value,fh=+fh_.value,q=q_.value.trim().toUpperCase();
 const r=D.cur.filter(c=>(!fs||c.side==fs)&&c.holds>=fh&&(!q||c.s.includes(q))).sort((a,b)=>(a[sk]>b[sk]?1:a[sk]<b[sk]?-1:0)*dir);
-tb.innerHTML=r.map(c=>`<tr class="${c.br>=40?'hi':''}"><td data-l="الرمز"><b>${c.s}</b>${c.br>=40?' <span class="pill res">خطر كسر</span>':''} <button class="btn" data-enter="${c.s}|${c.side}|zone">دخلت</button></td><td data-l="السعر" class="n">${c.price}</td><td data-l="المستوى" class="n">${c.level}</td><td data-l="البعد %" class="n">${c.dist>0?'+':''}${c.dist}</td><td data-l="الارتدادات" class="n">${c.holds}</td><td data-l="النوع"><span class="pill ${c.side=='دعم'?'sup':'res'}">${c.side}</span></td><td data-l="الترند">${c.tr}</td><td data-l="احتمال الكسر" class="n">${c.br}%<span class="bar"><i style="width:${c.br}%;background:${col(c.br)}"></i></span></td></tr>`).join('');
+tb.innerHTML=r.map(c=>`<tr class="${c.br>=40?'hi':''}"><td data-l="الرمز"><b>${c.s}</b>${c.br>=40?' <span class="pill res">خطر كسر</span>':''}${tiers(c)} <button class="btn" data-enter="${c.s}|${c.side}|zone">دخلت</button></td><td data-l="السعر" class="n">${c.price}</td><td data-l="المستوى" class="n">${c.level}</td><td data-l="البعد %" class="n">${c.dist>0?'+':''}${c.dist}</td><td data-l="الارتدادات" class="n">${c.holds}</td><td data-l="النوع"><span class="pill ${c.side=='دعم'?'sup':'res'}">${c.side}</span></td><td data-l="الترند">${c.tr}</td><td data-l="احتمال الكسر" class="n">${c.br}%<span class="bar"><i style="width:${c.br}%;background:${col(c.br)}"></i></span></td></tr>`).join('');
 cnt.textContent=r.length+' سهم'}
 const fs_=document.getElementById('fs'),fh_=document.getElementById('fh'),q_=document.getElementById('q'),tb=document.getElementById('tb'),cnt=document.getElementById('cnt');
 [fs_,fh_].forEach(e=>e.onchange=draw);q_.oninput=draw;
@@ -122,6 +137,7 @@ function tg(f){const up=f.side=='دعم',c=f.close,k=up?1:-1,r=x=>(c*(1+k*x)).to
 const fk=document.getElementById('fk');const F=D.fake||[];
 fk.innerHTML=F.length?F.map(f=>`<div class="fi"><b class="sym">${f.s}</b> <span class="pill ${f.side=='دعم'?'sup':'res'}">${f.side}</span><div class="fg"><span><i>المستوى</i>${f.level}</span><span><i>${f.side=='دعم'?'أدنى سعر':'أعلى سعر'}</i>${f.ext}</span><span><i>الاختراق</i>${f.pen}%</span><span><i>إغلاق الأسبوع</i>${f.close}</span><span><i>الأسبوع</i>${f.wk}</span><span><i>الارتدادات</i>${f.holds}</span><span><i>النمط</i>${f.kind}</span></div>${tg(f)}<div style="margin-top:8px"><button class="btn" data-enter="${f.s}|${f.side}|fake">دخلت</button></div></div>`).join(''):'<p class="none">لا يوجد كسر كاذب مؤكد بإغلاق آخر أسبوع.</p>';
 
+function tiers(c){if(c.side!='دعم')return'';const r=d=>(c.level*(1-d)).toFixed(2);return `<div class="tg" style="font-size:13px"><i>دخول متدرّج:</i> <span>−1% ${r(.01)}</span><span>−3% ${r(.03)}</span><span>−5% ${r(.05)}</span><span>−8% ${r(.08)}</span></div>`}
 let DB=null,TR=[];const jl=document.getElementById('jl'),jst=document.getElementById('jst');
 function jrender(){
  if(!DB){jl.innerHTML='<p class="none">السجل غير متاح هنا. افتح الصفحة وأنت مسجّل الدخول في claude.ai.</p>';jst.innerHTML='';return}
