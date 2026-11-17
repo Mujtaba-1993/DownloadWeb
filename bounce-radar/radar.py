@@ -53,7 +53,7 @@ def fakeouts4h(s,lv,X,W):
             if min(x[3] for x in B[i-10:i-2])<=p: continue
             seen.add(round(p,2));ps=pos52(W[-53:],c)
             if not(MID[0]<=ps<=MID[1]): continue
-            if any(x[3]<lo for x in after) or cur<lo or max([x[2] for x in after]+[cur])>=c*1.03: continue
+            if any(x[3]<lo for x in after) or cur<lo or max([x[2] for x in after]+[cur,b[2]])>=c*1.03: continue  # the signal candle's own high counts too
             t=d.datetime.fromtimestamp(b[0]+off,d.timezone.utc)
             out.append(dict(s=s,side='دعم',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(lo,2),pen=round((1-lo/p)*100,1),wk=t.strftime('%Y-%m-%d ')+('صباحاً' if t.hour<13 else 'مساءً'),age=k,hit=0,pos=round(ps*100),cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(c*1.03,2),round(c*1.05,2),round(c*1.08,2)],kind='4 ساعات'))
     return out
@@ -268,12 +268,12 @@ def fakeouts(s,lv,B):
             seen.add((round(p,2),up))
             if up:
                 T=[c*1.05,c*1.087,c*1.12];mx=max([x[2] for x in after],default=0);hit=sum(mx>=x for x in T)
-                if hit or any(x[3]<lo for x in after): continue  # reached a target already, or stopped out
+                if hit or last[2]>=T[0] or any(x[3]<lo for x in after): continue  # reached a target already (even inside the signal candle), or stopped out
                 sc=score(feats(C,i,p,lo,L['h'],SPY))
                 out.append(dict(s=s,side='دعم',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(lo,2),pen=round((1-lo/p)*100,1),wk=wks,age=k,pos=round(ps*100),hit=hit,pr=sc[0] if sc else None,grade=sc[1] if sc else None,cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(x,2) for x in T],kind='ذيل في نفس الشمعة' if prev[3]>=p else 'رجوع بعد إغلاق تحت المستوى'))
             else:
                 T=[c*0.95,c*0.946,c*0.88];mn=min([x[1] for x in after],default=9e9);hit=sum(mn<=x for x in T)
-                if hit or any(x[3]>hi for x in after): continue
+                if hit or last[1]<=T[0] or any(x[3]>hi for x in after): continue
                 out.append(dict(s=s,side='مقاومة',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(hi,2),pen=round((hi/p-1)*100,1),wk=wks,age=k,pos=round(ps*100),hit=hit,cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(x,2) for x in T],kind='ذيل في نفس الشمعة' if prev[3]<=p else 'رجوع بعد إغلاق فوق المستوى'))
     return out
 # --- Self-tracking: every suggestion is logged the first day it is shown, then graded win/loss from later prices,
