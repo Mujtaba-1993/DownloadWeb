@@ -65,6 +65,15 @@ def ny_date(ts): return d.datetime.fromtimestamp(ts,NY).date()
 # --- Contrarian study: what the crowd typically does on a signal, and what happened next ---
 # key: (crowd action, contrarian direction) ; +1 = contrarian buys, -1 = contrarian sells/avoids
 CT={'panic':1,'fomo':-1,'hi52':-1,'lo52':1,'rsi70':1,'rsi30':-1,'golden':-1,'death':1}
+CT_TGT={'panic':0.072,'lo52':0.059}  # average 60-day gain after each signal = the target used for grading
+CFEATS=['ret1','rvol','dd52','trend200','rsi','mkt','vol20','mom60','gap','clv','panic']
+CMODEL={"w": [0.0589, -0.0822, -0.3486, 0.1517, -0.0816, -0.1833, 0.3906, -0.0739, 0.1353, -0.0104, -0.0459], "b": 1.4105, "mu": [-0.08854, 3.604136, -0.331989, -0.146995, 30.99618, -0.031611, 0.033559, -0.143723, -0.039988, 0.23586, 0.539514], "sd": [0.069585, 2.351438, 0.173095, 0.223767, 8.987024, 0.116046, 0.01931, 0.218932, 0.065726, 0.223017, 0.498436], "cut": [0.745, 0.8266], "info": {"n_train": 7238, "n_test": 5568, "base_test": 74.2, "auc_train": 0.669, "auc_test": 0.68, "test": {"C": [2519, 63.9], "B": [2099, 78.6], "A": [950, 92.0]}, "base": {"panic": 70.9, "lo52": 77.5}, "n": {"panic": 2735, "lo52": 2833}}}  # from train_ct.py
+COLLECT=None  # train_ct.py sets this to a list to gather (time, kind, features, outcome)
+def cscore(f):
+    if not CMODEL or not f: return None
+    import math
+    z=CMODEL['b']+sum(CMODEL['w'][j]*((f[j]-CMODEL['mu'][j])/CMODEL['sd'][j]) for j in range(len(CFEATS)))
+    pr=1/(1+math.exp(-z));return round(pr*100),('A' if pr>=CMODEL['cut'][1] else 'B' if pr>=CMODEL['cut'][0] else 'C')
 def contrarian(s,Dd):
     full=Dd;ny=ny_now()
     if Dd and ny_date(Dd[-1][0])==ny.date() and (ny.hour,ny.minute)<(16,15): Dd=Dd[:-1]  # today's candle not closed
@@ -72,12 +81,19 @@ def contrarian(s,Dd):
     if n<320: return None
     from collections import deque
     c=[x[4] for x in Dd];o=[x[1] for x in Dd];v=[x[5] for x in Dd];t=[x[0] for x in Dd]
+    hi=[x[2] for x in Dd];lw=[x[3] for x in Dd];cf={}
     cs=[0.0];vs=[0.0]
     for i in range(n): cs.append(cs[-1]+c[i]);vs.append(vs[-1]+v[i])
     ev=[];base={};last={};cand=[];hq=deque();lq=deque();lastHi=lastLo=-999;ag=al=0.0;rsi_prev=50.0;ma_prev=None
     def fire(k,i):
         if i-last.get(k,-99)<20: return
         last[k]=i
+        if k in CT_TGT:
+            r=[c[j]/c[j-1]-1 for j in range(i-19,i+1)];m=sum(r)/20;rg=hi[i]-lw[i];av=(vs[i]-vs[i-50])/50
+            kk=d.datetime.fromtimestamp(t[i],d.timezone.utc).isocalendar()[:2]
+            cf[(k,i)]=[c[i]/c[i-1]-1,min(v[i]/av,8) if av>0 else 1.0,c[i]/max(c[hq[0]] if hq else c[i],c[i])-1,c[i]/((cs[i+1]-cs[i-199])/200)-1,
+                rsi,SPY.get(kk,0.0),(sum((x-m)**2 for x in r)/20)**.5,c[i]/c[i-60]-1,o[i]/c[i-1]-1,(c[i]-lw[i])/rg if rg>0 else 0.5,1.0 if k=='panic' else 0.0]
+            if COLLECT is not None and i+60<n: COLLECT.append((t[i],k,cf[(k,i)],1 if max(hi[i+1:i+61])>=c[i]*(1+CT_TGT[k]) else 0))
         if i+1>=n:
             if i>=n-10: cand.append((k,i))
             return
@@ -120,7 +136,7 @@ def contrarian(s,Dd):
                 bb[0]+=c[i+20]/e-1;bb[1]+=c[i+60]/e-1;bb[2]+=1
         rsi_prev=rsi
     cur=full[-1][4]
-    cd=[dict(s=s,k=k,date=ny_date(t[i]).isoformat(),sig=round(c[i],2),cur=round(cur,2),chg=round((cur/c[i]-1)*100,1),mx=round(max([x[2] for x in full[i+1:]]+[cur]),2)) for k,i in cand]
+    cd=[dict(s=s,k=k,date=ny_date(t[i]).isoformat(),sig=round(c[i],2),cur=round(cur,2),chg=round((cur/c[i]-1)*100,1),mx=round(max([x[2] for x in full[i+1:]]+[cur]),2),f=cf.get((k,i))) for k,i in cand]
     return ev,base,cd
 def ct_stats(evs,base):
     import statistics as S
@@ -239,7 +255,7 @@ def fakeouts(s,lv,B):
 # backtest rate) and pause a category whose live record turns bad; a paused category keeps being logged in the
 # background and is switched back on if its record recovers.
 LOGF=os.path.join(H,'log.txt')
-PRIOR={'fake|A':(68,20),'fake|B':(66,20),'fake|C':(57,20),'fake4':(60,20),'ct|panic':(50,10),'ct|lo52':(50,10)}  # (expected win %, weight)
+PRIOR={'fake|A':(68,20),'fake|B':(66,20),'fake|C':(57,20),'fake4':(60,20),'ct|panic':(71,20),'ct|lo52':(78,20)}  # (expected win %, weight)
 HORIZON={'fake':91,'fake4':45,'ct':88}  # calendar days before an unresolved suggestion counts as a miss
 def resolve(e,tl,now):
     # returns ('win'|'loss', date) or None while still open
@@ -285,7 +301,9 @@ def selflearn(fake,fake4,ccand,tails):
     json.dump(log,open(LOGF,'w',encoding='utf8'),ensure_ascii=False)
     for f in fake:
         if 'cat' in f and f.get('pr') is not None: f['adj']=max(1,min(99,f['pr']+cats[f['cat']]['adj']-cats[f['cat']]['prior']))
-    for x in fake4+[c for c in ccand if 'cat' in c]: x['adj']=cats[x['cat']]['adj']
+    for x in fake4: x['adj']=cats['fake4']['adj']
+    for c in ccand:
+        if 'cat' in c and c.get('pr') is not None: c['adj']=max(1,min(99,c['pr']+cats[c['cat']]['adj']-cats[c['cat']]['prior']))
     ok=lambda x:'cat' not in x or cats[x['cat']]['on']
     recent=sorted([e for e in log if e['status']!='open'],key=lambda e:e['res'],reverse=True)[:25]
     perf=dict(cats=cats,total=len(log),recent=[dict(s=e['s'],kind=e['kind'],d=e['d'],res=e['res'],status=e['status'],entry=e['entry'],tgt=e['tgt']) for e in recent],
@@ -329,14 +347,17 @@ def main(out):
     for c in ccand:
         if c['vd']=='win' and c['dir']>0:
             c['tgt']=round(c['sig']*(1+cst[c['k']]['raw60']/100),2)
+            sc=cscore(c.get('f'))
+            if sc: c['pr'],c['grade']=sc
             if c['mx']>=c['tgt']: continue  # already reached its target once: drop it
         if (c['s'],c['vd'],c['dir']) in seen: continue  # newest signal per stock only
         seen.add((c['s'],c['vd'],c['dir']));keep.append(c)
     ccand=keep
+    for c in ccand: c.pop('f',None)
     fake,fake4,ccand,perf=selflearn(fake,fake4,ccand,tails)
     tp=os.path.join(H,'template.html')
     if not os.path.exists(tp): tp=os.path.join(H,'template.txt')  # name used by the copy stored with the artifact
-    html=open(tp,encoding='utf8').read().replace('__DATA__',json.dumps(dict(st=st,cur=cur,fake=fake,fake4=fake4,model=MODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev))),ensure_ascii=False)).replace('__DATE__',d.date.today().isoformat()).replace('__N__',str(len(ev)//1000))
+    html=open(tp,encoding='utf8').read().replace('__DATA__',json.dumps(dict(st=st,cur=cur,fake=fake,fake4=fake4,model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev))),ensure_ascii=False)).replace('__DATE__',d.date.today().isoformat()).replace('__N__',str(len(ev)//1000))
     open(out,'w',encoding='utf8').write(html)
     print(len([x for x in data if x]),'stocks',len(ev),'events',len(cur),'candidates')
     print('PERF',json.dumps(dict(cats=perf['cats'],resolved_today=perf['today']),ensure_ascii=False))
