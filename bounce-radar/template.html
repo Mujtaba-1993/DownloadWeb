@@ -29,26 +29,27 @@ input{width:120px}
 ul{margin:0;padding-inline-start:20px}li{margin:4px 0}
 tr.hi td{background:color-mix(in srgb,var(--res) 12%,transparent)}tr.hi td.n{color:var(--res)}
 .note{color:var(--mut);font-size:13px}
+
+summary{cursor:pointer;list-style:none}summary h2{display:inline}summary::after{content:" ▾";color:var(--mut)}
+@media (max-width:640px){
+body{font-size:16px}h1{font-size:22px}
+.tb table:not(.st){min-width:0}
+.tb table:not(.st) thead{display:none}
+.tb table:not(.st),.tb table:not(.st) tbody{display:block}
+.tb table:not(.st) tr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 10px;padding:12px;margin-bottom:10px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.tb table:not(.st) td{border:0;padding:0;white-space:normal;font-size:15px}
+.tb table:not(.st) td::before{content:attr(data-l);display:block;font-size:11px;color:var(--mut);font-family:var(--f)}
+.tb table:not(.st) td:first-child{grid-column:1/-1;font-size:20px}
+.tb table:not(.st) td:first-child::before{display:none}
+.bar{width:50px}
+.ctl{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ctl label{display:grid;gap:2px;font-size:13px}.ctl input,.ctl select{width:100%;font-size:16px}
+.ctl .note{grid-column:1/-1}
+.tb table:not(.st) tr.hi{background:color-mix(in srgb,var(--res) 10%,var(--card));border-color:var(--res)}.tb table:not(.st) tr.hi td{background:none}
+}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 </style>
 <div class="w" dir="rtl">
 <header><h1>رادار الارتدادات</h1><p class="sub">أسهم S&amp;P 500 التي يقف سعرها الآن قرب مستوى ارتد منه السعر 3 مرات أو أكثر ولم ينكسر بعد. بيانات أسبوعية منذ بداية كل سهم، آخر تحديث: __DATE__.</p></header>
-
-<section class="card"><h2>متى ينكسر المستوى؟ نتيجة الدراسة</h2>
-<div class="kp">
-<div class="k"><b class="sup">~37%</b><span>احتمال كسر الدعم في كل لمسة جديدة، وفي الباقي (~63%) يرتد</span></div>
-<div class="k"><b class="res">~53%</b><span>احتمال كسر المقاومة في كل لمسة، فهي أضعف من الدعم</span></div>
-<div class="k"><b>2–3</b><span>متوسط عدد الارتدادات قبل أن ينكسر المستوى</span></div>
-</div>
-<ul style="margin-top:12px">
-<li>عدد الارتدادات السابقة <b>لا يجعل المستوى أضعف بشكل واضح</b>. احتمال الكسر يبقى بين 33% و41% للدعم سواء كانت اللمسة الثانية أو السادسة.</li>
-<li>بعد 10 ارتدادات أو أكثر ينخفض الكسر إلى نحو 25–30%، لكن العينة صغيرة.</li>
-<li>الترند (السعر فوق أو تحت متوسط 40 أسبوعاً) يغيّر الاحتمال 3–4 نقاط فقط.</li>
-<li><b>الخلاصة العملية:</b> لا يوجد رقم «بعد كذا لمسة ينكسر». كل لمسة دعم فيها احتمال كسر تقريبي 1 من 3، فاعتمد وقف خسارة تحت المنطقة بدل انتظار عدد معين.</li>
-</ul>
-<div class="tb" style="margin-top:12px"><table class="st" id="st"></table></div>
-<p class="note">الكسر = إغلاق أسبوعي أبعد من المستوى بـ10%. الارتداد = حركة 15% بعيداً عن المستوى. المنطقة = ±3%. العينة: كل لمسات أسهم S&amp;P 500 الحالية، أكثر من __N__ ألف لمسة.</p>
-</section>
 
 <section class="card"><h2>الأسهم القريبة الآن من منطقة ارتداد</h2>
 <div class="ctl">
@@ -62,6 +63,22 @@ tr.hi td{background:color-mix(in srgb,var(--res) 12%,transparent)}tr.hi td.n{col
 </tr></thead><tbody id="tb"></tbody></table></div>
 <p class="note">«دعم» = السعر فوق المستوى ويقترب منه نزولاً. «مقاومة» = السعر تحته. احتمال الكسر مأخوذ من الدراسة حسب النوع والترند وعدد الارتدادات. كل الرموز من S&amp;P 500 المدرجة في NYSE وناسداك، وابحث عنها في تطبيق سهم بالرمز. البيانات لقطة من تاريخ التحديث وليست مباشرة. هذه قراءة فنية وليست توصية.</p>
 </section>
+
+<details class="card"><summary><h2>متى ينكسر المستوى؟ نتيجة الدراسة</h2></summary>
+<div class="kp">
+<div class="k"><b class="sup">~37%</b><span>احتمال كسر الدعم في كل لمسة جديدة، وفي الباقي (~63%) يرتد</span></div>
+<div class="k"><b class="res">~53%</b><span>احتمال كسر المقاومة في كل لمسة، فهي أضعف من الدعم</span></div>
+<div class="k"><b>2–3</b><span>متوسط عدد الارتدادات قبل أن ينكسر المستوى</span></div>
+</div>
+<ul style="margin-top:12px">
+<li>عدد الارتدادات السابقة <b>لا يجعل المستوى أضعف بشكل واضح</b>. احتمال الكسر يبقى بين 33% و41% للدعم سواء كانت اللمسة الثانية أو السادسة.</li>
+<li>بعد 10 ارتدادات أو أكثر ينخفض الكسر إلى نحو 25–30%، لكن العينة صغيرة.</li>
+<li>الترند (السعر فوق أو تحت متوسط 40 أسبوعاً) يغيّر الاحتمال 3–4 نقاط فقط.</li>
+<li><b>الخلاصة العملية:</b> لا يوجد رقم «بعد كذا لمسة ينكسر». كل لمسة دعم فيها احتمال كسر تقريبي 1 من 3، فاعتمد وقف خسارة تحت المنطقة بدل انتظار عدد معين.</li>
+</ul>
+<div class="tb" style="margin-top:12px"><table class="st" id="st"></table></div>
+<p class="note">الكسر = إغلاق أسبوعي أبعد من المستوى بـ10%. الارتداد = حركة 15% بعيداً عن المستوى. المنطقة = ±3%. العينة: كل لمسات أسهم S&amp;P 500 الحالية، أكثر من __N__ ألف لمسة.</p>
+</details>
 </div>
 <script>
 const D=__DATA__;
@@ -73,7 +90,7 @@ let sk='ad',dir=1;D.cur.forEach(c=>c.ad=Math.abs(c.dist));
 function col(b){return b>=40?'var(--res)':b>=37?'var(--warn)':'var(--sup)'}
 function draw(){const fs=fs_.value,fh=+fh_.value,q=q_.value.trim().toUpperCase();
 const r=D.cur.filter(c=>(!fs||c.side==fs)&&c.holds>=fh&&(!q||c.s.includes(q))).sort((a,b)=>(a[sk]>b[sk]?1:a[sk]<b[sk]?-1:0)*dir);
-tb.innerHTML=r.map(c=>`<tr class="${c.br>=40?'hi':''}"><td><b>${c.s}</b>${c.br>=40?' <span class="pill res">خطر كسر</span>':''}</td><td class="n">${c.price}</td><td class="n">${c.level}</td><td class="n">${c.dist>0?'+':''}${c.dist}</td><td class="n">${c.holds}</td><td><span class="pill ${c.side=='دعم'?'sup':'res'}">${c.side}</span></td><td>${c.tr}</td><td class="n">${c.br}%<span class="bar"><i style="width:${c.br}%;background:${col(c.br)}"></i></span></td></tr>`).join('');
+tb.innerHTML=r.map(c=>`<tr class="${c.br>=40?'hi':''}"><td data-l="الرمز"><b>${c.s}</b>${c.br>=40?' <span class="pill res">خطر كسر</span>':''}</td><td data-l="السعر" class="n">${c.price}</td><td data-l="المستوى" class="n">${c.level}</td><td data-l="البعد %" class="n">${c.dist>0?'+':''}${c.dist}</td><td data-l="الارتدادات" class="n">${c.holds}</td><td data-l="النوع"><span class="pill ${c.side=='دعم'?'sup':'res'}">${c.side}</span></td><td data-l="الترند">${c.tr}</td><td data-l="احتمال الكسر" class="n">${c.br}%<span class="bar"><i style="width:${c.br}%;background:${col(c.br)}"></i></span></td></tr>`).join('');
 cnt.textContent=r.length+' سهم'}
 const fs_=document.getElementById('fs'),fh_=document.getElementById('fh'),q_=document.getElementById('q'),tb=document.getElementById('tb'),cnt=document.getElementById('cnt');
 [fs_,fh_].forEach(e=>e.onchange=draw);q_.oninput=draw;
