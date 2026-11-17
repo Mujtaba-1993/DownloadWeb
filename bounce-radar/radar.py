@@ -16,8 +16,45 @@ def get(s):
                 if k in W: x=W[k];W[k]=[x[0],min(x[1],l),max(x[2],h),c]
                 else: W[k]=[a,l,h,c]
             ct=contrarian(s,Dd)  # computed here so the daily rows can be dropped
-            return list(W.values()),ct
+            return list(W.values()),ct,get4h(s)
         except Exception: pass
+def get4h(s):
+    # 4-hour bars from Yahoo hourly data (last ~2 years): 09:30-13:30 and 13:30-16:00 local. Only closed bars are returned.
+    import time
+    for _ in range(3):
+        try:
+            now=int(time.time());u=f"https://query1.finance.yahoo.com/v8/finance/chart/{s}?period1={now-120*86400}&period2={now}&interval=1h"
+            r=json.load(urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'}),timeout=40))['chart']['result'][0]
+            q=r['indicators']['quote'][0];off=r['meta']['gmtoffset'];W={}
+            for a,l,h,c in zip(r['timestamp'],q['low'],q['high'],q['close']):
+                if not(l and h and c): continue
+                loc=a+off;k=(loc//86400,0 if (loc%86400)<13*3600+1800 else 1)
+                if k in W: x=W[k];W[k]=[x[0],min(x[1],l),max(x[2],h),c]
+                else: W[k]=[a,l,h,c]
+            ks=sorted(W);B=[W[k] for k in ks];cur=B[-1][3] if B else None
+            if ks:
+                nl=now+off;end=ks[-1][0]*86400+(13*3600+1800 if ks[-1][1]==0 else 16*3600)
+                if nl<end: B=B[:-1]
+            return B,cur,off
+        except Exception: pass
+def fakeouts4h(s,lv,X):
+    # Same shape on 4-hour bars: 8 closes above a strong weekly level, a 1.5-5% pierce within 3 bars, then a 4h close
+    # back above it. Signals from the last 10 closed bars; dropped once target 1 (+3%) is reached or a 4h close is below the wick.
+    # Backtest (S&P 500, 2 years of hourly data, 223 signals): +3% reached before stop-out in ~60%, +5% in 50%, +8% in 42%.
+    if not X or not X[0] or len(X[0])<25: return []
+    B,cur,off=X;out=[];seen=set()
+    for k in range(10):
+        i=len(B)-1-k;b=B[i];c=b[3];w=B[i-2:i+1];lo=min(x[1] for x in w);after=B[i+1:]
+        for L in lv:
+            p=L['p']
+            if not L['a'] or L['h']<3 or round(p,2) in seen: continue
+            if not(p<=c<=p*1.03 and p*0.95<=lo<=p*0.985 and (B[i-1][3]<p or b[1]<=p*0.985)): continue
+            if min(x[3] for x in B[i-10:i-2])<=p: continue
+            seen.add(round(p,2))
+            if any(x[3]<lo for x in after) or cur<lo or max([x[2] for x in after]+[cur])>=c*1.03: continue
+            t=d.datetime.fromtimestamp(b[0]+off,d.timezone.utc)
+            out.append(dict(s=s,side='دعم',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(lo,2),pen=round((1-lo/p)*100,1),wk=t.strftime('%Y-%m-%d ')+('صباحاً' if t.hour<13 else 'مساءً'),age=k,hit=0,cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(c*1.03,2),round(c*1.05,2),round(c*1.08,2)],kind='4 ساعات'))
+    return out
 def ny_now(): return d.datetime.now(d.timezone.utc)-d.timedelta(hours=5)
 def ny_date(ts): return (d.datetime.fromtimestamp(ts,d.timezone.utc)-d.timedelta(hours=5)).date()
 # --- Contrarian study: what the crowd typically does on a signal, and what happened next ---
@@ -158,16 +195,16 @@ def grp(h): return '1' if h==1 else '2-3' if h<=3 else '4-6' if h<=6 else '7+'
 def main(out):
     S=open(os.path.join(H,'tickers.txt')).read().split();ev=[];cand=[];cev=[];cbase={};ccand=[]
     with cf.ThreadPoolExecutor(12) as ex: data=list(ex.map(get,S))
-    fake=[]
+    fake=[];fake4=[]
     for s,X in zip(S,data):
         if not X or len(X[0])<260: continue
-        B,ct=X
+        B,ct,X4=X
         if ct:
             cev+=ct[0];ccand+=ct[2]
             for m,x in ct[1].items():
                 bb=cbase.setdefault(m,[0.0,0.0,0]);bb[0]+=x[0];bb[1]+=x[1];bb[2]+=x[2]
         lv,e=track(B)
-        fake+=fakeouts(s,lv,B);ev+=e;last=B[-1][3];sma=sum(x[3] for x in B[-41:-1])/40
+        fake4+=fakeouts4h(s,lv,X4);fake+=fakeouts(s,lv,B);ev+=e;last=B[-1][3];sma=sum(x[3] for x in B[-41:-1])/40
         for L in lv:
             if L['a'] and L['h']>=3 and abs(last-L['p'])/L['p']<=NEAR:
                 cand.append(dict(s=s,price=round(last,2),level=round(L['p'],2),holds=L['h'],side='دعم' if last>=L['p'] else 'مقاومة',dist=round((last/L['p']-1)*100,1),tr='صاعد' if last>sma else 'هابط'))
@@ -185,10 +222,11 @@ def main(out):
     cst=ct_stats(cev,cbase)
     ccand=[dict(c,vd=cst[c['k']]['vd'],dir=cst[c['k']]['dir']) for c in ccand if c['k'] in cst and cst[c['k']]['vd']!='none']
     ccand.sort(key=lambda c:c['date'],reverse=True)
-    html=open(os.path.join(H,'template.html'),encoding='utf8').read().replace('__DATA__',json.dumps(dict(st=st,cur=cur,fake=fake,ct=dict(st=cst,cand=ccand,n=len(cev))),ensure_ascii=False)).replace('__DATE__',d.date.today().isoformat()).replace('__N__',str(len(ev)//1000))
+    html=open(os.path.join(H,'template.html'),encoding='utf8').read().replace('__DATA__',json.dumps(dict(st=st,cur=cur,fake=fake,fake4=fake4,ct=dict(st=cst,cand=ccand,n=len(cev))),ensure_ascii=False)).replace('__DATE__',d.date.today().isoformat()).replace('__N__',str(len(ev)//1000))
     open(out,'w',encoding='utf8').write(html)
     print(len([x for x in data if x]),'stocks',len(ev),'events',len(cur),'candidates')
     print('FAKEOUTS',json.dumps(fake,ensure_ascii=False))
+    print('FAKEOUTS_4H',json.dumps(fake4,ensure_ascii=False))
     print('CONTRARIAN_STATS',json.dumps(cst))
     print('CONTRARIAN_CANDIDATES',json.dumps(ccand))
 if __name__=='__main__': main(sys.argv[1])

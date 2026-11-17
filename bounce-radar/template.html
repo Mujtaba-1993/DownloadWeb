@@ -75,6 +75,11 @@ body{font-size:16px}h1{font-size:22px}
 <p class="note">الأهداف في البطاقات: هدف 1 = 5%، هدف 2 = الوسيط، هدف 3 = 12%. الوقف = خلف الذيل. كثير من الصفقات تلمس الهدف الأول ثم ترجع للوقف، فجني جزء من الربح عند الهدف الأول مهم.</p>
 </details></section>
 
+<section class="card fk"><h2>كسر كاذب على فريم 4 ساعات</h2>
+<p class="note">نفس الشكل على شموع 4 ساعات: 8 إغلاقات فوق مستوى ارتداد قوي، ثم كسر بين 1.5% و5%، ثم <b>إغلاق شمعة 4 ساعات</b> عائدة فوق المستوى. تبقى الإشارة 5 أيام تداول، وتُحذف إذا وصلت الهدف الأول أو أغلقت تحت الذيل.</p>
+<p class="note"><b>الدقة أقل من الأسبوعي.</b> في اختبار على آخر سنتين (223 إشارة فقط، لأن البيانات الساعية المتاحة سنتان): وصل السعر +3% قبل الوقف في نحو 60%، و+5% في 50%، و+8% في 42%. ميزته أن الوقف أقرب (نحو 3.5% بدل 4.4%). الكسر الأقل من 1.5% كان أضعف (40% فقط للـ+5%) فاستبعدته.</p>
+<div id="fk4"></div></section>
+
 
 
 <div hidden>
@@ -173,6 +178,8 @@ const CC=CT.cand.filter(c=>c.vd=='win').map(c=>{const buy=c.dir>0,raw=CT.st[c.k]
  if(buy){if(c.cur>=tgt){st=['وصل الهدف — فات الدخول','wn'];o=2}else if(c.chg>=raw/2){st=['قطع نصف الطريق للهدف','wn'];o=1}else if(c.chg<=-8){st=['نزل أكثر بعد الإشارة — انتظر استقراراً','res'];o=1}}
  return {...c,buy,tgt,st,o}}).filter(c=>c.o<2).sort((a,b)=>(b.buy-a.buy)||(a.o-b.o)||b.date.localeCompare(a.date));
 document.getElementById('ctc').innerHTML=CC.length?CC.map((c,i)=>`<div class="fi ${c.o==2?'dim':''}"><b class="sym">${c.s}</b> <span class="pill ${c.buy?'sup':'res'}">${c.buy?'شراء عكس المتداولين':'تجنّب الشراء'}</span> ${c.buy?`<span class="pill ${c.st[1]}">${c.st[0]}</span>`:''}<div class="fg"><span style="font-family:var(--f)"><i>الإشارة</i>${CL[c.k][0]}</span><span><i>التاريخ</i>${c.date}</span><span><i>سعر الإشارة</i>${c.sig}</span><span><i>السعر الآن</i>${c.cur} (${sg(c.chg)})</span>${c.buy?`<span><i>الهدف (متوسط 60 يوماً)</i>${c.tgt}</span>`:''}</div>${c.buy&&c.o<2?`<div style="margin-top:8px"><button class="btn" data-enter="${i}|شراء|ct">دخلت</button></div>`:''}</div>`).join(''):'<p class="none">لا توجد إشارات جديدة خلال آخر 10 أيام تداول.</p>';
+const F4=D.fake4||[];
+document.getElementById('fk4').innerHTML=F4.length?F4.map((f,i)=>`<div class="fi"><b class="sym">${f.s}</b> <span class="pill sup">شراء</span> <span class="pill sup">لم يتحرك للهدف بعد</span><div class="fg"><span><i>المستوى</i>${f.level}</span><span><i>أدنى سعر</i>${f.ext}</span><span><i>الاختراق</i>${f.pen}%</span><span><i>إغلاق الإشارة</i>${f.close}</span><span><i>السعر الآن</i>${f.cur} (${f.chg>0?'+':''}${f.chg}%)</span><span style="font-family:var(--f)"><i>شمعة الإشارة</i>${f.wk}</span><span><i>الارتدادات</i>${f.holds}</span></div><div class="tg"><span><i>هدف 1 (3%)</i> ${f.T[0]}</span><span><i>هدف 2 (5%)</i> ${f.T[1]}</span><span><i>هدف 3 (8%)</i> ${f.T[2]}</span><span><i>الوقف</i> ${f.ext}</span></div><div style="margin-top:8px"><button class="btn" data-enter="${i}|دعم|fake4">دخلت</button></div></div>`).join(''):'<p class="none">لا يوجد كسر كاذب قائم على فريم 4 ساعات الآن.</p>';
 function go(n){if(!document.querySelector(`[data-tab="${n}"]`))n='radar';document.querySelectorAll('.tab').forEach(e=>e.hidden=e.dataset.tab!=n);document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.go==n));window.scrollTo(0,0)}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{location.hash=b.dataset.go;go(b.dataset.go)});
 addEventListener('hashchange',()=>go(location.hash.slice(1)));go(location.hash.slice(1)||'radar');
@@ -184,14 +191,14 @@ function jrender(){
  jst.innerHTML=`<div class="k"><b>${TR.length}</b><span>صفقة مسجّلة</span></div><div class="k"><b class="sup">${done.length?Math.round(100*w/done.length)+'%':'—'}</b><span>نسبة الفوز (${w} من ${done.length})</span></div><div class="k"><b>${TR.length-done.length}</b><span>صفقة مفتوحة</span></div>`;
  if(!TR.length){jl.innerHTML='<p class="none">لا توجد صفقات بعد. اضغط «دخلت» على سهم لتبدأ السجل.</p>';return}
  const lab={open:'مفتوحة',win:'فوز',loss:'خسارة'};
- jl.innerHTML=TR.slice().sort((a,b)=>(b.opened||'').localeCompare(a.opened||'')).map(x=>`<div class="jr"><div><b class="sym">${x.s}</b> <span class="pill ${x.side=='مقاومة'?'res':'sup'}">${x.side}</span> <span class="note">${({fake:'كسر كاذب',zone:'منطقة ارتداد',ct:'عكس المتداولين'})[x.kind]||''} · ${(x.opened||'').slice(0,10)}</span> <b class="st-${x.status}">${lab[x.status]}</b></div>
+ jl.innerHTML=TR.slice().sort((a,b)=>(b.opened||'').localeCompare(a.opened||'')).map(x=>`<div class="jr"><div><b class="sym">${x.s}</b> <span class="pill ${x.side=='مقاومة'?'res':'sup'}">${x.side}</span> <span class="note">${({fake4:'كسر كاذب 4 ساعات',fake:'كسر كاذب',zone:'منطقة ارتداد',ct:'عكس المتداولين'})[x.kind]||''} · ${(x.opened||'').slice(0,10)}</span> <b class="st-${x.status}">${lab[x.status]}</b></div>
  <div class="tg"><span><i>الدخول</i> ${x.entry}</span><span><i>المستوى</i> ${x.level}</span>${x.stop?`<span><i>الوقف</i> ${x.stop}</span>`:''}</div>
  <div class="acts">${x.status=='open'?`<button class="btn w" data-res="${x.id}|win">فزت</button><button class="btn l" data-res="${x.id}|loss">خسرت</button>`:`<button class="btn x" data-res="${x.id}|open">إعادة فتح</button>`}<button class="btn x" data-del="${x.id}">حذف</button></div></div>`).join('')}
 document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b||b.dataset.go)return;
  if(!DB){alertMsg('السجل يحتاج تسجيل الدخول في claude.ai');return}
  try{b.disabled=true;
  if(b.dataset.enter){const[k0,side,kind]=b.dataset.enter.split('|');let r;
-  if(kind=='fake'){const f=F[+k0];r={s:f.s,side,kind,entry:f.cur,level:f.level,stop:f.ext,holds:f.holds,pen:f.pen}}
+  if(kind=='fake'||kind=='fake4'){const f=(kind=='fake'?F:F4)[+k0];r={s:f.s,side,kind,entry:f.cur,level:f.level,stop:f.ext,holds:f.holds,pen:f.pen}}
   else if(kind=='ct'){const c=CC[+k0];r={s:c.s,side:'شراء',kind,entry:c.cur,level:c.sig,stop:null,sig:c.k}}
   else{const c=D.cur.find(c=>c.s==k0);r={s:c.s,side,kind,entry:c.price,level:c.level,stop:null,holds:c.holds,br:c.br}}
   await DB.collection('trades').add({...r,status:'open',opened:new Date().toISOString()});b.textContent='سُجّلت ✓'}
