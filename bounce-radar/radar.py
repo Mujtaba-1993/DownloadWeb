@@ -13,8 +13,8 @@ def get(s):
                 if not(l and h and c): continue
                 Dd.append((a,o or c,h,l,c,v or 0))
                 k=d.datetime.fromtimestamp(a,d.timezone.utc).isocalendar()[:2]
-                if k in W: x=W[k];W[k]=[x[0],min(x[1],l),max(x[2],h),c]
-                else: W[k]=[a,l,h,c]
+                if k in W: x=W[k];W[k]=[x[0],min(x[1],l),max(x[2],h),c,x[4]+(v or 0)]
+                else: W[k]=[a,l,h,c,v or 0]
             ct=contrarian(s,Dd)  # computed here so the daily rows can be dropped
             return list(W.values()),ct,get4h(s)
         except Exception: pass
@@ -168,6 +168,37 @@ def track(B):
                 if (side=='S' and c<p*(1-BRK)) or (side=='R' and c>p*(1+BRK)): ev.append((L['h'],1,side,tr));L['a']=False;break
                 if (side=='S' and hi>=p*(1+REV)) or (side=='R' and lo<=p*(1-REV)): ev.append((L['h'],0,side,tr));L['h']+=1;st='wait'
     return levels,ev
+MODEL={"w": [0.2222, 0.0105, 0.0613, 0.091, 0.0657, -0.1411, 0.0486, 0.0518, 0.1216, 0.1329, -0.0496], "b": 0.477, "mu": [0.0328, 0.72148, 4.01462, 1.16078, 0.52638, -0.10803, -0.02809, 0.33343, 0.08595, 0.01259, -0.09784], "sd": [0.01849, 0.44827, 1.30825, 0.62904, 0.24674, 0.16369, 0.11541, 0.28163, 0.04494, 0.00875, 0.15055], "cut": [0.566, 0.6497], "info": {"n_train": 2463, "n_test": 1349, "base_test": 65.0, "auc_train": 0.611, "auc_test": 0.611, "test": {"C": [506, 56.1], "B": [497, 66.8], "A": [346, 75.4]}, "test_mid": {"C": [260, 56.5], "B": [192, 66.1], "A": [94, 68.1]}, "base_test_mid": 61.9, "n_test_mid": 546}}  # from train_model.py: logistic model scoring weekly buy-side false breakouts
+FEATS=['pen','same','holds','rvol','clv','trend','mkt','pos','atr','margin','mom13']
+def spy_map():
+    # market regime per ISO week: S&P 500 ETF close relative to its 40-week average
+    u="https://query1.finance.yahoo.com/v8/finance/chart/SPY?period1=0&period2=4000000000&interval=1wk"
+    for _ in range(3):
+        try:
+            r=json.load(urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'}),timeout=40))['chart']['result'][0]
+            X=[(a,c) for a,c in zip(r['timestamp'],r['indicators']['quote'][0]['close']) if c];m={}
+            for i in range(40,len(X)):
+                k=d.datetime.fromtimestamp(X[i][0],d.timezone.utc).isocalendar()[:2]
+                m[k]=X[i][1]/(sum(x[1] for x in X[i-40:i])/40)-1
+            return m
+        except Exception: pass
+    return {}
+def feats(C,i,p,lo,holds,spy):
+    # C: closed weekly bars [ts,low,high,close,vol]; i: signal week. Returns None if history is too short.
+    if i<53: return None
+    b=C[i];c=b[3];k=d.datetime.fromtimestamp(b[0],d.timezone.utc).isocalendar()[:2]
+    if k not in spy: return None
+    av=sum(x[4] for x in C[i-20:i])/20;rg=b[2]-b[1]
+    return dict(pen=1-lo/p,same=1.0 if C[i-1][3]>=p else 0.0,holds=min(holds,8),rvol=min(b[4]/av,5) if av>0 else 1.0,
+        clv=(c-b[1])/rg if rg>0 else 0.5,trend=c/(sum(x[3] for x in C[i-40:i])/40)-1,mkt=spy[k],pos=pos52(C[i-52:i+1],c),
+        atr=sum((x[2]-x[1])/x[3] for x in C[i-10:i])/10,margin=c/p-1,mom13=c/C[i-13][3]-1)
+def score(f):
+    if not MODEL or not f: return None
+    import math
+    z=MODEL['b']+sum(MODEL['w'][j]*((f[n]-MODEL['mu'][j])/MODEL['sd'][j]) for j,n in enumerate(FEATS))
+    pr=1/(1+math.exp(-z));g='A' if pr>=MODEL['cut'][1] else 'B' if pr>=MODEL['cut'][0] else 'C'
+    return round(pr*100),g
+SPY={}
 MID=(0.2,0.8)  # user's choice: only signals in the middle of the 52-week range, not near its top or bottom
 def pos52(W,c):
     h=max(x[2] for x in W);l=min(x[1] for x in W)
@@ -196,7 +227,8 @@ def fakeouts(s,lv,B):
             if up:
                 T=[c*1.05,c*1.087,c*1.12];mx=max([x[2] for x in after],default=0);hit=sum(mx>=x for x in T)
                 if hit or any(x[3]<lo for x in after): continue  # reached a target already, or stopped out
-                out.append(dict(s=s,side='دعم',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(lo,2),pen=round((1-lo/p)*100,1),wk=wk,age=k,pos=round(ps*100),hit=hit,cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(x,2) for x in T],kind='ذيل في نفس الشمعة' if prev[3]>=p else 'رجوع بعد إغلاق تحت المستوى'))
+                sc=score(feats(C,i,p,lo,L['h'],SPY))
+                out.append(dict(s=s,side='دعم',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(lo,2),pen=round((1-lo/p)*100,1),wk=wk,age=k,pos=round(ps*100),hit=hit,pr=sc[0] if sc else None,grade=sc[1] if sc else None,cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(x,2) for x in T],kind='ذيل في نفس الشمعة' if prev[3]>=p else 'رجوع بعد إغلاق تحت المستوى'))
             else:
                 T=[c*0.95,c*0.946,c*0.88];mn=min([x[1] for x in after],default=9e9);hit=sum(mn<=x for x in T)
                 if hit or any(x[3]>hi for x in after): continue
@@ -204,6 +236,7 @@ def fakeouts(s,lv,B):
     return out
 def grp(h): return '1' if h==1 else '2-3' if h<=3 else '4-6' if h<=6 else '7+'
 def main(out):
+    SPY.update(spy_map())
     S=open(os.path.join(H,'tickers.txt')).read().split();ev=[];cand=[];cev=[];cbase={};ccand=[]
     with cf.ThreadPoolExecutor(12) as ex: data=list(ex.map(get,S))
     fake=[];fake4=[]
@@ -231,7 +264,7 @@ def main(out):
         if c['s'] not in by or abs(c['dist'])<abs(by[c['s']]['dist']): by[c['s']]=c
     cur=sorted(by.values(),key=lambda c:abs(c['dist']))
     for c in cur: c['br']=st[f"{'S' if c['side']=='دعم' else 'R'}|{'up' if c['tr']=='صاعد' else 'dn'}|{grp(c['holds'])}"][0]
-    fake.sort(key=lambda f:(f['hit']>0,f['side']!='دعم',f['age']))
+    fake.sort(key=lambda f:(f['side']!='دعم',-(f.get('pr') or 0),f['age']))
     cst=ct_stats(cev,cbase)
     ccand=[dict(c,vd=cst[c['k']]['vd'],dir=cst[c['k']]['dir']) for c in ccand if c['k'] in cst and cst[c['k']]['vd']!='none']
     ccand.sort(key=lambda c:c['date'],reverse=True)
@@ -245,7 +278,7 @@ def main(out):
     ccand=keep
     tp=os.path.join(H,'template.html')
     if not os.path.exists(tp): tp=os.path.join(H,'template.txt')  # name used by the copy stored with the artifact
-    html=open(tp,encoding='utf8').read().replace('__DATA__',json.dumps(dict(st=st,cur=cur,fake=fake,fake4=fake4,ct=dict(st=cst,cand=ccand,n=len(cev))),ensure_ascii=False)).replace('__DATE__',d.date.today().isoformat()).replace('__N__',str(len(ev)//1000))
+    html=open(tp,encoding='utf8').read().replace('__DATA__',json.dumps(dict(st=st,cur=cur,fake=fake,fake4=fake4,model=MODEL['info'],ct=dict(st=cst,cand=ccand,n=len(cev))),ensure_ascii=False)).replace('__DATE__',d.date.today().isoformat()).replace('__N__',str(len(ev)//1000))
     open(out,'w',encoding='utf8').write(html)
     print(len([x for x in data if x]),'stocks',len(ev),'events',len(cur),'candidates')
     print('FAKEOUTS',json.dumps(fake,ensure_ascii=False))
