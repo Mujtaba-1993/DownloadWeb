@@ -16,7 +16,7 @@ def get(s):
                 if k in W: x=W[k];W[k]=[x[0],min(x[1],l),max(x[2],h),c,x[4]+(v or 0)]
                 else: W[k]=[a,l,h,c,v or 0]
             ct=contrarian(s,Dd)  # computed here so the daily rows can be dropped
-            return list(W.values()),ct,get4h(s)
+            return list(W.values()),ct,get4h(s),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4]) for x in Dd[-150:]]
         except Exception: pass
 def get4h(s):
     # 4-hour bars from Yahoo hourly data (last ~2 years): 09:30-13:30 and 13:30-16:00 local. Only closed bars are returned.
@@ -234,17 +234,74 @@ def fakeouts(s,lv,B):
                 if hit or any(x[3]>hi for x in after): continue
                 out.append(dict(s=s,side='مقاومة',level=round(p,2),holds=L['h'],close=round(c,2),ext=round(hi,2),pen=round((hi/p-1)*100,1),wk=wk,age=k,pos=round(ps*100),hit=hit,cur=round(cur,2),chg=round((cur/c-1)*100,1),T=[round(x,2) for x in T],kind='ذيل في نفس الشمعة' if prev[3]<=p else 'رجوع بعد إغلاق فوق المستوى'))
     return out
+# --- Self-tracking: every suggestion is logged the first day it is shown, then graded win/loss from later prices,
+# whether or not the user traded it. Live results adjust the shown probability (Bayesian shrinkage toward the
+# backtest rate) and pause a category whose live record turns bad; a paused category keeps being logged in the
+# background and is switched back on if its record recovers.
+LOGF=os.path.join(H,'log.txt')
+PRIOR={'fake|A':(68,20),'fake|B':(66,20),'fake|C':(57,20),'fake4':(60,20),'ct|panic':(50,10),'ct|lo52':(50,10)}  # (expected win %, weight)
+HORIZON={'fake':91,'fake4':45,'ct':88}  # calendar days before an unresolved suggestion counts as a miss
+def resolve(e,tl,now):
+    # returns ('win'|'loss', date) or None while still open
+    d0=d.date.fromisoformat(e['d'])
+    if e['kind']=='fake': d0=d0-d.timedelta(days=d0.weekday())+d.timedelta(days=6)  # track from the week after the signal week
+    bars=[b for b in tl if d.date.fromisoformat(b[0])>d0]
+    win=next((b[0] for b in bars if b[1]>=e['tgt']),None);loss=None
+    if e['stop']:
+        if e['kind']=='fake':  # stop = a closed weekly candle below the wick
+            wk={}
+            for b in bars: wk[d.date.fromisoformat(b[0]).isocalendar()[:2]]=b
+            cw=now.date().isocalendar()[:2];closed=now.weekday()>4 or (now.weekday()==4 and (now.hour,now.minute)>=(16,15))
+            loss=next((b[0] for k,b in sorted(wk.items()) if (k!=cw or closed) and b[3]<e['stop']),None)
+        else: loss=next((b[0] for b in bars if b[3]<e['stop']),None)
+    if win and (not loss or win<=loss): return 'win',win
+    if loss: return 'loss',loss
+    if (now.date()-d0).days>HORIZON[e['kind']]: return 'loss',now.date().isoformat()
+    return None
+def selflearn(fake,fake4,ccand,tails):
+    now=ny_now();today=now.date().isoformat()
+    try: log=json.load(open(LOGF,encoding='utf8'))
+    except Exception: log=[]
+    have={e['id'] for e in log}
+    def add(kind,s,dt,key,entry,tgt,stop,cat,pr):
+        i=f"{kind}|{s}|{dt}|{key}"
+        if i not in have: have.add(i);log.append(dict(id=i,kind=kind,s=s,d=dt,entry=entry,tgt=tgt,stop=stop,cat=cat,pr=pr,first=today,status='open',res=None))
+        return i
+    for f in fake:
+        if f['side']=='دعم': f['cat']='fake|'+(f.get('grade') or 'B');f['lid']=add('fake',f['s'],f['wk'],f['level'],f['close'],f['T'][0],f['ext'],f['cat'],f.get('pr'))
+    for f in fake4: f['cat']='fake4';f['lid']=add('fake4',f['s'],f['wk'][:10],f['level'],f['close'],f['T'][0],f['ext'],'fake4',None)
+    for c in ccand:
+        if c['vd']=='win' and c['dir']>0: c['cat']='ct|'+c['k'];c['lid']=add('ct',c['s'],c['date'],c['k'],c['sig'],c['tgt'],None,c['cat'],None)
+    done=[]
+    for e in log:
+        if e['status']=='open' and e['s'] in tails:
+            r=resolve(e,tails[e['s']],now)
+            if r: e['status'],e['res']=r;done.append(e)
+    cats={}
+    for c,(pr,k) in PRIOR.items():
+        E=[e for e in log if e['cat']==c];w=sum(e['status']=='win' for e in E);l=sum(e['status']=='loss' for e in E);n=w+l
+        post=(pr*k+100*w)/(k+n);on=not(n>=15 and 100*w/n<45)
+        cats[c]=dict(n=len(E),open=len(E)-n,w=w,l=l,rate=round(100*w/n) if n else None,prior=pr,adj=round(post),on=on)
+    json.dump(log,open(LOGF,'w',encoding='utf8'),ensure_ascii=False)
+    for f in fake:
+        if 'cat' in f and f.get('pr') is not None: f['adj']=max(1,min(99,f['pr']+cats[f['cat']]['adj']-cats[f['cat']]['prior']))
+    for x in fake4+[c for c in ccand if 'cat' in c]: x['adj']=cats[x['cat']]['adj']
+    ok=lambda x:'cat' not in x or cats[x['cat']]['on']
+    recent=sorted([e for e in log if e['status']!='open'],key=lambda e:e['res'],reverse=True)[:25]
+    perf=dict(cats=cats,total=len(log),recent=[dict(s=e['s'],kind=e['kind'],d=e['d'],res=e['res'],status=e['status'],entry=e['entry'],tgt=e['tgt']) for e in recent],
+        today=[dict(s=e['s'],kind=e['kind'],status=e['status']) for e in done],since=min([e['first'] for e in log],default=today))
+    return [f for f in fake if ok(f)],[f for f in fake4 if ok(f)],[c for c in ccand if ok(c)],perf
 def grp(h): return '1' if h==1 else '2-3' if h<=3 else '4-6' if h<=6 else '7+'
 def main(out):
     SPY.update(spy_map())
     S=open(os.path.join(H,'tickers.txt')).read().split();ev=[];cand=[];cev=[];cbase={};ccand=[]
     with cf.ThreadPoolExecutor(12) as ex: data=list(ex.map(get,S))
-    fake=[];fake4=[]
+    fake=[];fake4=[];tails={}
     okn=sum(1 for x in data if x)
     if okn<450: sys.exit(f'ERROR: only {okn} of {len(S)} stocks downloaded; not writing the page')
     for s,X in zip(S,data):
         if not X or len(X[0])<260: continue
-        B,ct,X4=X
+        B,ct,X4,tl=X;tails[s]=tl
         if ct:
             cev+=ct[0];ccand+=ct[2]
             for m,x in ct[1].items():
@@ -276,11 +333,13 @@ def main(out):
         if (c['s'],c['vd'],c['dir']) in seen: continue  # newest signal per stock only
         seen.add((c['s'],c['vd'],c['dir']));keep.append(c)
     ccand=keep
+    fake,fake4,ccand,perf=selflearn(fake,fake4,ccand,tails)
     tp=os.path.join(H,'template.html')
     if not os.path.exists(tp): tp=os.path.join(H,'template.txt')  # name used by the copy stored with the artifact
-    html=open(tp,encoding='utf8').read().replace('__DATA__',json.dumps(dict(st=st,cur=cur,fake=fake,fake4=fake4,model=MODEL['info'],ct=dict(st=cst,cand=ccand,n=len(cev))),ensure_ascii=False)).replace('__DATE__',d.date.today().isoformat()).replace('__N__',str(len(ev)//1000))
+    html=open(tp,encoding='utf8').read().replace('__DATA__',json.dumps(dict(st=st,cur=cur,fake=fake,fake4=fake4,model=MODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev))),ensure_ascii=False)).replace('__DATE__',d.date.today().isoformat()).replace('__N__',str(len(ev)//1000))
     open(out,'w',encoding='utf8').write(html)
     print(len([x for x in data if x]),'stocks',len(ev),'events',len(cur),'candidates')
+    print('PERF',json.dumps(dict(cats=perf['cats'],resolved_today=perf['today']),ensure_ascii=False))
     print('FAKEOUTS',json.dumps(fake,ensure_ascii=False))
     print('FAKEOUTS_4H',json.dumps(fake4,ensure_ascii=False))
     print('CONTRARIAN_STATS',json.dumps(cst))

@@ -58,7 +58,7 @@ body{font-size:16px}h1{font-size:22px}
 .tg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;font-family:var(--m);font-size:14px}.tg i{font-style:normal;color:var(--mut);font-family:var(--f);font-size:12px}
 .jr{border-top:1px solid var(--line);padding-block:10px;display:grid;gap:6px}.jr .acts{display:flex;gap:8px;flex-wrap:wrap}.st-open{color:var(--warn)}.st-win{color:var(--sup)}.st-loss{color:var(--res)}
 .tabs{display:flex;gap:6px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding-block:8px;z-index:5}
-.tabs button{flex:1;font:inherit;font-weight:600;padding:10px 6px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--mut);cursor:pointer}
+.tabs button{flex:1;min-width:0;font:inherit;font-size:13px;font-weight:600;padding:10px 2px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--mut);cursor:pointer}
 .tabs button{transition:color .2s,transform .15s}.tabs button:active{transform:scale(.97)}.tabs button.on{border:1.5px solid transparent;background:linear-gradient(#141a10,#141a10) padding-box,var(--rgb) border-box;color:var(--acc);animation:spin 4s linear infinite,pulse 2.4s ease-in-out infinite}
 .tab{display:grid;gap:20px;min-width:0}.tab[hidden]{display:none}.fg span{direction:ltr;text-align:right}.fi.dim{opacity:.6}.pill.wn{color:var(--warn)}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
@@ -66,7 +66,7 @@ body{font-size:16px}h1{font-size:22px}
 <div class="w" dir="rtl">
 <header><h1>رادار الارتدادات</h1><p class="sub">كسر كاذب مؤكد بإغلاق أسبوعي، وفرص عكس المتداولين، في أسهم S&amp;P 500. آخر تحديث: __DATE__.</p></header>
 
-<nav class="tabs" role="tablist"><button data-go="radar">الرادار</button><button data-go="contra">عكس المتداولين</button><button data-go="journal">سجل صفقاتي</button></nav>
+<nav class="tabs" role="tablist"><button data-go="radar">الرادار</button><button data-go="contra">عكس المتداولين</button><button data-go="journal">سجل صفقاتي</button><button data-go="perf">أداء الأداة</button></nav>
 <div class="tab" data-tab="radar">
 <section class="card fk"><h2>تنبيه الكسر الكاذب</h2>
 <p class="note">سهم كان يغلق فوق دعم قوي (3 ارتدادات أو أكثر) لأربعة أسابيع متتالية، ثم كسره بين 1% و8% خلال أسبوع أو أسبوعين، ثم <b>أغلقت الشمعة الأسبوعية</b> عائدة فوق المستوى (والعكس للمقاومة). تظهر فقط الإشارات في <b>وسط</b> نطاق آخر 52 أسبوعاً (بين 20% و80%)، وتُستبعد القريبة من القمة أو القاع. تبقى الإشارة 4 أسابيع، وتُحذف إذا أغلق السعر خلف الوقف، وتُحذف أيضاً إذا وصل السعر إلى أي هدف ولو الهدف الأول، حتى لا تدخل متأخراً. في اختبار تاريخي على إشارات الوسط (1,881 إشارة): وصل السعر +5% قبل الوقف في 60%، و+8% في 49%.</p>
@@ -153,6 +153,17 @@ body{font-size:16px}h1{font-size:22px}
 <p class="note">أسهم ظهرت عليها خلال آخر 10 أيام تداول إشارة من السلوكيات التي نجح عكسها في الدراسة. «الهدف» هو متوسط العائد التاريخي بعد 60 يوم تداول. السهم الذي وصل إلى الهدف يُحذف من القائمة، والذي قطع نصف الطريق تظهر عليه علامة تنبيه.</p>
 <div id="ctc"></div></section>
 </div>
+<div class="tab" data-tab="perf" hidden>
+<section class="card"><h2>أداء الأداة</h2>
+<p class="note">كل اقتراح يُسجَّل تلقائياً أول يوم يظهر فيه، سواء دخلت الصفقة أو لا، ثم تُحسم نتيجته من الأسعار اللاحقة: <b>صح</b> إذا وصل الهدف الأول قبل الوقف، و<b>خطأ</b> إذا ضرب الوقف أو انتهت المدة دون الوصول. التتبع بدأ في <span id="pfs"></span>، وعدد الاقتراحات المسجّلة <span id="pft"></span>.</p>
+<div id="pfc"></div>
+<ul>
+<li><b>تعديل الاحتمال:</b> النسبة المعروضة لكل نوع تبدأ من نتيجة الاختبار التاريخي، ثم تتحرك نحو النتيجة الفعلية كلما حُسمت اقتراحات أكثر.</li>
+<li><b>إيقاف تلقائي:</b> إذا حُسم 15 اقتراحاً أو أكثر من نوع وكانت نسبة الصح أقل من 45%، تتوقف الأداة عن عرضه. يستمر تتبّعه في الخلفية، ويرجع إذا تحسّنت نتيجته.</li>
+<li>الخطأ لا يصل إلى الصفر في أي سوق. الهدف الواقعي هو رفع نسبة الصح وحذف الأنواع التي يثبت ضعفها.</li>
+</ul></section>
+<section class="card"><h2>آخر الاقتراحات المحسومة</h2><div id="pfr"></div></section>
+</div>
 <div class="tab" data-tab="journal" hidden>
 <section class="card"><h2>سجل صفقاتي</h2>
 <p class="note">اضغط «دخلت» على أي سهم لتسجيل الصفقة، ثم «فزت» أو «خسرت» عند إغلاقها. أقرأ هذا السجل في التحديث اليومي لأقارن نتائجك بالدراسة.</p>
@@ -177,7 +188,7 @@ document.querySelectorAll('th[data-k]').forEach(t=>t.onclick=()=>{const k=t.data
 draw();
 const fk=document.getElementById('fk');const F=D.fake||[];
 function fst(f){if(f.hit>0)return `<span class="pill wn">وصل الهدف ${f.hit} — فات الدخول</span>`;const adv=f.side=='دعم'?f.chg:-f.chg;return adv>=2.5?`<span class="pill wn">قطع نصف الطريق للهدف 1</span>`:`<span class="pill sup">لم يتحرك للهدف بعد</span>`}
-fk.innerHTML=F.length?F.map((f,i)=>`<div class="fi ${f.hit>0?'dim':''}"><b class="sym">${f.s}</b> <span class="pill ${f.side=='دعم'?'sup':'res'}">${f.side=='دعم'?'شراء':'نزول، ليس شراء'}</span> ${f.grade?`<span class="pill ${({A:'sup',B:'wn',C:'res'})[f.grade]}">درجة ${f.grade} · ${f.pr}%</span>`:''} ${fst(f)}<div class="fg"><span><i>المستوى</i>${f.level}</span><span><i>${f.side=='دعم'?'أدنى سعر':'أعلى سعر'}</i>${f.ext}</span><span><i>الاختراق</i>${f.pen}%</span><span><i>إغلاق الإشارة</i>${f.close}</span><span><i>السعر الآن</i>${f.cur} (${f.chg>0?'+':''}${f.chg}%)</span><span><i>أسبوع الإشارة</i>${f.wk}</span><span><i>الموقع في نطاق السنة</i>${f.pos}%</span><span><i>الارتدادات</i>${f.holds}</span><span><i>النمط</i>${f.kind}</span></div><div class="tg"><span><i>هدف 1</i> ${f.T[0]}</span><span><i>هدف 2</i> ${f.T[1]}</span><span><i>هدف 3</i> ${f.T[2]}</span><span><i>الوقف</i> ${f.ext}</span></div>${f.side!='دعم'?'':`<div style="margin-top:8px"><button class="btn" data-enter="${i}|${f.side}|fake">دخلت</button></div>`}</div>`).join(''):'<p class="none">لا يوجد كسر كاذب قائم الآن: الإشارات السابقة وصلت هدفاً أو ضربت الوقف، ولم تظهر إشارة جديدة.</p>';
+fk.innerHTML=F.length?F.map((f,i)=>`<div class="fi ${f.hit>0?'dim':''}"><b class="sym">${f.s}</b> <span class="pill ${f.side=='دعم'?'sup':'res'}">${f.side=='دعم'?'شراء':'نزول، ليس شراء'}</span> ${f.grade?`<span class="pill ${({A:'sup',B:'wn',C:'res'})[f.grade]}">درجة ${f.grade} · ${f.adj??f.pr}%</span>`:''} ${fst(f)}<div class="fg"><span><i>المستوى</i>${f.level}</span><span><i>${f.side=='دعم'?'أدنى سعر':'أعلى سعر'}</i>${f.ext}</span><span><i>الاختراق</i>${f.pen}%</span><span><i>إغلاق الإشارة</i>${f.close}</span><span><i>السعر الآن</i>${f.cur} (${f.chg>0?'+':''}${f.chg}%)</span><span><i>أسبوع الإشارة</i>${f.wk}</span><span><i>الموقع في نطاق السنة</i>${f.pos}%</span><span><i>الارتدادات</i>${f.holds}</span><span><i>النمط</i>${f.kind}</span></div><div class="tg"><span><i>هدف 1</i> ${f.T[0]}</span><span><i>هدف 2</i> ${f.T[1]}</span><span><i>هدف 3</i> ${f.T[2]}</span><span><i>الوقف</i> ${f.ext}</span></div>${f.side!='دعم'?'':`<div style="margin-top:8px"><button class="btn" data-enter="${i}|${f.side}|fake">دخلت</button></div>`}</div>`).join(''):'<p class="none">لا يوجد كسر كاذب قائم الآن: الإشارات السابقة وصلت هدفاً أو ضربت الوقف، ولم تظهر إشارة جديدة.</p>';
 
 function tiers(c){if(c.side!='دعم')return'';const r=d=>(c.level*(1-d)).toFixed(2);return `<div class="tg" style="font-size:13px"><i>دخول متدرّج:</i> <span>−1% ${r(.01)}</span><span>−3% ${r(.03)}</span><span>−5% ${r(.05)}</span><span>−8% ${r(.08)}</span></div>`}
 const CL={panic:['هبوط حاد 7%+ بحجم تداول عالٍ','يبيعون بذعر','شراء'],fomo:['قفزة 7%+ بحجم تداول عالٍ','يطاردون الصعود ويشترون','تجنّب الشراء'],hi52:['اختراق قمة 52 أسبوعاً','يشترون الاختراق','تجنّب الشراء'],lo52:['كسر قاع 52 أسبوعاً','يبيعون أو يضربهم الوقف','شراء'],rsi70:['RSI فوق 70 (تشبع شراء)','يبيعون','شراء أو احتفاظ'],rsi30:['RSI تحت 30 (تشبع بيع)','يشترون','تجنّب الشراء'],golden:['التقاطع الذهبي (متوسط 50 فوق 200)','يشترون','تجنّب الشراء'],death:['تقاطع الموت (متوسط 50 تحت 200)','يبيعون','شراء']};
@@ -193,6 +204,11 @@ const MI=D.model;if(MI){document.getElementById('mtr').textContent=MI.n_train.to
 document.getElementById('mtb').innerHTML='<tr><th>الدرجة</th><th>نجاح فعلي (كل الإشارات)</th><th>نجاح فعلي (إشارات الوسط)</th></tr>'+['A','B','C'].map(g=>`<tr><td>${g}</td><td class="n">${MI.test[g][1]}% <span class="note">(${MI.test[g][0]})</span></td><td class="n">${MI.test_mid[g][1]}% <span class="note">(${MI.test_mid[g][0]})</span></td></tr>`).join('')+`<tr><td>بدون نموذج</td><td class="n">${MI.base_test}%</td><td class="n">${MI.base_test_mid}%</td></tr>`}
 const F4=D.fake4||[];
 document.getElementById('fk4').innerHTML=F4.length?F4.map((f,i)=>`<div class="fi"><b class="sym">${f.s}</b> <span class="pill sup">شراء</span> <span class="pill sup">لم يتحرك للهدف بعد</span><div class="fg"><span><i>المستوى</i>${f.level}</span><span><i>أدنى سعر</i>${f.ext}</span><span><i>الاختراق</i>${f.pen}%</span><span><i>إغلاق الإشارة</i>${f.close}</span><span><i>السعر الآن</i>${f.cur} (${f.chg>0?'+':''}${f.chg}%)</span><span style="font-family:var(--f)"><i>شمعة الإشارة</i>${f.wk}</span><span><i>الموقع في نطاق السنة</i>${f.pos}%</span><span><i>الارتدادات</i>${f.holds}</span></div><div class="tg"><span><i>هدف 1 (3%)</i> ${f.T[0]}</span><span><i>هدف 2 (5%)</i> ${f.T[1]}</span><span><i>هدف 3 (8%)</i> ${f.T[2]}</span><span><i>الوقف</i> ${f.ext}</span></div><div style="margin-top:8px"><button class="btn" data-enter="${i}|دعم|fake4">دخلت</button></div></div>`).join(''):'<p class="none">لا يوجد كسر كاذب قائم على فريم 4 ساعات الآن.</p>';
+const PF=D.perf||{cats:{},recent:[],total:0,since:''};const PN={'fake|A':'كسر كاذب أسبوعي · درجة A','fake|B':'كسر كاذب أسبوعي · درجة B','fake|C':'كسر كاذب أسبوعي · درجة C','fake4':'كسر كاذب 4 ساعات','ct|panic':'عكس المتداولين · هبوط حاد','ct|lo52':'عكس المتداولين · قاع 52 أسبوعاً'};
+document.getElementById('pfs').textContent=PF.since;document.getElementById('pft').textContent=PF.total;
+document.getElementById('pfc').innerHTML=Object.keys(PN).filter(k=>PF.cats[k]).map(k=>{const c=PF.cats[k];return `<div class="fi"><b>${PN[k]}</b> <span class="pill ${c.on?'sup':'res'}">${c.on?'فعّال':'موقوف تلقائياً'}</span><div class="fg"><span><i>اقتراحات</i>${c.n}</span><span><i>مفتوحة</i>${c.open}</span><span><i>صح / خطأ</i>${c.w} / ${c.l}</span><span><i>نسبة الصح الفعلية</i>${c.rate==null?'—':c.rate+'%'}</span><span><i>المتوقع من الاختبار</i>${c.prior}%</span><span><i>التقدير المعدّل</i>${c.adj}%</span></div></div>`}).join('');
+const KN={fake:'كسر كاذب أسبوعي',fake4:'كسر كاذب 4 ساعات',ct:'عكس المتداولين'};
+document.getElementById('pfr').innerHTML=PF.recent.length?PF.recent.map(e=>`<div class="fi"><b class="sym">${e.s}</b> <span class="pill ${e.status=='win'?'sup':'res'}">${e.status=='win'?'صح':'خطأ'}</span> <span class="note">${KN[e.kind]} · إشارة ${e.d} · حُسمت ${e.res}</span><div class="tg"><span><i>سعر الإشارة</i> ${e.entry}</span><span><i>الهدف</i> ${e.tgt}</span></div></div>`).join(''):'<p class="none">لم يُحسم أي اقتراح بعد. النتائج تظهر هنا تلقائياً مع التحديث اليومي.</p>';
 function go(n){if(!document.querySelector(`[data-tab="${n}"]`))n='radar';document.querySelectorAll('.tab').forEach(e=>e.hidden=e.dataset.tab!=n);document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.go==n));window.scrollTo(0,0)}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{location.hash=b.dataset.go;go(b.dataset.go)});
 addEventListener('hashchange',()=>go(location.hash.slice(1)));go(location.hash.slice(1)||'radar');
