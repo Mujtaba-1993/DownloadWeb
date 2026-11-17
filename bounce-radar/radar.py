@@ -200,6 +200,7 @@ def track(B):
     return levels,ev
 MODEL={"w": [0.2222, 0.0105, 0.0613, 0.091, 0.0657, -0.1411, 0.0486, 0.0518, 0.1216, 0.1329, -0.0496], "b": 0.477, "mu": [0.0328, 0.72148, 4.01462, 1.16078, 0.52638, -0.10803, -0.02809, 0.33343, 0.08595, 0.01259, -0.09784], "sd": [0.01849, 0.44827, 1.30825, 0.62904, 0.24674, 0.16369, 0.11541, 0.28163, 0.04494, 0.00875, 0.15055], "cut": [0.566, 0.6497], "info": {"n_train": 2463, "n_test": 1349, "base_test": 65.0, "auc_train": 0.611, "auc_test": 0.611, "test": {"C": [506, 56.1], "B": [497, 66.8], "A": [346, 75.4]}, "test_mid": {"C": [260, 56.5], "B": [192, 66.1], "A": [94, 68.1]}, "base_test_mid": 61.9, "n_test_mid": 546}}  # from train_model.py: logistic model scoring weekly buy-side false breakouts
 FEATS=['pen','same','holds','rvol','clv','trend','mkt','pos','atr','margin','mom13']
+DAYS=[]
 def spy_map():
     # market regime per trading week: the market index relative to its 40-week average.
     # MK['index'] is one symbol, or a basket of leading stocks averaged equally when no index history is available.
@@ -208,9 +209,10 @@ def spy_map():
         for _ in range(3):
             try:
                 r=json.load(urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'}),timeout=40))['chart']['result'][0]
-                W={}
+                W={};dd=[]
                 for a,c in zip(r['timestamp'],r['indicators']['quote'][0]['close']):
-                    if c: W[wk(a)]=c
+                    if c: W[wk(a)]=c;dd.append(ny_date(a))
+                if len(dd)>len(DAYS): DAYS[:]=dd   # longest history = the market's trading calendar
                 return W
             except Exception: pass
         return {}
@@ -317,7 +319,7 @@ def selflearn(fake,fake4,ccand,tails,labs):
         if c.get('act','').startswith('buy'): c['cat']='ct|'+c['k'];c['lid']=add('ct',c['s'],c['date'],c['k'],c['sig'],c['tgt'],None,c['cat'],c.get('pr'),c.get('grade'))
     mine=[e for e in log if e.get('mk','us')==MK['id']]
     for e in mine:
-        if 'pt' not in e:  # the exit rule is frozen when the paper trade is opened
+        if 'pt' not in e or e['pt']['status']=='pending':  # the exit rule is frozen once the paper trade is actually entered
             lb=labs.get(e['kind']) or {};ch=lb['champ'] if lb.get('valid_ok') else DEFAULT_PT[e['kind']];g=e.get('grade')
             e['pt']=dict(T=ch['T'],S=ch['S'],maxd=MAXD[e['kind']],ok=ch['f']=='all' or (g in ('A','B') if ch['f']=='AB' else g=='A'),status='pending')
         if e['pt']['status']!='closed' and e['s'] in tails: paper(e,tails[e['s']])
@@ -457,6 +459,65 @@ def lab(kind,data,model,years,pos_idx=None):
     if not res: return None
     res.sort(key=lambda r:-r['tr']['avg']);Rb=sim(*base);good=[r for r in res if r['va']['avg']>0]
     return dict(champ=(good or res)[0],valid_ok=bool(good),top=res[:5],base=dict(T=base[0],S=base[1],f='all',tr=stat(Rb,tr),va=stat(Rb,va)),sims=len(data)*len(Ts)*len(Ss),signals=len(data),since=d.datetime.fromtimestamp(cut,d.timezone.utc).date().isoformat())
+def plab(data,model,weekly,years=3,span=8):
+    # Portfolio lab for "buy the fallen stock" signals: a real portfolio with limited slots, not an average per trade.
+    # Rules are ranked on the older window by yearly return / worst drawdown; the winner is then reported on the
+    # most recent years, which neither it nor the scoring model was fitted on, next to an equal-weight buy-and-hold
+    # of the same stocks (the fair benchmark, since the stock list is today's survivors).
+    import math
+    if len(data)<400 or len(DAYS)<1500: return None
+    di={x:i for i,x in enumerate(DAYS)};now=ny_now().date();cutd=d.date(now.year-years,now.month,1);a0=d.date(cutd.year-span,cutd.month,1)
+    days_i=[i for i,x in enumerate(DAYS) if x>=a0]
+    if not days_i: return None
+    start=days_i[0];mid=next((i for i,x in enumerate(DAYS) if x>=cutd),None);end=len(DAYS)-1
+    if mid is None or mid-start<500 or end-mid<250: return None
+    sig={}
+    for t,k,f,y,(H,L,C,_) in data:
+        i=di.get(ny_date(t))
+        if i is not None and i>=start-1:
+            z=model['b']+sum(model['w'][j]*((f[j]-model['mu'][j])/model['sd'][j]) for j in range(len(f)))
+            sig.setdefault(i,[]).append((1/(1+math.exp(-z)),C,L))
+    thr={'all':0,'AB':model['cut'][0],'A':model['cut'][1]};cost=COST/2
+    def run(N,f,stop,a,b):
+        cash=1.0;pos=[];eq=[];n=0
+        for i in range(a,b+1):
+            keep=[]
+            for p in pos:
+                k=i-p[0]
+                if k>=1 and stop and p[3][k-1]<=-stop: cash+=p[1]*(1-stop)*(1-cost);continue
+                if k>=59: cash+=p[1]*(1+p[2][59])*(1-cost)
+                else: keep.append(p)
+            pos=keep;val=cash+sum(p[1]*(1+p[2][max(i-p[0]-1,0)]) if i>p[0] else p[1] for p in pos)
+            for pr,C,L in sorted(sig.get(i-1,[]),key=lambda x:-x[0]):
+                if len(pos)>=N or pr<thr[f]: break
+                amt=min(val/N,cash)
+                if amt<=0: break
+                cash-=amt;pos.append([i,amt*(1-cost),C,L]);n+=1
+            eq.append(cash+sum(p[1]*(1+p[2][min(i-p[0],59)]) for p in pos))
+        yrs=(DAYS[b]-DAYS[a]).days/365.25;pk=0;dd=0
+        for v in eq: pk=max(pk,v);dd=min(dd,v/pk-1)
+        return dict(cagr=round((max(eq[-1],1e-9)**(1/yrs)-1)*100,1),maxdd=round(dd*100),n=n)
+    res=[]
+    for f in ('all','AB','A'):
+        for N in (10,20):
+            for stop in (None,0.12,0.20):
+                tr=run(N,f,stop,start,mid-1)
+                if tr['n']>=40: res.append(dict(T=None,S=stop,f=f,N=N,tr=tr,va=run(N,f,stop,mid,end)))
+    if not res: return None
+    res.sort(key=lambda r:-(r['tr']['cagr']/max(1,-r['tr']['maxdd'])))
+    base=next((r for r in res if (r['f'],r['N'],r['S'])==('all',10,None)),res[-1])
+    # fair benchmark over the recent window, from weekly closes
+    cut_ts=d.datetime(cutd.year,cutd.month,cutd.day,tzinfo=d.timezone.utc).timestamp();acc={}
+    for B in weekly:
+        x=[b for b in B if b[0]>=cut_ts]
+        if len(x)>years*40 and x[0][0]<cut_ts+21*86400:
+            for b in x: v=acc.setdefault(wk(b[0]),[0.0,0]);v[0]+=b[3]/x[0][3];v[1]+=1
+    ks=sorted(k for k,v in acc.items() if v[1]>=20);bench=None
+    if len(ks)>50:
+        ew=[acc[k][0]/acc[k][1] for k in ks];pk=0;dd=0
+        for v in ew: pk=max(pk,v);dd=min(dd,v/pk-1)
+        bench=dict(cagr=round((ew[-1]**(1/((DAYS[end]-cutd).days/365.25))-1)*100,1),maxdd=round(dd*100))
+    return dict(port=True,champ=res[0],valid_ok=res[0]['va']['cagr']>0,base=base,bench=bench,sims=sum(r['tr']['n']+r['va']['n'] for r in res),signals=len(data),since=cutd.isoformat(),start=a0.isoformat())
 def paper(e,tl):
     # forward virtual trade: bought at the open of the first session after the suggestion was first shown
     pt=e['pt'];bars=[b for b in tl if b[0]>e['first']]
@@ -473,7 +534,7 @@ def grp(h): return '1' if h==1 else '2-3' if h<=3 else '4-6' if h<=6 else '7+'
 def run_market(mid,base):
     global MK,MODEL,CMODEL,FCOLLECT,COLLECT
     MK=MARKETS[mid];MODEL,CMODEL=base;P='' if mid=='us' else mid.upper()+'_'
-    SPY.clear();SPY.update(spy_map());FCOLLECT=[];COLLECT=[]
+    DAYS.clear();SPY.clear();SPY.update(spy_map());FCOLLECT=[];COLLECT=[]
     rows=[l.split('\t') for l in open(os.path.join(H,MK['tickers']),encoding='utf8').read().splitlines() if l.strip()]
     S=[r[0].strip() for r in rows];names={r[0].strip():r[1].strip() for r in rows if len(r)>1};cev=[];cbase={};ccand=[]
     with cf.ThreadPoolExecutor(12) as ex: data=list(ex.map(get,S))
@@ -481,7 +542,7 @@ def run_market(mid,base):
     if okn<MK['minok'] or not SPY:
         print(P+'ERROR',f'only {okn} of {len(S)} stocks downloaded (index data: {bool(SPY)})');return None
     MODEL=relearn(FCOLLECT,MODEL,5,FEATS.index('pos'));CMODEL=relearn(COLLECT,CMODEL,3)
-    labs={'fake':lab('fake',FCOLLECT,MODEL,5,FEATS.index('pos')),'ct':lab('ct',COLLECT,CMODEL,3)}
+    labs={'fake':lab('fake',FCOLLECT,MODEL,5,FEATS.index('pos')),'ct':plab(COLLECT,CMODEL,[x[0] for x in data if x])}
     fake=[];fake4=[];tails={}
     for s,X in zip(S,data):
         if not X or len(X[0])<260: continue
