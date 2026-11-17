@@ -46,10 +46,16 @@ body{font-size:16px}h1{font-size:22px}
 .ctl .note{grid-column:1/-1}
 .tb table:not(.st) tr.hi{background:color-mix(in srgb,var(--res) 10%,var(--card));border-color:var(--res)}.tb table:not(.st) tr.hi td{background:none}
 }
+.fk{border-color:var(--acc)}.fi{border-top:1px solid var(--line);padding-block:10px}.fi:first-child{border-top:0}.sym{font-size:20px;font-family:var(--m)}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px 12px;margin-top:6px;font-family:var(--m)}.fg i{display:block;font-style:normal;font-size:11px;color:var(--mut);font-family:var(--f)}.none{color:var(--mut);margin:0}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 </style>
 <div class="w" dir="rtl">
 <header><h1>رادار الارتدادات</h1><p class="sub">أسهم S&amp;P 500 التي يقف سعرها الآن قرب مستوى ارتد منه السعر 3 مرات أو أكثر ولم ينكسر بعد. بيانات أسبوعية منذ بداية كل سهم، آخر تحديث: __DATE__.</p></header>
+
+<section class="card fk"><h2>تنبيه الكسر الكاذب</h2>
+<p class="note">سهم كسر مستوى قوياً (3 ارتدادات أو أكثر) بـ1% أو أكثر خلال آخر 5 أيام، ثم <b>أغلق اليوم</b> عائداً داخل المنطقة. يظهر هنا فقط بعد إغلاق الشمعة اليومية.</p>
+<div id="fk"></div></section>
 
 <section class="card"><h2>الأسهم القريبة الآن من منطقة ارتداد</h2>
 <div class="ctl">
@@ -96,4 +102,6 @@ const fs_=document.getElementById('fs'),fh_=document.getElementById('fh'),q_=doc
 [fs_,fh_].forEach(e=>e.onchange=draw);q_.oninput=draw;
 document.querySelectorAll('th[data-k]').forEach(t=>t.onclick=()=>{const k=t.dataset.k;dir=sk==k?-dir:-1;sk=k;draw()});
 draw();
+const fk=document.getElementById('fk');const F=D.fake||[];
+fk.innerHTML=F.length?F.map(f=>`<div class="fi"><b class="sym">${f.s}</b> <span class="pill ${f.side=='دعم'?'sup':'res'}">${f.side}</span><div class="fg"><span><i>المستوى</i>${f.level}</span><span><i>${f.side=='دعم'?'أدنى سعر':'أعلى سعر'}</i>${f.ext}</span><span><i>الاختراق</i>${f.pen}%</span><span><i>إغلاق اليوم</i>${f.close}</span><span><i>الارتدادات</i>${f.holds}</span><span><i>النمط</i>${f.kind}</span></div></div>`).join(''):'<p class="none">لا يوجد كسر كاذب مؤكد بإغلاق اليوم.</p>';
 </script>
