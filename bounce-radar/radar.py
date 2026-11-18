@@ -18,7 +18,7 @@ def get(s):
             ct=contrarian(s,Dd)  # computed here so the daily rows can be dropped
             if FCOLLECT is not None: fake_hist(list(W.values()))
             I=get4h(s)
-            return list(W.values()),ct,(I[0] if I and MK['h4'] else None),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Dd[-150:]],patterns(s,Dd)+(I[1] if I else []),gaps(s,Dd),dips(s,Dd),schools(s,Dd)
+            return list(W.values()),ct,(I[0] if I and MK['h4'] else None),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Dd[-150:]],patterns(s,Dd)+(I[1] if I else []),gaps(s,Dd),dips(s,Dd),schools(s,Dd),pullbacks(s,Dd)
         except Exception: pass
 def get4h(s):
     # One hourly download (about 250 days). Returns (4-hour bars for the weekly-level false breakouts, intraday pattern signals).
@@ -234,6 +234,63 @@ PAT_ALL={"us": {"d": {"n": 16713, "far": 39, "stopd": 43, "exp": 0.16}, "h4": {"
 # per timeframe: line-fit tolerance, breakout margin, minimum slope to call a line falling, minimum width,
 # and how many closed bars back a "returned inside" signal still counts as fresh
 PCFG={'d':dict(tol=0.025,brk=0.01,F=0.03,wmin=0.02,fresh=6),'h4':dict(tol=0.02,brk=0.005,F=0.03,wmin=0.02,fresh=4),'h1':dict(tol=0.015,brk=0.004,F=0.02,wmin=0.012,fresh=7)}
+# --- Pullback from the peak (study, Nov 2026). Question tested: does each stock repeat a "signature" fall (a fixed or
+# near-fixed % drop) before it reverses? Answer: no. Out of sample, 25% of falls end within 15% of the stock's own
+# median fall, against 24% for a memoryless random process; the stock's own median predicts the next fall no better
+# than one number for all stocks; and at a given absolute depth it makes no difference whether that depth equals
+# the stock's usual fall. What does matter is absolute depth together with trend: on US history a first close 12%
+# or more below the swing high (8% zigzag) while the close is still above its 200-day average beat the equal-weight
+# market by about 1% over 20 sessions in every period since 1980. Rule kept: buy the next open, +8% target, -8%
+# stop, out at session 40. Hourly and 4-hour versions (2 years of data) showed no edge of their own after costs:
+# small intraday falls of 3-8% lose, and only falls of 12%+ (the daily rule again) are positive. On the Saudi
+# market the rule loses with a stop, so nothing is suggested there. Shown in its own tab, not in the trade blotter.
+PB=dict(th=0.08,dep=0.12,cap=0.22,tgt=0.08,stop=0.08,maxd=40,fresh=5)
+PB_STATS={'us':dict(on=True,n=17249,win=58,avg=1.17,pf=1.35,ex=0.95,t=5.4,dd50=-8.4,dd75=-16.2,since=1980,per=[['1980–1999',dict(n=5162,win=58,avg=1.12,pf=1.33,ex=0.94)],['2000–2007',dict(n=3841,win=57,avg=0.96,pf=1.28,ex=0.85)],['2008–2013',dict(n=2394,win=60,avg=1.45,pf=1.45,ex=0.83)],['2014–2019',dict(n=1459,win=61,avg=1.54,pf=1.51,ex=0.48)],['2020–2026',dict(n=4052,win=58,avg=1.16,pf=1.34,ex=1.28)]],sig=[25.4,23.6]),
+          'sa':dict(on=False,n=3323,win=50,avg=-0.23,pf=0.95,ex=0.52,t=1.6,dd50=-9.6,dd75=-17.2,since=2008,per=[['2008–2013',dict(n=683,win=47,avg=-0.80,pf=0.83,ex=-0.60)],['2014–2019',dict(n=891,win=52,avg=-0.02,pf=1.00,ex=0.74)],['2020–2026',dict(n=1744,win=50,avg=-0.11,pf=0.97,ex=0.85)]],sig=[23.2,22.5])}
+# Per timeframe, stocks above the daily 200-day average: [fall from peak, cases, win % (equal target and stop), excess
+# over the market after costs %, t-stat, first half, second half]. Daily horizon 20 sessions; 4h 20 bars; 1h 35 bars.
+PB_TF={'us':{'d':[['4–8%',48790,55,-0.08,-0.8,None,None],['8–12%',47042,56,0.46,3.2,None,None],['12–16%',18435,58,0.88,5.9,None,None],['16–22%',6678,59,1.86,5.9,None,None]],
+             'h4':[['5–8%',8266,51,0.17,1.1,0.68,-0.22],['8–12%',3963,53,0.21,0.7,1.1,-0.34],['12–16%',1033,53,1.1,0.8,1.58,0.81],['16%+',402,55,0.76,0.9,1.36,0.51]],
+             'h1':[['3–5%',27529,50,-0.14,-0.7,-0.09,-0.2],['5–8%',14378,52,0.08,0.7,0.0,0.16],['8–12%',4734,52,0.18,1.0,-0.06,0.41],['12%+',1101,53,0.75,2.0,0.57,0.93]]},
+       'sa':{'d':[['4–8%',5759,51,0.35,0.0,None,None],['8–12%',6691,50,0.11,0.6,None,None],['12–16%',3211,51,0.35,1.3,None,None],['16–22%',1565,51,2.04,1.1,None,None]],
+             'h4':[['5–8%',1955,46,1.8,0.9,4.41,0.25],['8–12%',921,44,0.65,0.9,0.12,0.93],['12–16%',200,40,-0.87,-0.3,0.41,-1.34],['16%+',70,57,-0.17,0.6,None,-0.63]],
+             'h1':[['3–5%',5806,43,-0.58,-1.1,-0.77,-0.39],['5–8%',3246,44,1.09,1.3,2.42,-0.18],['8–12%',943,42,-0.35,-0.3,-0.86,0.1],['12%+',148,47,4.21,0.5,11.14,-2.18]]}}
+def pullbacks(s,Dd):
+    # Live signals of the rule above from the last PB['fresh'] closed sessions whose target and stop are both untouched.
+    if not PB_STATS[MK['id']]['on']: return []
+    now=ny_now()
+    if Dd and ny_date(Dd[-1][0])==now.date() and (now.hour,now.minute)<MK['close']: Dd=Dd[:-1]
+    Dd=Dd[-700:];n=len(Dd)
+    if n<300: return []
+    o=[x[1] for x in Dd];h=[x[2] for x in Dd];l=[x[3] for x in Dd];c=[x[4] for x in Dd];th=PB['th']
+    ma=lambda i:sum(c[i-199:i+1])/200
+    trend=1;H=h[0];Hi=0;L=l[0];fired=False;sig=None
+    for i in range(1,n):
+        if abs(c[i]/c[i-1]-1)>0.5: trend=1;H=h[i];Hi=i;fired=False;continue   # split or data glitch
+        if trend==1:
+            if h[i]>=H: H=h[i];Hi=i;fired=False
+            elif l[i]<=H*(1-th): trend=-1;L=l[i]
+        else:
+            if l[i]<=L: L=l[i]
+            elif h[i]>=L*(1+th): trend=1;H=h[i];Hi=i;fired=False;continue
+        if fired or i<260: continue
+        dep=1-c[i]/H
+        if dep<PB['dep']: continue
+        fired=True
+        if dep<PB['cap'] and c[i]>ma(i): sig=(i,H,Hi,dep)
+    if sig is None or n-1-sig[0]>PB['fresh']: return []
+    i,H,Hi,dep=sig;ref=o[i+1] if i+1<n else c[i];tgt=ref*(1+PB['tgt']);stop=ref*(1-PB['stop']);cur=c[-1]
+    if i+1<n and (max(h[i+1:])>=tgt or min(l[i+1:])<=stop): return []
+    a0=n-120
+    return [dict(s=s,date=ny_date(Dd[i][0]).isoformat(),hi=round(H,2),hidate=ny_date(Dd[Hi][0]).isoformat(),depth=round(dep*100,1),sig=round(c[i],2),ref=round(ref,2),cur=round(cur,2),chg=round((cur/ref-1)*100,1),
+        tgt=round(tgt,2),stop=round(stop,2),age=n-1-i,left=PB['maxd']-(n-1-i),ma=round(ma(n-1),2),vl=PB['fresh']-(n-1-i),vu='s',
+        chart=[[round(o[j],2),round(h[j],2),round(l[j],2),round(c[j],2)] for j in range(a0,n)],mal=[round(ma(j),2) for j in range(a0,n)],pk=[max(Hi-a0,0),round(H,2)],sg=i-a0)]
+def _geo(Dd,pat,i0,i,ext):
+    # What the page needs to draw a pattern signal on its own timeframe: the bars, the two fitted lines, the six
+    # pivots they were fitted to, the bar that closed below the lower line and the bar that closed back inside.
+    n=len(Dd);a0=max(0,pat['x0']-6,n-170);r=lambda v:round(v,2);u=lambda x:pat['bu']+pat['mu']*x;lo=lambda x:pat['bl']+pat['ml']*x;x0=max(pat['x0'],a0)
+    return dict(bars=[[r(x[1] or x[4]),r(x[2]),r(x[3]),r(x[4])] for x in Dd[a0:]],up=[[x0-a0,r(u(x0))],[n-1-a0,r(u(n-1))]],lo=[[x0-a0,r(lo(x0))],[n-1-a0,r(lo(n-1))]],
+        ph=[[j-a0,r(p)] for j,p in pat['A'] if j>=a0],pl=[[j-a0,r(p)] for j,p in pat['B'] if j>=a0],brk=[i0-a0,r(ext)],ret=i-a0)
 def patterns(s,Dd,tf='d'):
     # Dd rows: (ts,open,high,low,close,volume). Intraday callers pass closed bars only.
     cfg=PCFG[tf];now=ny_now()
@@ -258,7 +315,7 @@ def patterns(s,Dd,tf='d'):
                     if min(u0,u1,l0,l1)>0 and u1>l1 and u0>l0:
                         mid=(u0+l0)/2;cu=(u1-u0)/mid;cl=(l1-l0)/mid;w0=(u0-l0)/mid;w1=(u1-l1)/mid
                         if w1>=cfg['wmin'] and w0<=0.6 and cu<=-cfg['F'] and cl<=-cfg['F'] and l1<c[i]<u1:
-                            pat=dict(typ='falling_wedge' if w1<0.7*w0 else 'down_channel',mu=mu,bu=bu,ml=ml,bl=bl,born=i)
+                            pat=dict(typ='falling_wedge' if w1<0.7*w0 else 'down_channel',mu=mu,bu=bu,ml=ml,bl=bl,born=i,x0=x0,A=A,B=B)
                         else: pat=None
         if pat is None: continue
         u=pat['bu']+pat['mu']*i;lo=pat['bl']+pat['ml']*i
@@ -275,7 +332,7 @@ def patterns(s,Dd,tf='d'):
                         if h[jj]>=pat['bu']+pat['mu']*jj or c[jj]<ext: alive=False;break
                     cur=c[-1];tgn=pat['bu']+pat['mu']*(n-1)
                     if alive and tg>e*1.01 and tgn>cur*1.01:
-                        out.append(dict(s=s,tf=tf,typ=pat['typ'],date=ny_date(Dd[i][0]).isoformat() if tf=='d' else d.datetime.fromtimestamp(Dd[i][0],_tz()).strftime('%Y-%m-%d %H:%M'),close=round(e,2),cur=round(cur,2),chg=round((cur/e-1)*100,1),tgt=round(tg,2),stop=round(ext,2),rew=round((tg/e-1)*100,1),risk=round((1-ext/e)*100,1),age=n-1-i))
+                        out.append(dict(s=s,tf=tf,typ=pat['typ'],date=ny_date(Dd[i][0]).isoformat() if tf=='d' else d.datetime.fromtimestamp(Dd[i][0],_tz()).strftime('%Y-%m-%d %H:%M'),close=round(e,2),cur=round(cur,2),chg=round((cur/e-1)*100,1),tgt=round(tg,2),stop=round(ext,2),rew=round((tg/e-1)*100,1),risk=round((1-ext/e)*100,1),age=n-1-i,geo=_geo(Dd,pat,i0,i,ext)))
                 pat=None;st=None
             elif i-i0>=5: pat=None;st=None
     return out
@@ -782,10 +839,10 @@ def run_market(mid,base):
         print(P+'ERROR',f'only {okn} of {len(S)} stocks downloaded (index data: {bool(SPY)})');return None
     MODEL=relearn(FCOLLECT,MODEL,5,FEATS.index('pos'));CMODEL=relearn(COLLECT,CMODEL,3)
     labs={'fake':lab('fake',FCOLLECT,MODEL,5,FEATS.index('pos')),'ct':plab(COLLECT,CMODEL,[x[0] for x in data if x])}
-    fake=[];fake4=[];tails={};pats=[];gps=[];dps=[];scs=[]
+    fake=[];fake4=[];tails={};pats=[];gps=[];dps=[];scs=[];pbs=[]
     for s,X in zip(S,data):
         if not X or len(X[0])<260: continue
-        B,ct,X4,tl,pts,gp,dp,sc_=X;tails[s]=tl;pats+=pts;gps+=gp;dps+=dp;scs+=sc_
+        B,ct,X4,tl,pts,gp,dp,sc_,pb_=X;tails[s]=tl;pats+=pts;gps+=gp;dps+=dp;scs+=sc_;pbs+=pb_
         if ct:
             cev+=ct[0];ccand+=ct[2]
             for m,x in ct[1].items():
@@ -817,6 +874,7 @@ def run_market(mid,base):
     gps.sort(key=lambda g:(g['age'],g['gap']))
     dps.sort(key=lambda x:(x['age'],-x['depth']))
     scs.sort(key=lambda x:(x['age'],-x['cnt']))
+    pbs.sort(key=lambda x:(x['age'],-x['depth']))
     fake,fake4,ccand,pats,gps,perf,dps,scs=selflearn(fake,fake4,ccand,tails,labs,pats,gps,dps,scs)
     validity(fake,fake4,ccand,pats,gps,dps,scs)
     print(P+'SUMMARY',okn,'stocks',len(FCOLLECT),'historical false-breakout signals',len(COLLECT),'historical contrarian signals')
@@ -826,48 +884,60 @@ def run_market(mid,base):
     print(P+'PERF',json.dumps(dict(cats=perf['cats'],resolved_today=perf['today']),ensure_ascii=False))
     print(P+'FAKEOUTS',json.dumps(fake,ensure_ascii=False))
     print(P+'FAKEOUTS_4H',json.dumps(fake4,ensure_ascii=False))
-    print(P+'PATTERNS',json.dumps(pats))
+    print(P+'PATTERNS',json.dumps([{k:v for k,v in x.items() if k not in ('chart','geo')} for x in pats]))
     print(P+'GAPS',json.dumps(gps))
     print(P+'DIPS',json.dumps(dps))
     print(P+'SCHOOLS',json.dumps(scs))
+    print(P+'PULLBACKS',json.dumps([{k:v for k,v in x.items() if k not in ('chart','mal')} for x in pbs]))
     print(P+'CONTRARIAN_STATS',json.dumps(cst))
     print(P+'CONTRARIAN_CANDIDATES',json.dumps(ccand))
     need={x['s'] for x in fake+fake4+gps+dps+scs+ccand+[p for p in pats if p['tf']=='d']}
     charts={x:[[round(b[4],2),round(b[1],2),round(b[2],2),round(b[3],2)] for b in tails[x][-90:]] for x in need if x in tails}
-    M=dict(charts=charts,fake=fake,fake4=fake4,gaps=gps,dips=dps,dstats=DIP_STATS[mid],schools=scs,sstats=SCH_STATS[mid],dcmp=DIP_CMP[mid],gstats=GAP_STATS[mid],gcmp=GAP_CMP[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
+    M=dict(charts=charts,fake=fake,fake4=fake4,gaps=gps,dips=dps,dstats=DIP_STATS[mid],schools=scs,sstats=SCH_STATS[mid],dcmp=DIP_CMP[mid],gstats=GAP_STATS[mid],gcmp=GAP_CMP[mid],pb=pbs,pbstats=PB_STATS[mid],pbtf=PB_TF[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
     M['trades']=build_trades(M)
-    print(P+'TRADES',json.dumps([{k:v for k,v in t.items() if k!='chart'} for t in M['trades'][:12]],ensure_ascii=False))
+    print(P+'TRADES',json.dumps([{k:v for k,v in t.items() if k not in ('chart','geo')} for t in M['trades'][:12]],ensure_ascii=False))
     return M
+HIDE=('fake','fake4','pat4','pat1')   # dropped from the blotter by the review panel: break-even after costs or tiny samples. Still tracked in the background.
+FALL=('dip','ct','gap')                # one correlated bet: buying stocks that have just fallen
 def build_trades(M):
-    # One ranked blotter of every buy setup whose conditions are complete. Each row has an entry (latest price), a
-    # stop and a target, so reward, risk and position size can be computed. Rank = expected result in units of risk.
-    # Setups whose study has no stop (gap, deep dip, all-schools) use their "deep fall" level, passed by 1 trade in 4.
+    # One ranked blotter of every buy setup whose conditions are complete.
+    # - Setups whose study has NO stop (deep dip, all-schools, gap) are shown as "no stop" and sized from the loss of
+    #   the worst 5% of their historical trades, not from an untested stop; their expected value uses the average loser.
+    # - lim = the highest price worth paying (2% above the signal's reference price). Above it the row is "missed".
+    # - Fall-buying setups are one bet: the best 3 are shown and share ONE risk budget, the rest are folded.
     T=[];ch=M.get('charts',{});lc=((M.get('perf') or {}).get('labs') or {}).get('ct') or {};champ=lc.get('champ') if lc.get('port') and lc.get('valid_ok') else None
-    def add(kind,x,entry,stop,tgt,conf,date,d,base=None):
+    ds=M.get('dstats') or {};ss=M.get('sstats') or {}
+    def add(kind,x,entry,stop,tgt,conf,date,d,base=None,ref=None,loss=None,al=None,exitby=None,fam=None):
+        if kind in HIDE: return
         # A target defined as a % from the signal price is re-based to the latest price when the stock has fallen
         # since: the stated confidence was measured for that % move, not for a longer one.
         if base and entry and tgt and entry<base:
             t2=entry*tgt/base
             if t2<tgt: d=dict(d,tgt0=round(tgt,2));tgt=t2
+        if loss: stop=entry*(1-loss/100)
         if not(entry and stop and tgt) or not(stop<entry<tgt): return
-        rew=(tgt/entry-1)*100;risk=(1-stop/entry)*100;p=(conf or 50)/100;ev=p*rew-(1-p)*risk
-        T.append(dict(kind=kind,s=x['s'],entry=round(entry,2),stop=round(stop,2),tgt=round(tgt,2),rew=round(rew,1),risk=round(risk,1),rr=round(rew/risk,2),conf=conf,ev=round(ev,2),er=round(ev/risk,2),date=date,d=d,vl=x.get('vl'),vu=x.get('vu'),chart=x.get('chart') or ch.get(x['s'])))
+        rew=(tgt/entry-1)*100;risk=(1-stop/entry)*100;p=(conf or 50)/100;ev=p*rew-(1-p)*(al or risk)
+        lim=round(min(ref*1.02,tgt*0.995),2) if ref else None
+        T.append(dict(kind=kind,fam=fam or ('fall' if kind in FALL else kind),s=x['s'],entry=round(entry,2),stop=round(stop,2),tgt=round(tgt,2),rew=round(rew,1),risk=round(risk,1),rr=round(rew/risk,2),conf=conf,ev=round(ev,2),er=round(ev/risk,2),
+            date=date,d=d,vl=x.get('vl'),vu=x.get('vu'),lim=lim,missed=bool(lim and entry>lim),nostop=bool(loss),exitby=exitby,chart=x.get('chart') or ch.get(x['s']),geo=x.get('geo')))
     for f in M.get('fake',[]):
         if f['side']=='دعم': add('fake',f,f['cur'],f['ext'],f['T'][0],f.get('adj') or f.get('pr'),f['wk'],dict(level=f['level'],grade=f.get('grade'),pos=f.get('pos'),holds=f.get('holds'),pen=f.get('pen')),f['close'])
     for f in M.get('fake4',[]): add('fake4',f,f['cur'],f['ext'],f['T'][0],f.get('adj'),f['wk'],dict(level=f['level'],pos=f.get('pos'),holds=f.get('holds'),pen=f.get('pen')))
-    for p in M.get('pats',[]): add({'d':'pat','h4':'pat4','h1':'pat1'}[p['tf']],p,p['cur'],p['stop'],p['tgt'],p.get('adj'),p['date'],dict(typ=p['typ']))
-    for g in M.get('gaps',[]): add('gap',g,g['cur'],g['deep'],g['pc'],g.get('adj'),g['conf'],dict(gap=g['gap'],gapdate=g['date'],typ=g['typ'],ext=g['ext']),g['ref'])
-    for x in M.get('dips',[]): add('dip',x,x['cur'],x['deep'],x['tgt'],x.get('adj'),x['date'],dict(depth=x.get('depth'),hi=x.get('hi'),typ=x['typ'],ext=x['ext'],left=x.get('left')),x['ref'])
-    for x in M.get('schools',[]): add('sch',x,x['cur'],x['deep'],x['tgt'],x.get('adj'),x['date'],dict(cnt=x.get('cnt'),ok=x.get('ok'),rsi=x.get('rsi'),typ=x['typ'],ext=x['ext'],left=x.get('left')),x['ref'])
+    for p in M.get('pats',[]): add({'d':'pat','h4':'pat4','h1':'pat1'}[p['tf']],p,p['cur'],p['stop'],p['tgt'],p.get('adj'),p['date'],dict(typ=p['typ']),ref=p['close'])
+    for g in M.get('gaps',[]): add('gap',g,g['cur'],None,g['pc'],g.get('adj'),g['conf'],dict(gap=g['gap'],gapdate=g['date'],typ=g['typ'],ext=g['ext']),g['ref'],g['ref'],loss=max(5,(1-g['ext']/g['cur'])*100),al=max(3,(1-g['deep']/g['cur'])*100),exitby=20-g.get('age',0))
+    for x in M.get('dips',[]): add('dip',x,x['cur'],None,x['tgt'],x.get('adj'),x['date'],dict(depth=x.get('depth'),hi=x.get('hi'),typ=x['typ'],ext=x['ext'],left=x.get('left')),x['ref'],x['ref'],loss=abs(ds.get('worst',-31)),al=abs(ds.get('al',-23)),exitby=x.get('left'))
+    for x in M.get('schools',[]): add('sch',x,x['cur'],None,x['tgt'],x.get('adj'),x['date'],dict(cnt=x.get('cnt'),ok=x.get('ok'),rsi=x.get('rsi'),typ=x['typ'],ext=x['ext'],left=x.get('left')),x['ref'],x['ref'],loss=abs(ss.get('worst',-15)),al=abs(ss.get('al',-9)),exitby=x.get('left'))
     for c in (M.get('ct') or {}).get('cand',[]):
         if not c.get('act','').startswith('buy'): continue
         g=c.get('grade')
         if champ and g and not(champ['f']=='all' or (g!='C' if champ['f']=='AB' else g=='A')): continue
-        add('ct',c,c['cur'],c['cur']*(1-((champ or {}).get('S') or 0.20)),c.get('tgt'),c.get('adj') or c.get('pr'),c['date'],dict(k=c['k'],act=c['act'],grade=g,sig=c['sig']),c['sig'])
-    T=[t for t in T if t['ev']>0];T.sort(key=lambda t:-t['er'])
+        add('ct',c,c['cur'],c['cur']*(1-((champ or {}).get('S') or 0.20)),c.get('tgt'),c.get('adj') or c.get('pr'),c['date'],dict(k=c['k'],act=c['act'],grade=g,sig=c['sig']),c['sig'],c['sig'],fam=None if c['act']=='buy_contra' else 'with')
+    T=[t for t in T if t['ev']>0];T.sort(key=lambda t:(t['missed'],-t['er']))
     seen=set();U=[]
     for t in T:   # one row per stock: its best setup
         if t['s'] not in seen: seen.add(t['s']);U.append(t)
+    live=[t for t in U if t['fam']=='fall' and not t['missed']];k=min(3,len(live))
+    for n,t in enumerate(live): t['fold']=n>=3;t['share']=k;t['cluster']=len(live)
     return U
 DATAF=os.path.join(H,'data.txt')   # last full result, so the light intraday refresh can rebuild the page
 def render(D,out):
@@ -894,6 +964,7 @@ def live_prices(M,px):
     upd(M.get('dips',[]),lambda x:x['ref'],lambda x:x['tgt'],lambda x:x['date'])
     upd(M.get('schools',[]),lambda x:x['ref'],lambda x:x['tgt'],lambda x:x['date'])
     upd(M.get('gaps',[]),lambda x:x['ref'],lambda x:x['pc'],lambda x:x['conf'])
+    upd(M.get('pb',[]),lambda x:x['ref'],lambda x:x['tgt'],lambda x:x['date'],lambda x,cur:cur<=x['stop'])
     upd(M.get('fake',[]),lambda x:x['close'],lambda x:x['T'][0] if x['side']=='دعم' else None,lambda x:(d.date.fromisoformat(x['wk'])+d.timedelta(days=6)).isoformat())
     upd(M.get('fake4',[]),lambda x:x['close'],lambda x:x['T'][0],lambda x:x['wk'][:10],lambda x,cur:cur<x['ext'])
     for c in (M.get('ct') or {}).get('cand',[]):
@@ -929,9 +1000,11 @@ def intraday(out,mid):
     validity([],[],[],pats,[],[],[])
     D[mid]['pats']=[p for p in D[mid].get('pats',[]) if p['tf']=='d']+pats;D['built']=d.datetime.now(d.timezone.utc).isoformat(timespec='seconds');D[mid]['intraday_at']=ny_now().strftime('%Y-%m-%d %H:%M')
     D[mid]['trades']=build_trades(D[mid])
+    for m in MARKETS:   # study tables of the pullback tab, also for data saved before that tab existed
+        if D.get(m): D[m]['pbstats']=PB_STATS[m];D[m]['pbtf']=PB_TF[m];D[m].setdefault('pb',[])
     render(D,out)
     print('INTRADAY',mid,okn,'stocks',len(pats),'live signals',json.dumps({k:len(D[mid].get(k,[])) for k in ('dips','schools','gaps','fake','fake4')}))
-    print('NEW',json.dumps(new))
+    print('NEW',json.dumps([{k:v for k,v in x.items() if k not in ('chart','geo')} for x in new]))
 def main(out):
     base=(MODEL,CMODEL);D={}
     for mid in MARKETS: D[mid]=run_market(mid,base)
