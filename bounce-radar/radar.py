@@ -287,10 +287,10 @@ def pullbacks(s,Dd):
         chart=[[round(o[j],2),round(h[j],2),round(l[j],2),round(c[j],2)] for j in range(a0,n)],mal=[round(ma(j),2) for j in range(a0,n)],pk=[max(Hi-a0,0),round(H,2)],sg=i-a0)]
 # --- Trend trap: an ascending trendline is broken (a close below it) and within 5 sessions the price closes back
 # above it. Studied on every US stock since 1980 (see TL_STATS). Daily only: the 1-hour version loses money.
-TL=dict(K=5,tol=0.012,brk=0.004,R=5,minspan=30,maxspan=260,stale=90,fresh=3,rr=2.0,maxd=40,buf=0.002)
-TL_STATS=dict(n=35634,back=45,back25=65,win=42,avg=0.63,pf=1.25,days=14,since=1980,ex=dict(sig=0.65,brk=0.65,touch=0.48),
-    recent=dict(n=12662,win=42,avg=0.60,pf=1.24,ex=0.26,since=2014),
-    per=[['1980–1999',10150,43,0.77,0.87],['2000–2007',6178,42,0.66,1.14],['2008–2013',5420,43,0.50,0.50],['2014–2019',5541,44,0.67,0.29],['2020–2026',7121,40,0.55,0.23]],
+TL=dict(K=5,tol=0.012,brk=0.004,R=5,minspan=30,maxspan=260,stale=90,fresh=3,rr=2.0,maxd=40,buf=0.002,clear=0.01)   # clear: the reclaiming candle must close at least this far above the line
+TL_STATS=dict(n=14110,nall=35634,back=45,back25=65,win=45,avg=1.00,pf=1.31,days=14,weak=dict(n=14279,win=40,avg=0.32,pf=1.16),since=1980,ex=dict(sig=0.77,brk=0.65,touch=0.48),
+    recent=dict(n=4899,win=44,avg=0.94,pf=1.30,ex=0.44,since=2014),
+    per=[['1980–1999',4284,45,1.15,1.01],['2000–2007',2650,44,1.08,1.29],['2008–2013',2277,46,0.77,0.42],['2014–2019',1877,47,0.98,0.42],['2020–2026',3022,43,0.92,0.46]],
     tf=[['يومي',35634,45,42,0.63,1.25,'منذ 1980'],['4 ساعات',3474,39,40,0.26,1.12,'سنتان'],['ساعة',10137,35,38,-0.10,0.92,'سنتان']],
     rob=[1.18,1.27],model=dict(all=1.24,top=1.33,wtop=47))
 def tlines(s,Dd):
@@ -329,13 +329,15 @@ def tlines(s,Dd):
             if c[i]>y: sig=(i,i0,ext,line);line=None;st=None
             elif i-i0>=TL['R']: line=None;st=None
     if sig is None or n-1-sig[0]>TL['fresh']: return []
-    i,i0,ext,L=sig;ref=o[i+1] if i+1<n else c[i];risk=1-ext/ref+TL['buf']
+    i,i0,ext,L=sig;clr=c[i]/(L['b']+L['m']*i)-1
+    if clr<TL['clear']: return []
+    ref=o[i+1] if i+1<n else c[i];risk=1-ext/ref+TL['buf']
     if not 0.003<risk<=0.15: return []
     stop=ref*(1-risk);tgt=ref*(1+TL['rr']*risk);cur=c[-1]
     if i+1<n and (max(h[i+1:])>=tgt or min(l[i+1:])<=stop): return []
     ln=lambda x:L['b']+L['m']*x;a0=max(0,L['xa']-8,n-170);r=lambda v:round(v,2);xs=max(L['xa'],a0)
     return [dict(s=s,date=ny_date(Dd[i][0]).isoformat(),bdate=ny_date(Dd[i0][0]).isoformat(),ref=r(ref),cur=r(cur),chg=round((cur/ref-1)*100,1),stop=r(stop),tgt=r(tgt),rew=round(TL['rr']*risk*100,1),risk=round(risk*100,1),
-        touches=len(L['T']),span=i-L['xa'],below=i-i0,depth=round((1-ext/ln(i0))*100,1),age=n-1-i,left=TL['maxd']-(n-1-i),vl=TL['fresh']-(n-1-i),vu='s',
+        touches=len(L['T']),clr=round(clr*100,1),span=i-L['xa'],below=i-i0,depth=round((1-ext/ln(i0))*100,1),age=n-1-i,left=TL['maxd']-(n-1-i),vl=TL['fresh']-(n-1-i),vu='s',
         geo=dict(bars=[[r(o[k]),r(h[k]),r(l[k]),r(c[k])] for k in range(a0,n)],line=[[xs-a0,r(ln(xs))],[n-1-a0,r(ln(n-1))]],T=[[x-a0,r(p)] for x,p in L['T'] if x>=a0],brk=[i0-a0,r(ext)],ret=i-a0))]
 # --- Pattern trap: a narrowing pattern (falling wedge or a triangle) closes below its lower line and within 5 sessions
 # closes back inside. On US stocks since 1980 the next break was upward 63% of the time (see PT_STATS). The other
