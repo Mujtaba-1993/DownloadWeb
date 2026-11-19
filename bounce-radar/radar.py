@@ -409,7 +409,10 @@ def ptraps(s,Dd):
 # was below its 200-day average and the stock was 30% or more below its 52-week high (see INS_STATS). Held 60 sessions,
 # no stop in the study. Source: openinsider.com (built on SEC Form 4). 43% of historical cases have no price data today
 # (delisted), which flatters the numbers.
-INS=dict(days=14,minval=50,dd=0.30,px=5.0,adv=5e6,fresh=5,hold=60,loss=0.38)
+INS=dict(band=-5.0,days=14,minval=50,dd=0.30,px=5.0,adv=5e6,fresh=5,hold=60,loss=0.38)
+INS_COUNCIL=dict(date='2026-11-19',bands=[['0–5%',372,1.6,0.9,52],['5–15%',509,8.0,6.3,61],['15%+',373,20.0,16.7,69]],
+    per=[['2008–2012',474,10.5,10.5,61],['2013–2017',74,0.9,-0.3,56],['2018–2021',365,14.7,9.3,38],['2022–2026',342,5.0,4.3,14]],
+    fill=[['2008–2012',4.1,-14.2,-56.9],['2018–2021',9.1,-2.3,-28.9],['2022–2026',4.3,0.1,-9.7]],beta=1.27,net22=2.3,bar=5.0)
 INS_GRADE=dict(A=dict(n=1255,ex=9.6,beat=61,win=69,avg=16.2,q05=-34.4,old=[548,9.2,62],new=[707,10.0,60],tg=[[5,93,2.8,12],[8,87,4.3,18],[10,83,5.3,22],[15,74,7.7,30],[20,63,8.9,37],[30,44,11.3,46]]),
     B=dict(n=2825,ex=4.0,beat=54,win=62,avg=9.7,q05=-39.6,tg=[[5,89,2.1,15],[8,82,3.1,21],[10,78,3.9,25],[15,67,5.4,33],[20,56,6.5,39],[30,38,8.0,48]]),
     pts=[['مديران أو أكثر اشتروا في نفس اليوم',2,584,12.6,63],['رفعوا حصتهم 20% أو أكثر',1,1602,7.3,58],['دفعوا أعلى من إغلاق اليوم السابق',1,2115,6.7,57],['المشتري مالك كبير فقط (ليس مديراً)',-1,750,5.2,51]],
@@ -440,7 +443,7 @@ def insiders():
     import re
     sp=_ydaily('SPY',420)
     if not sp or len(sp)<210: return None
-    sc=[x[4] for x in sp];mkt=round((sc[-1]/(sum(sc[-200:])/200)-1)*100,1);out=dict(mkt=mkt,on=mkt<0,list=[],seen=0)
+    sc=[x[4] for x in sp];mkt=round((sc[-1]/(sum(sc[-200:])/200)-1)*100,1);out=dict(mkt=mkt,on=mkt<0,deep=mkt<=INS['band'],band='0-5' if mkt>-5 else '5-15' if mkt>-15 else '15+',list=[],seen=0)
     u=f"http://openinsider.com/screener?s=&o=&pl=&ph=&ll=&lh=&fd={INS['days']}&fdr=&td=0&tdr=&fdlyl=&fdlyh=&daysago=&xp=1&vl={INS['minval']}&vh=&ocl=&och=&sic1=-1&sicl=100&sich=9999&grp=0&nfl=&nfh=&nil=&nih=&nol=&noh=&v2l=&v2h=&oc2l=&oc2h=&sortcol=0&cnt=1000&page=1"
     try: h=urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'}),timeout=90).read().decode('utf8','ignore')
     except Exception: return None
@@ -476,7 +479,7 @@ def insiders():
         if ten: pts-=1;why.append('المشتري مالك كبير فقط')
         grade='A' if pts>=2 else 'B' if pts==1 else 'C'
         out['list'].append(dict(s=tk,name=g['name'],n=len(g['ins']),titles=', '.join(tt)[:60],val=round(g['val']),date=g['fd'],ref=r2(ref),cur=r2(cur),chg=round((cur/ref-1)*100,1),dd=round(dd*100),hi=r2(hi),
-            adv=round(adv/1e6,1),same=same,own=round(g['own']),prem=round(prem*100,1),pts=pts,grade=grade,why=why,age=age,left=INS['hold']-age,vl=INS['fresh']-age,lim=lim,missed=cur>lim,stop=r2(cur*(1-INS['loss'])),tgt=r2(hi),geo=dict(bars=[[r2(x[1]),r2(x[2]),r2(x[3]),r2(x[4])] for x in B[-170:]],ent=(k-(n-min(n,170))) if k is not None else None)))
+            adv=round(adv/1e6,1),band=out['band'],same=same,own=round(g['own']),prem=round(prem*100,1),pts=pts,grade=grade,why=why,age=age,left=INS['hold']-age,vl=INS['fresh']-age,lim=lim,missed=cur>lim,stop=r2(cur*(1-INS['loss'])),tgt=r2(hi),geo=dict(bars=[[r2(x[1]),r2(x[2]),r2(x[3]),r2(x[4])] for x in B[-170:]],ent=(k-(n-min(n,170))) if k is not None else None)))
     out['list'].sort(key=lambda x:(x['missed'],-x['pts'],-x['n'],-x['val']))
     return out
 def _geo(Dd,pat,i0,i,ext):
@@ -783,7 +786,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=(),pt
     for x in dps: x['cat']='dip';x['lid']=add('dip',x['s'],x['date'],'deep',x['ref'],x['tgt'],None,'dip',None)
     for p in pats:
         kd={'d':'pat','h4':'pat4','h1':'pat1'}[p['tf']];p['cat']=kd+'|'+p['typ'];p['lid']=add(kd,p['s'],p['date'][:10],p['typ']+'|'+p['date'][10:],p['close'],p['tgt'],p['stop'],p['cat'],None)
-    for x in ins: x['cat']='ins|'+x['grade'];x['lid']=add('ins',x['s'],x['date'],'buy',x['ref'],round(x['ref']*1.15,2),None,x['cat'],None,x['grade'])
+    for x in ins: x['cat']='ins|'+x['grade']+'|'+x.get('band','');x['lid']=add('ins',x['s'],x['date'],'buy',x['ref'],round(x['ref']*1.15,2),None,x['cat'],None,x['grade'])
     for x in ptr: x['cat']='pt';x['lid']=add('pt',x['s'],x['date'],x['typ'],x['ref'],x['tgt'],x['stop'],'pt',None)
     for x in tls: x['cat']='tl';x['lid']=add('tl',x['s'],x['date'],'up',x['ref'],x['tgt'],x['stop'],'tl',None)
     for f in fake4: f['cat']='fake4';f['lid']=add('fake4',f['s'],f['wk'][:10],f['level'],f['close'],f['T'][0],f['ext'],'fake4',None)
@@ -807,7 +810,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=(),pt
             r=resolve(e,tails[e['s']],now)
             if r: e['status'],e['res']=r;done.append(e)
     cats={}
-    pri=dict(PRIOR);pri['tl']=(TL_STATS['win'],20);pri['pt']=(PT_STATS['win'],20);pri['ins|A']=(74,20);pri['ins|B']=(67,20);pri['ins|C']=(67,20);pri['dip']=(DIP_STATS[MK['id']]['win'],20)
+    pri=dict(PRIOR);pri['tl']=(TL_STATS['win'],20);pri['pt']=(PT_STATS['win'],20);pri.update({f'ins|{g}|{b}':(p,20) for g,p in (('A',74),('B',67),('C',67)) for b in ('0-5','5-15','15+')});pri['dip']=(DIP_STATS[MK['id']]['win'],20)
     if SCH_STATS[MK['id']]['on']: pri['sch']=(SCH_STATS[MK['id']]['win'],20)
     for b,v in GAP_STATS[MK['id']].items(): pri['gap|'+b]=(v['fill'],20)   # expected: the gap closes within 20 sessions
     for tf,kd in (('d','pat'),('h4','pat4'),('h1','pat1')):  # expected hit rate of each pattern on this market and timeframe
@@ -1100,7 +1103,7 @@ def run_market(mid,base):
     need={x['s'] for x in fake+fake4+gps+dps+scs+ccand+[p for p in pats if p['tf']=='d']}
     charts={x:[[round(b[4],2),round(b[1],2),round(b[2],2),round(b[3],2)] for b in tails[x][-90:]] for x in need if x in tails}
     M=dict(charts=charts,fake=fake,fake4=fake4,gaps=gps,dips=dps,dstats=DIP_STATS[mid],schools=scs,sstats=SCH_STATS[mid],dcmp=DIP_CMP[mid],gstats=GAP_STATS[mid],gcmp=GAP_CMP[mid],audit=AUDIT[mid],tl=tls,tlstats=TL_STATS,pt=ptr,ptstats=PT_STATS,pton=perf['cats'].get('pt',{}).get('on',True),tlon=perf['cats'].get('tl',{}).get('on',True),pb=pbs,pbstats=PB_STATS[mid],pbtf=PB_TF[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
-    M['ins']=INSD;M['insstats']=INS_STATS;M['insgrade']=INS_GRADE
+    M['ins']=INSD;M['insstats']=INS_STATS;M['insgrade']=INS_GRADE;M['inscouncil']=INS_COUNCIL
     print(P+'INSIDERS',json.dumps(M['ins'] and dict(mkt=M['ins']['mkt'],on=M['ins']['on'],seen=M['ins']['seen'],list=[{k:v for k,v in x.items() if k!='geo'} for x in M['ins']['list']]),ensure_ascii=False))
     M['trades']=build_trades(M)
     ER=earnings_soon() if mid=='us' else {};M['earn_ok']=bool(ER)
