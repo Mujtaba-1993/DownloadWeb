@@ -288,9 +288,11 @@ def pullbacks(s,Dd):
 # --- Trend trap: an ascending trendline is broken (a close below it) and within 5 sessions the price closes back
 # above it. Studied on every US stock since 1980 (see TL_STATS). Daily only: the 1-hour version loses money.
 TL=dict(K=5,tol=0.012,brk=0.004,R=5,minspan=30,maxspan=260,stale=90,fresh=3,rr=2.0,maxd=40,buf=0.002,clear=0.01)   # clear: the reclaiming candle must close at least this far above the line
-TL_STATS=dict(n=14110,nall=35634,back=45,back25=65,win=45,avg=1.00,pf=1.31,days=14,weak=dict(n=14279,win=40,avg=0.32,pf=1.16),since=1980,ex=dict(sig=0.77,brk=0.65,touch=0.48),
-    recent=dict(n=4899,win=44,avg=0.94,pf=1.30,ex=0.44,since=2014),
-    per=[['1980–1999',4284,45,1.15,1.01],['2000–2007',2650,44,1.08,1.29],['2008–2013',2277,46,0.77,0.42],['2014–2019',1877,47,0.98,0.42],['2020–2026',3022,43,0.92,0.46]],
+# Stats below use point-in-time index membership (who was in the S&P 500 on the signal day, from github.com/fja05680/sp500).
+# 67% of member-years have prices; companies that were delisted are still missing, so the true numbers are a little lower.
+TL_STATS=dict(pit=True,n=8761,nall=35634,back=45,back25=65,win=43,avg=0.66,pf=1.20,days=14,old=dict(win=44,avg=0.94,pf=1.28),gone=dict(n=1331,win=40,avg=0.22,pf=1.06),weak=dict(n=14279,win=40,avg=0.32,pf=1.16),since=1980,ex=dict(sig=0.28,brk=0.65,touch=0.48),
+    recent=dict(n=3596,win=44,avg=0.89,pf=1.28,ex=0.25,since=2017),
+    per=[['1996–2007',2693,42,0.56,0.41],['2008–2016',2472,44,0.45,0.18],['2017–2026',3596,44,0.89,0.25]],
     tf=[['يومي',35634,45,42,0.63,1.25,'منذ 1980'],['4 ساعات',3474,39,40,0.26,1.12,'سنتان'],['ساعة',10137,35,38,-0.10,0.92,'سنتان']],
     rob=[1.18,1.27],model=dict(all=1.24,top=1.33,wtop=47))
 def tlines(s,Dd):
@@ -344,10 +346,10 @@ def tlines(s,Dd):
 # shapes (channels, rectangles, rising wedge, broadening) do not show this and are not listed.
 PT=dict(K=5,tol=0.025,brk=0.01,F=0.03,R=5,fresh=3,rr=2.0,maxd=40,buf=0.002)
 PT_TYPES=('falling_wedge','sym_triangle','desc_triangle','asc_triangle')
-PT_STATS=dict(n=2407,opp=63,win=46,avg=1.17,pf=1.45,since=1980,back=35,exall=0.96,exrecent=0.05,
+PT_STATS=dict(pit=True,n=1533,opp=61,win=43,avg=0.82,pf=1.31,since=1996,back=35,exall=0.24,exrecent=-0.13,old=dict(win=45,avg=1.08,pf=1.41),
     typ=[['falling_wedge',499,74,47,1.67,1.59],['sym_triangle',382,66,43,0.71,1.23],['desc_triangle',757,64,45,1.00,1.39],['asc_triangle',874,56,47,1.26,1.53]],
     other=[['قناة هابطة',525,54],['مستطيل',1080,40],['وتد صاعد',1292,37],['قناة صاعدة',1624,20],['نمط متّسع',3876,13]],
-    per=[['1980–1999',748,69,48,1.45,1.24],['2000–2013',813,59,45,1.05,1.64],['2014–2026',846,62,44,1.03,0.05]])
+    per=[['1996–2007',463,60,42,0.80,0.51],['2008–2016',430,63,45,0.65,0.51],['2017–2026',640,60,42,0.96,-0.13]])
 def ptraps(s,Dd):
     now=ny_now()
     if Dd and ny_date(Dd[-1][0])==now.date() and (now.hour,now.minute)<MK['close']: Dd=Dd[-461:-1]
@@ -419,6 +421,17 @@ def _ydaily(s,days=420):
             return [(a,o,h,l,c,v or 0) for a,o,h,l,c,v in zip(r['timestamp'],q['open'],q['high'],q['low'],q['close'],q['volume']) if o and h and l and c]
         except Exception: pass
     return None
+def earnings_soon(days=12):
+    # symbol -> next earnings date within the coming sessions. Empty on any failure.
+    out={};day=ny_now().date()
+    for k in range(days):
+        dd=day+d.timedelta(days=k)
+        if dd.weekday()>4: continue
+        try:
+            r=json.load(urllib.request.urlopen(urllib.request.Request('https://api.nasdaq.com/api/calendar/earnings?date='+dd.isoformat(),headers={'User-Agent':'Mozilla/5.0 (X11; Linux x86_64)','Accept':'application/json'}),timeout=20))
+            for x in ((r.get('data') or {}).get('rows') or []): out.setdefault(x['symbol'].replace('/','.'),dd.isoformat())
+        except Exception: pass
+    return out
 def insiders():
     import re
     sp=_ydaily('SPY',420)
@@ -1071,6 +1084,10 @@ def run_market(mid,base):
     M['ins']=insiders() if mid=='us' else None;M['insstats']=INS_STATS
     print(P+'INSIDERS',json.dumps(M['ins'] and dict(mkt=M['ins']['mkt'],on=M['ins']['on'],seen=M['ins']['seen'],list=[{k:v for k,v in x.items() if k!='geo'} for x in M['ins']['list']]),ensure_ascii=False))
     M['trades']=build_trades(M)
+    ER=earnings_soon() if mid=='us' else {};M['earn_ok']=bool(ER)
+    for x in M['trades']+M.get('tl',[])+M.get('pt',[])+M.get('pb',[])+((M.get('ins') or {}).get('list') or []):
+        if x['s'] in ER: x['earn']=ER[x['s']]
+    print(P+'EARNINGS',len(ER),'symbols report in the next days;',sum(1 for x in M['trades']+M.get('tl',[])+M.get('pt',[])+((M.get('ins') or {}).get('list') or []) if 'earn' in x),'of the listed trades')
     print(P+'TRADES',json.dumps([{k:v for k,v in t.items() if k not in ('chart','geo')} for t in M['trades'][:12]],ensure_ascii=False))
     return M
 HIDE=('fake','fake4','pat4','pat1')   # dropped from the blotter by the review panel: break-even after costs or tiny samples. Still tracked in the background.
