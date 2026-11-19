@@ -34,7 +34,7 @@ Decision rules from 86 public sources (Worth columns 1993 to 1999, talks and int
 
 16. **Liking a product starts research; it does not justify a buy.** "Liking a store, a product, or a restaurant is a good reason to get interested in a company and put it on your research list, but it's not enough of a reason to own the stock!" (S116) "People buy a stock and they know nothing about it" (S079) Sources: 3 (S079, S116, S117). High.
 
-17. **Earnings drive stocks over time.** "I can't say enough about the fact that earnings are the key to success in investing in stocks." (S016) "It's a direct relationship — what happens to a company's earnings and what happens to their stocks." (S089) Sources: 8. High.
+17. **Earnings drive stocks over time.** "I can't say enough about the fact that earnings are the key to success in investing in stocks." (S016) "what happens to a company's earnings and what happens to their stocks. And that's the key thing over time." (S089) Sources: 8. High.
 
 18. **Don't overpay for growth.** "Overpriced growth stocks are doubly risky" (S031) "When you way overpay for growth, the risk/reward ratiois highly unfavorable." (S031) Sources: 5 (S028, S031, S032, S035, S046). High.
 

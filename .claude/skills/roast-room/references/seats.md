@@ -50,6 +50,7 @@ On-call seats (in `roster.json`, off the default board; the Chair recommends the
 | Elon | `council-musk` | First principles and execution speed | What is the real constraint here, and can we cut steps and build it faster? | `brains/elon-musk/` |
 | Thorp | `council-thorp` | Edge and position sizing | Is the edge real and measured, and how much should you bet on it? | `brains/ed-thorp/` |
 | Marks | `council-marks` | Market cycles and risk | Where are we in the cycle, and is the price below what it is worth? | `brains/howard-marks/` |
+| Lynch | `council-lynch` | Stock picking and insider signals | Do you understand the company and its story, and are the insiders buying? | `brains/peter-lynch/` |
 
 - Naval (own the equity, tiny teams, self-fund) against Hormozi and Gary V (more volume, more offers, more output that the founder still has to rent their hours to).
 - Codie (buy proven cash flow) against Graham and Naval (build something new people want).
@@ -61,5 +62,7 @@ On-call seats (in `roster.json`, off the default board; the Chair recommends the
 - Marks (take the temperature, buy amid fear in steps, price before quality) against Gary V, Hormozi, and Elon (act now, speed over price paid). Marks and Buffett agree on price and value and split on whether cycle position and investor psychology should change what a long-term owner does.
 - Thorp (prove the edge net of costs, then bet half Kelly or less) against Hormozi and Musk (bold bets and speed) and against Buffett on concentration by judgment. Thorp and Buffett agree that most people should index.
 - Thorp's Kelly math fits repeated, measurable bets; on one-shot business calls he gives a ceiling on risk, and the Chair should weigh him less there.
+- Lynch (know the company, check the balance sheet, insiders buying as confirmation) against Marks (read the cycle and the market's temperature) and Thorp (a measured, backtested edge sized by math): Lynch says nobody times the market and a screen is not a story; Marks and Thorp say a story is not a measured edge. Lynch and Buffett agree on balance sheets and patience.
+- Lynch judges single stocks one story at a time; on a market-level filter or a system's overall edge he defers, and the Chair should weigh him on the stock-level evidence.
 
 If Round 1 comes back unanimous, the Chair should be suspicious and press the seat whose pillar is most at risk in Round 2.

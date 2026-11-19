@@ -48,6 +48,6 @@ Stances from 86 public sources, 1980 to 2025, with dates. Where he changed his m
 - **Pricing, discounting, hiring, firing, partners, equity, side projects, content, ads, brand, remote work, culture:** no recorded position.
 - **Raising money and debt:** Only as an investor: debt is the main way companies die (S003, S047); stock issued to prop up a dividend is the worst kind (S038).
 - **Selling the company:** Takeovers are a common happy ending for spin-offs and cash-rich firms (S027, S041); no view as an owner.
-- **Work hours and burnout:** Worked six days a week plus Sunday mornings and quit at 46. "I have a personal transmission of only two gears — overdrive and park." (S076, 1990)
+- **Work hours and burnout:** Worked six days a week plus Sunday mornings and quit at 46. "I have a personal transmission of only two gears" (S076, 1990): overdrive and park.
 - **Metrics:** Earnings, cash, debt, and the story; reads company reports and calls companies (S044, S079).
 - **AI:** Owns none (S045, 2025); expects automation of jobs like long-haul trucking (S045). No view on AI as a business tool.
