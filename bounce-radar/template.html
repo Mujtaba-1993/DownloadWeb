@@ -69,7 +69,7 @@ ul{margin:8px 0 0;padding-inline-start:18px;color:var(--mut);font-size:12.5px}li
 h2 .cnt{font:600 12px var(--m);color:var(--mut)}
 .risk.bar{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;align-items:center}.risk.bar label{display:flex;align-items:center;gap:8px}.risk.bar input{width:104px;padding:5px 8px}.risk.bar[hidden]{display:none}
 .lead{margin:0 0 12px;color:var(--mut);font-size:13px}.verdict{margin:12px 0 0;padding:10px 12px;border-inline-start:3px solid var(--warn);background:var(--panel2);border-radius:6px;font-size:13px;line-height:1.7}
-.lead b{color:var(--fg)}.chip.md{color:var(--acc);border-color:#35500a}.chip.t-pt{color:var(--acc);border-color:#35500a}.chip.wk{color:var(--warn);border-color:#57431d}.chip.t-tl{color:var(--info);border-color:#27485a}
+.lead b{color:var(--fg)}.chip.md{color:var(--acc);border-color:#35500a}.chip.t-pt{color:var(--acc);border-color:#35500a}.tgbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:0 0 12px;font-size:13px;color:var(--mut)}.tgbar .seg button{padding:5px 11px;font-family:var(--m)}.chip.wk{color:var(--warn);border-color:#57431d}.chip.t-tl{color:var(--info);border-color:#27485a}
 details.how{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}details.how>summary{cursor:pointer;color:var(--mut);font-size:12.5px;font-weight:600}
 .why{margin:0 0 10px;font-size:13px;line-height:1.7}.why b{color:var(--fg)}
 .chip.t-pb{color:var(--acc);border-color:#35500a}h3{font-size:13.5px;font-weight:600;margin:14px 0 6px}
@@ -118,7 +118,12 @@ details.how{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}de
 <div class="tab" data-tab="ins" hidden>
 <section class="panel"><div class="ph"><h2>شراء المدراء <span class="chip md">ميزة متوسطة</span></h2><span class="note" id="inscount" style="margin:0"></span></div>
 <p class="lead">أسهم اشترى منها مدراء الشركة أو كبار ملاكها في آخر أيام، وتحقق فيها الشرطان: <b>السوق تحت متوسط 200 يوم</b> و<b>السهم نازل 30% أو أكثر عن قمة السنة</b>. الاحتفاظ 60 جلسة بلا وقف، والكمية محسوبة على أسوأ خسارة تاريخية.</p>
+<div class="tgbar"><span>هدفك:</span><div class="seg" id="instg"></div><span class="note" id="instgn" style="margin:0"></span></div>
 <div id="insl"></div><button class="btn more" id="insmore" hidden></button></section>
+<section class="panel"><div class="ph"><h2>حاسبة الهدف</h2></div>
+<div class="risk"><label>سعر السهم الآن<input id="cpx" inputmode="decimal" autocomplete="off"></label><label>نسبة الربح %<input id="cpc" inputmode="decimal" autocomplete="off"></label><div class="out" id="cout" style="font-size:14px;color:var(--fg)"></div></div>
+<div class="tb" style="margin-top:10px"><table id="instgt"></table></div>
+<p class="note">الجدول من 4,080 حالة تاريخية بشروط هذه الخانة: كم مرة وصل السهم كل هدف خلال 60 جلسة، ومتوسط الصفقة إن خرجت عند الهدف أو بنهاية المدة. الهدف الأصغر يتحقق أكثر لكنه يربح أقل في المتوسط.</p></section>
 <section class="panel"><div class="ph"><h2>نتيجة الاختبار</h2><span class="note" id="insn" style="margin:0"></span></div>
 <div class="kp" id="inskp"></div><p class="verdict" id="insverdict"></p>
 <details class="how"><summary>تفاصيل الاختبار</summary><div class="tb"><table id="insper"></table></div><ul id="instests"></ul></details></section>
@@ -377,23 +382,28 @@ function renderTLstudy(){const S=D.tlstats;if(!S)return;const R=S.recent,sg2=v=>
 <li><b>اختبار إخباري:</b> تواريخ إعلانات الأرباح غير متاحة في مصدر البيانات، فاستُخدم حجم التداول والفجوة يوم الكسر دليلاً على وجود خبر. لا فرق في النتيجة بين كسر بحجم عالٍ وكسر بحجم عادي.</li>
 <li>القائمة تضم الأسهم الموجودة اليوم فقط، وهذا يرفع كل الأرقام قليلاً.</li>`}
 // --- insider buying (shown only while the market is below its 200-day average)
-let INO=-1,INSHOW=5,INT=[];
+let INO=-1,INSHOW=5,INT=[],INTG=15;try{INTG=+localStorage.getItem('rr-instg')||15}catch(e){}
 function insRow(t,i){const z=size(t),o=INO==i,v=t.val>=1e6?(t.val/1e6).toFixed(1)+'M':Math.round(t.val/1e3)+'K';return `<div class="tr${o?' open':''}${t.missed?' miss':''}" data-ins="${i}"><div class="rk">${i+1}</div><div class="sy"><b>${t.s}</b><span class="chip t-pt">${t.n} ${t.n>2?'مدراء':t.n==2?'مديران':'مدير'}</span>${t.missed?'<span class="chip t-gap">فات، لا تطارد</span>':''}<span class="nm">${t.name}</span></div>
 <div class="nv"><i>الدخول</i>${fx(t.entry)}<small>حد الشراء ${fx(t.lim)}</small></div><div class="nv neg"><i>تحت قمة السنة</i>-${t.dd}%<small>القمة ${fx(t.hi)}</small></div><div class="nv"><i>اشتروا بـ</i>$${v}<small>${t.date}</small></div>
-<div class="nv"><i>خسارة مفترضة</i>${z?`<span class="neg">-${num(Math.round(z.loss))}</span>`:'—'}<small>-${t.risk}%</small></div><div class="nv"><i>الخروج بعد</i>${t.left}<small>جلسة</small></div><div class="nv"><i>الكمية</i>${z?num(z.n):'—'}${z?`<small>${num(Math.round(z.val))}</small>`:''}</div></div>
+<div class="nv"><i>خسارة مفترضة</i>${z?`<span class="neg">-${num(Math.round(z.loss))}</span>`:'—'}<small>-${t.risk}%</small></div><div class="nv pos"><i>الهدف</i>${fx(t.tgt)}<small>+${INTG}% · أو بعد ${t.left} جلسة</small></div><div class="nv"><i>الكمية</i>${z?num(z.n):'—'}${z?`<small>${num(Math.round(z.val))}</small>`:''}</div></div>
 <div class="tx"${o?'':' hidden'}><div>${o?`<p class="why"><b>لماذا هذا السهم؟</b> ${t.n} من داخل الشركة (${t.titles}) اشتروا بـ $${num(t.val)}، آخر إعلان ${t.date}. السهم نازل ${t.dd}% عن قمة السنة، والسوق تحت متوسط 200 يوم.</p>`+tlChart(t):''}</div><div class="facts">${o?insFacts(t,z):''}<button class="btn x" data-copyins="${i}" style="margin-top:6px">نسخ الأمر</button><button class="btn" data-enterins="${i}">دخلت هذه الصفقة</button></div></div>`}
 function insFacts(t,z){const S=D.insstats,r=[],f=(a,b)=>r.push(`<div><span>${a}</span><b>${b}</b></div>`);
  f('عدد المشترين من الداخل',t.n);f('مناصبهم',t.titles);f('قيمة شرائهم','$'+num(t.val));f('آخر إعلان',t.date);f('تحت قمة السنة','-'+t.dd+'%');f('تداول يومي','$'+t.adv+'M');
- f('صالحة لدخول جديد (جلسات)',t.vl<=0?'اليوم فقط':t.vl);f('الأمر','شراء محدد');f('لا تدفع أكثر من',t.lim);f('الخروج','بعد '+t.left+' جلسة، بلا وقف');
+ f('صالحة لدخول جديد (جلسات)',t.vl<=0?'اليوم فقط':t.vl);f('الأمر','شراء محدد');f('لا تدفع أكثر من',t.lim);f('الهدف',t.tgt+' (+'+INTG+'%)');f('وصله تاريخياً',t.tgp+'% من الحالات');f('الخروج','عند الهدف أو بعد '+t.left+' جلسة، بلا وقف');
  f('نجاح تاريخي',S.win+'%');f('متوسط الرابحة','+'+S.aw+'%');f('متوسط الخاسرة',S.al+'%');f('أسوأ 5% (أساس الكمية)',S.q05+'%');
  if(z){f('الكمية المقترحة',num(z.n)+' سهم'+(z.lim?' (حد 25% من رأس المال)':''));f('الخسارة المفترضة','-'+num(Math.round(z.loss)))}
  return r.join('')}
+function calc(){const p=parseFloat($('cpx').value),c=parseFloat($('cpc').value);$('cout').innerHTML=p>0&&c==c?`الهدف: <b style="font-family:var(--m);color:var(--up)">${(Math.round(p*(1+c/100)*100)/100).toLocaleString('en')}</b> · الربح للسهم ${(Math.round(p*c)/100).toLocaleString('en')}`:'اكتب السعر والنسبة ليظهر سعر الهدف.'}
 function renderIns(){const I=D.ins,S=D.insstats;if(!S)return;const r1=v=>Math.round(v*10)/10;
- INT=I&&I.on?(I.list||[]).map(t=>({...t,kind:'ins',entry:t.cur,risk:r1((1-t.stop/t.cur)*100),share:Math.min(3,I.list.length),lab:['قمة السنة','الدخول','خسارة مفترضة']})):[];
+ INT=I&&I.on?(I.list||[]).map(t=>({...t,kind:'ins',entry:t.cur,risk:r1((1-t.stop/t.cur)*100),share:Math.min(3,I.list.length),lab:['الهدف','الدخول','خسارة مفترضة'],tgt:Math.round(t.cur*(1+INTG/100)*100)/100,tgp:(S.tg.find(r=>r[0]==INTG)||[])[1]})):[];
  const shown=INT.slice(0,INSHOW);
- $('insl').innerHTML=!I?'<p class="none big">تعذّر جلب إعلانات المدراء في آخر تحديث.</p>':!I.on?`<p class="none big">الشرط غير متحقق الآن: السوق فوق متوسط 200 يوم (${sg(I.mkt)}). في هذا الوضع تقليد المدراء لا يتفوق على السوق، فلا تُعرض أسهم.</p>`:INT.length?`<div class="stale" style="border-color:var(--warn);color:var(--warn);background:#e0a43a14">كل هذه الأسهم رهان واحد على ارتداد السوق، فتتقاسم مخاطرة صفقة واحدة. لا تدخلها كلها.</div><div class="bl"><div class="hd"><div>#</div><div>السهم</div><div class="nv">الدخول</div><div class="nv">تحت قمة السنة</div><div class="nv">اشتروا بـ</div><div class="nv">خسارة مفترضة ($)</div><div class="nv">الخروج بعد</div><div class="nv">الكمية ($)</div></div>${shown.map(insRow).join('')}</div>`:'<p class="none big">لا يوجد سهم يحقق الشروط اليوم.</p>';
+ $('insl').innerHTML=!I?'<p class="none big">تعذّر جلب إعلانات المدراء في آخر تحديث.</p>':!I.on?`<p class="none big">الشرط غير متحقق الآن: السوق فوق متوسط 200 يوم (${sg(I.mkt)}). في هذا الوضع تقليد المدراء لا يتفوق على السوق، فلا تُعرض أسهم.</p>`:INT.length?`<div class="stale" style="border-color:var(--warn);color:var(--warn);background:#e0a43a14">كل هذه الأسهم رهان واحد على ارتداد السوق، فتتقاسم مخاطرة صفقة واحدة. لا تدخلها كلها.</div><div class="bl"><div class="hd"><div>#</div><div>السهم</div><div class="nv">الدخول</div><div class="nv">تحت قمة السنة</div><div class="nv">اشتروا بـ</div><div class="nv">خسارة مفترضة ($)</div><div class="nv">الهدف</div><div class="nv">الكمية ($)</div></div>${shown.map(insRow).join('')}</div>`:'<p class="none big">لا يوجد سهم يحقق الشروط اليوم.</p>';
  $('inscount').textContent=I?`السوق ${sg(I.mkt)} عن متوسط 200 يوم`+(INT.length?` · ${shown.length} معروضة من ${INT.length}`:''):'';$('n-ins').textContent=INT.length||'';
  $('insmore').hidden=INT.length<=INSHOW;$('insmore').textContent=`عرض الكل (${INT.length})`;
+ $('instg').innerHTML=S.tg.filter(r=>r[0]>=10).map(r=>`<button data-tg="${r[0]}" class="${r[0]==INTG?'on':''}">+${r[0]}%</button>`).join('');
+ {const g=S.tg.find(r=>r[0]==INTG)||S.tg[3];$('instgn').textContent=`وصله ${g[1]}% من الحالات خلال 60 جلسة · متوسط الصفقة +${g[2]}% · نحو ${g[3]} جلسة`}
+ $('instgt').innerHTML='<tr><th>الهدف</th><th>وصله</th><th>متوسط الصفقة</th><th>متوسط المدة (جلسات)</th></tr>'+S.tg.map(r=>`<tr><td>+${r[0]}%</td><td class="n">${r[1]}%</td><td class="n pos">+${r[2]}%</td><td class="n">${r[3]}</td></tr>`).join('')+`<tr><td>بلا هدف (60 جلسة)</td><td class="n">—</td><td class="n pos">+${S.avg}%</td><td class="n">60</td></tr>`;
+ calc();
  $('insn').textContent=num(S.n)+' حالة منذ '+S.since;
  $('inskp').innerHTML=`<div class="k"><b>${S.win}%</b><span>أغلقت بربح بعد 60 جلسة</span></div><div class="k"><b class="pos">+${S.ex}%</b><span>فوق السوق في 60 جلسة · تفوّق ${S.beat}%</span></div><div class="k"><b class="neg">${S.q05}%</b><span>أسوأ 5% من الحالات</span></div><div class="k"><b class="wn">+${S.allex}%</b><span>تقليد كل المدراء بلا شروط (${num(S.alln)} حالة)</span></div>`;
  $('insverdict').innerHTML=`<b>الخلاصة:</b> تقليد المدراء وحده لا يكفي. ينجح حين يشترون وسط الخوف: السوق تحت متوسطه والسهم مضروب. حين السوق فوق متوسطه كانت النتيجة ${S.above.ex}% عن السوق. التحفظ: من 2022 ضعفت الميزة (فوق السوق +1.2% فقط)، و43% من الحالات التاريخية بلا أسعار اليوم لأن شركاتها شُطبت، وهذا يرفع الأرقام.`;
@@ -478,7 +488,7 @@ render();
 const cap=$('cap'),rsk=$('rsk');cap.value=CAP;rsk.value=RSK;
 [cap,rsk].forEach(el=>el.oninput=()=>{const c=parseFloat(String(cap.value).replace(/,/g,'')),r=parseFloat(rsk.value);if(c>0)CAP=c;if(r>0&&r<=100)RSK=r;try{localStorage.setItem('rr-cap',CAP);localStorage.setItem('rr-rsk',RSK)}catch(e){}renderTrades()});
 document.querySelectorAll('#mk button').forEach(b=>b.onclick=()=>{MKT=b.dataset.mk;try{localStorage.setItem('rr-mkt',MKT)}catch(e){}render()});
-$('more').onclick=()=>{SHOW=999;renderTrades()};$('tlmore').onclick=()=>{TLSHOW=999;renderTL()};$('insmore').onclick=()=>{INSHOW=999;renderIns()};
+$('more').onclick=()=>{SHOW=999;renderTrades()};$('tlmore').onclick=()=>{TLSHOW=999;renderTL()};$('insmore').onclick=()=>{INSHOW=999;renderIns()};$('cpc').value=INTG;['cpx','cpc'].forEach(i=>$(i).oninput=calc);calc();
 function go(n){if(!document.querySelector(`[data-tab="${n}"]`))n='tl';$('riskbar').hidden=n=='ev'||n=='journal';document.querySelectorAll('.tab').forEach(e=>e.hidden=e.dataset.tab!=n);document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.go==n))}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{location.hash=b.dataset.go;go(b.dataset.go);window.scrollTo(0,0)});
 addEventListener('hashchange',()=>go(location.hash.slice(1)));go(location.hash.slice(1)||'tl');
@@ -508,7 +518,8 @@ document.addEventListener('click',async e=>{
  const b=e.target.closest('button');if(b&&b.id=='unfold'){UNFOLD=true;renderTrades();return}
  if(b&&b.dataset.copy){const tx=ticket(TL[+b.dataset.copy]);try{await navigator.clipboard.writeText(tx);b.textContent='نُسخ ✓'}catch(err){b.textContent=tx}return}
  if(b&&b.dataset.copytl){const t=TLT[+b.dataset.copytl],z=size(t),tx=`${tick(t.s)} · شراء محدد · لا تدفع أكثر من ${t.lim}${z?' · الكمية '+z.n:''} · الهدف ${t.tgt} · الوقف ${t.stop}`;try{await navigator.clipboard.writeText(tx);b.textContent='نُسخ ✓'}catch(err){b.textContent=tx}return}
- if(b&&b.dataset.copyins){const t=INT[+b.dataset.copyins],z=size(t),tx=`${t.s} · شراء محدد · لا تدفع أكثر من ${t.lim}${z?' · الكمية '+z.n:''} · بلا وقف · خروج بعد ${t.left} جلسة`;try{await navigator.clipboard.writeText(tx);b.textContent='نُسخ ✓'}catch(err){b.textContent=tx}return}
+ if(b&&b.dataset.tg){INTG=+b.dataset.tg;try{localStorage.setItem('rr-instg',INTG)}catch(e){}$('cpc').value=INTG;renderIns();return}
+ if(b&&b.dataset.copyins){const t=INT[+b.dataset.copyins],z=size(t),tx=`${t.s} · شراء محدد · لا تدفع أكثر من ${t.lim}${z?' · الكمية '+z.n:''} · الهدف ${t.tgt} · بلا وقف · خروج بعد ${t.left} جلسة`;try{await navigator.clipboard.writeText(tx);b.textContent='نُسخ ✓'}catch(err){b.textContent=tx}return}
  if(b&&b.dataset.enterins)b.dataset.enter='in'+b.dataset.enterins;
  if(b&&b.dataset.entertl)b.dataset.enter='tl'+b.dataset.entertl;
  if(!b||b.id=='rf'||!(b.dataset.enter||b.dataset.res||b.dataset.del))return;

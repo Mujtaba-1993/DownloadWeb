@@ -408,7 +408,7 @@ def ptraps(s,Dd):
 # no stop in the study. Source: openinsider.com (built on SEC Form 4). 43% of historical cases have no price data today
 # (delisted), which flatters the numbers.
 INS=dict(days=14,minval=50,dd=0.30,px=5.0,adv=5e6,fresh=5,hold=60,loss=0.38)
-INS_STATS=dict(n=4080,win=64,avg=11.7,med=9.1,ex=5.7,beat=56,q05=-37.8,al=-19.7,aw=28.9,since=2008,allex=0.6,alln=22550,above=dict(ex=-0.9,beat=45),
+INS_STATS=dict(tg=[[5,90,2.3,14],[8,84,3.5,20],[10,80,4.3,24],[15,70,6.1,32],[20,58,7.2,39],[30,40,9.0,47]],n=4080,win=64,avg=11.7,med=9.1,ex=5.7,beat=56,q05=-37.8,al=-19.7,aw=28.9,since=2008,allex=0.6,alln=22550,above=dict(ex=-0.9,beat=45),
     per=[['2008–2012',1396,59,6.1,6.2,56],['2013–2017',373,64,6.9,1.6,57],['2018–2021',1012,85,30.0,12.4,64],['2022–2026',1299,55,4.8,1.2,49]])
 def _ydaily(s,days=420):
     import time
