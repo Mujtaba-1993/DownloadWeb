@@ -12,3 +12,8 @@
 /captures
 .externalNativeBuild
 .cxx
+
+# Roast Room (advisor councils)
+build/
+sessions/*
+!sessions/.gitkeep
