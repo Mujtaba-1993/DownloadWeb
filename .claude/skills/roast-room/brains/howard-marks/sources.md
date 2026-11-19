@@ -1,0 +1,140 @@
+# Sources: Howard Marks
+
+134 sources (34 web, 100 pdf), 739,464 words. Video dates are upload dates. Every quote in this brain carries one of these ids.
+
+Format: id | title | url | date | words
+
+- S001 | Memo: A Layman Thinks About AI | https://www.oaktreecapital.com/insights/memo/a-layman-thinks-about-ai | 2026-11-11 | 6106
+- S002 | Memo: A Look Under the Hood | https://www.oaktreecapital.com/insights/memo/a-look-under-the-hood | 2025-10-28 | 4340
+- S003 | Memo: AI Hurtles Ahead | https://www.oaktreecapital.com/insights/memo/ai-hurtles-ahead | 2026-02-26 | 6707
+- S004 | Memo: Bull Market Rhymes | https://www.oaktreecapital.com/insights/memo/bull-market-rhymes | 2022-05-26 | 6233
+- S005 | Memo: Cockroaches in the Coal Mine | https://www.oaktreecapital.com/insights/memo/cockroaches-in-the-coal-mine | 2025-11-06 | 3609
+- S006 | Memo: Coming into Focus | https://www.oaktreecapital.com/insights/memo/coming-into-focus | 2020-10-13 | 8893
+- S007 | Memo: Conversation at Panmure House | https://www.oaktreecapital.com/insights/memo/conversation-at-panmure-house | 2022-06-23 | 7937
+- S008 | Memo: Easy Money | https://www.oaktreecapital.com/insights/memo/easy-money | 2024-01-09 | 8306
+- S009 | Memo: Fewer Losers, or More Winners? | https://www.oaktreecapital.com/insights/memo/fewer-losers-or-more-winners | 2023-09-12 | 5368
+- S010 | Memo: Further Thoughts on Sea Change | https://www.oaktreecapital.com/insights/memo/further-thoughts-on-sea-change | 2023-10-11 | 4957
+- S011 | Memo: I Beg to Differ | https://www.oaktreecapital.com/insights/memo/i-beg-to-differ | 2022-07-26 | 6728
+- S012 | Memo: Is It a Bubble? | https://www.oaktreecapital.com/insights/memo/is-it-a-bubble | 2025-12-09 | 9675
+- S013 | Memo: Mr. Market Miscalculates | https://www.oaktreecapital.com/insights/memo/mr-market-miscalculates | 2024-08-22 | 3660
+- S014 | Memo: Nobody Knows (Yet Again) | https://www.oaktreecapital.com/insights/memo/nobody-knows-yet-again | 2025-04-09 | 5249
+- S015 | Memo: On Bubble Watch | https://www.oaktreecapital.com/insights/memo/on-bubble-watch | 2025-01-07 | 5116
+- S016 | Memo: Ruminating on Asset Allocation | https://www.oaktreecapital.com/insights/memo/ruminating-on-asset-allocation | 2024-10-22 | 3698
+- S017 | Memo: Sea Change | https://www.oaktreecapital.com/insights/memo/sea-change | 2022-12-13 | 5200
+- S018 | Memo: Selling Out | https://www.oaktreecapital.com/insights/memo/selling-out | 2022-01-13 | 5205
+- S019 | Memo: Shall We Repeal the Laws of Economics? | https://www.oaktreecapital.com/insights/memo/shall-we-repeal-the-laws-of-economics | 2024-09-19 | 7860
+- S020 | Memo: Something of Value | https://www.oaktreecapital.com/insights/memo/something-of-value | 2021-01-11 | 10764
+- S021 | Memo: Taking the Temperature | https://www.oaktreecapital.com/insights/memo/taking-the-temperature | 2023-07-10 | 7455
+- S022 | Memo: The Calculus of Value | https://www.oaktreecapital.com/insights/memo/the-calculus-of-value | 2025-08-14 | 6103
+- S023 | Memo: The Folly of Certainty | https://www.oaktreecapital.com/insights/memo/the-folly-of-certainty | 2024-07-17 | 2750
+- S024 | Memo: The Illusion of Knowledge | https://www.oaktreecapital.com/insights/memo/the-illusion-of-knowledge | 2022-09-08 | 7740
+- S025 | Memo: The Impact of Debt | https://www.oaktreecapital.com/insights/memo/the-impact-of-debt | 2024-05-08 | 2360
+- S026 | Memo: The Indispensability of Risk | https://www.oaktreecapital.com/insights/memo/the-indispensability-of-risk | 2024-04-17 | 1830
+- S027 | Memo: Thinking About Macro | https://www.oaktreecapital.com/insights/memo/thinking-about-macro | 2021-07-29 | 7663
+- S028 | Memo: What Really Matters? | https://www.oaktreecapital.com/insights/memo/what-really-matters | 2022-11-22 | 7729
+- S029 | Memo: Time for Thinking | https://www.oaktreecapital.com/docs/default-source/memos/timeforthinking.pdf | 2020-08-05 | 6175
+- S030 | Memo: The Anatomy of a Rally | https://www.oaktreecapital.com/docs/default-source/memos/the-anatomy-of-a-rally.pdf | 2020-06-18 | 3993
+- S031 | Memo: Not Enough | https://www.oaktreecapital.com/docs/default-source/memos/not-enough.pdf | 2020-06-11 | 1481
+- S032 | Memo: Uncertainty II | https://www.oaktreecapital.com/docs/default-source/memos/uncertainty-ii.pdf | 2020-05-28 | 3088
+- S033 | Memo: Uncertainty | https://www.oaktreecapital.com/docs/default-source/memos/uncertainty.pdf | 2020-05-11 | 5803
+- S034 | Memo: Knowledge of the Future | https://www.oaktreecapital.com/docs/default-source/memos/knowledge-of-the-future.pdf | 2020-04-14 | 4576
+- S035 | Memo: Calibrating | https://www.oaktreecapital.com/docs/default-source/memos/calibrating.pdf | 2020-04-06 | 4208
+- S036 | Memo: Nobody Knows II | https://www.oaktreecapital.com/docs/default-source/memos/nobody-knows-ii.pdf | 2020-03-03 | 4414
+- S037 | Memo: You Bet | https://www.oaktreecapital.com/docs/default-source/memos/you-bet.pdf | 2020-01-13 | 7661
+- S038 | Memo: Mysterious | https://www.oaktreecapital.com/docs/default-source/memos/mysterious.pdf | 2019-10-17 | 4454
+- S039 | Memo: On the Other Hand | https://www.oaktreecapital.com/docs/default-source/memos/on-the-other-hand.pdf | 2019-07-26 | 4569
+- S040 | Memo: This Time Its Different | https://www.oaktreecapital.com/docs/default-source/memos/this-time-its-different.pdf | 2019-06-12 | 6721
+- S041 | Memo: The Seven Worst Words in the World | https://www.oaktreecapital.com/docs/default-source/memos/the-seven-worst-words-in-the-world.pdf | 2018-09-26 | 6372
+- S042 | Memo: Investing Without People | https://www.oaktreecapital.com/docs/default-source/memos/investing-without-people.pdf | 2018-06-18 | 8883
+- S043 | Memo: Latest Thinking | https://www.oaktreecapital.com/docs/default-source/memos/latest-thinking.pdf | 2018-01-23 | 6160
+- S044 | Memo: Yet Again | https://www.oaktreecapital.com/docs/default-source/memos/yet-again.pdf | 2017-09-07 | 6545
+- S045 | Memo: There They Go Again...Again | https://www.oaktreecapital.com/docs/default-source/memos/there-they-go-again-again.pdf | 2017-07-26 | 11438
+- S046 | Memo: Lines in the Sand | https://www.oaktreecapital.com/docs/default-source/memos/lines-in-the-sand.pdf | 2017-04-18 | 3902
+- S047 | Memo: Expert Opinion | https://www.oaktreecapital.com/docs/default-source/memos/expert-opinion.pdf | 2017-01-10 | 5987
+- S048 | Memo: What Does the Market Know? | https://www.oaktreecapital.com/docs/default-source/memos/what-does-the-market-know.pdf | 2016-01-19 | 4432
+- S049 | Memo: On the Couch | https://www.oaktreecapital.com/docs/default-source/memos/on-the-couch.pdf | 2016-01-14 | 8464
+- S050 | Memo: Its Not Easy | https://www.oaktreecapital.com/docs/default-source/memos/2015-09-09-its-not-easy.pdf | 2015-09-09 | 7917
+- S051 | Memo: Risk Revisited Again | https://www.oaktreecapital.com/docs/default-source/memos/2015-06-08-risk-revisited-again.pdf | 2015-06-08 | 12275
+- S052 | Memo: Liquidity | https://www.oaktreecapital.com/docs/default-source/memos/2015-03-25-liquidity.pdf | 2015-03-25 | 6308
+- S053 | Memo: The Lessons of Oil | https://www.oaktreecapital.com/docs/default-source/memos/2014-12-18-the-lessons-of-oil.pdf | 2014-12-18 | 3969
+- S054 | Memo: Risk Revisited | https://www.oaktreecapital.com/docs/default-source/memos/2014-09-03-risk-revisited.pdf | 2014-09-03 | 9934
+- S055 | Memo: Dare to Be Great II | https://www.oaktreecapital.com/docs/default-source/memos/2014-04-08-dare-to-be-great-ii.pdf | 2014-04-08 | 4632
+- S056 | Memo: Getting Lucky | https://www.oaktreecapital.com/docs/default-source/memos/2014-01-16-getting-lucky.pdf | 2014-01-16 | 7101
+- S057 | Memo: The Race Is On | https://www.oaktreecapital.com/docs/default-source/memos/2013-11-26-the-race-is-on.pdf | 2013-11-26 | 4596
+- S058 | Memo: The Role of Confidence | https://www.oaktreecapital.com/docs/default-source/memos/2013-08-05-the-role-of-confidence.pdf | 2013-08-05 | 5620
+- S059 | Memo: The Outlook for Equities | https://www.oaktreecapital.com/docs/default-source/memos/2013-03-13-the-outlook-for-equities.pdf | 2013-03-13 | 5353
+- S060 | Memo: Ditto | https://www.oaktreecapital.com/docs/default-source/memos/2013-01-07-ditto.pdf | 2013-01-07 | 6034
+- S061 | Memo: On Uncertain Ground | https://www.oaktreecapital.com/docs/default-source/memos/2012-09-11-on-uncertain-ground.pdf | 2012-09-11 | 7426
+- S062 | Memo: Déjà Vu All Over Again | https://www.oaktreecapital.com/docs/default-source/memos/2012-03-19-déjà-vu-all-over-again.pdf | 2012-03-19 | 5302
+- S063 | Memo: How Quickly They Forget | https://www.oaktreecapital.com/docs/default-source/memos/2011-05-25-how-quickly-they-forget.pdf | 2011-05-25 | 6146
+- S064 | Memo: All That Glitters | https://www.oaktreecapital.com/docs/default-source/memos/2010-12-17-all-that-glitters.pdf | 2010-12-17 | 5209
+- S065 | Memo: Warning Flags | https://www.oaktreecapital.com/docs/default-source/memos/2010-05-12-warning-flags.pdf | 2010-05-12 | 5180
+- S066 | Memo: Id Rather Be Wrong | https://www.oaktreecapital.com/docs/default-source/memos/2010-03-17-id-rather-be-wrong.pdf | 2010-03-17 | 2741
+- S067 | Memo: Tell Me Im Wrong | https://www.oaktreecapital.com/docs/default-source/memos/2010-01-22-tell-me-im-wrong.pdf | 2010-01-22 | 6060
+- S068 | Memo: Touchstones | https://www.oaktreecapital.com/docs/default-source/memos/2009-11-10-touchstones.pdf | 2009-11-10 | 6304
+- S069 | Memo: So Much Thats False Nutty | https://www.oaktreecapital.com/docs/default-source/memos/2009-07-08-so-much-thats-false-nutty.pdf | 2009-07-08 | 7396
+- S070 | Memo: Will It Work? | https://www.oaktreecapital.com/docs/default-source/memos/2009-03-05-will-it-work.pdf | 2009-03-05 | 5029
+- S071 | Memo: The Long View | https://www.oaktreecapital.com/docs/default-source/memos/2009-01-09-the-long-view.pdf | 2009-01-09 | 7938
+- S072 | Memo: Volatility Leverage Dynamite | https://www.oaktreecapital.com/docs/default-source/memos/2008-12-17-volatility-leverage-dynamite.pdf | 2008-12-17 | 5201
+- S073 | Memo: The Limits to Negativism | https://www.oaktreecapital.com/docs/default-source/memos/2008-10-15-the-limits-to-negativism.pdf | 2008-10-15 | 3997
+- S074 | Memo: Nobody Knows | https://www.oaktreecapital.com/docs/default-source/memos/2008-09-19-nobody-knows.pdf | 2008-09-19 | 3107
+- S075 | Memo: What Worries Me | https://www.oaktreecapital.com/docs/default-source/memos/2008-08-28-what-worries-me.pdf | 2008-08-28 | 7938
+- S076 | Memo: Doesnt Make Sense | https://www.oaktreecapital.com/docs/default-source/memos/2008-07-31-doesnt-make-sense.pdf | 2008-07-31 | 5693
+- S077 | Memo: The Tide Goes Out | https://www.oaktreecapital.com/docs/default-source/memos/2008-03-18-the-tide-goes-out.pdf | 2008-03-18 | 6324
+- S078 | Memo: Whodunit | https://www.oaktreecapital.com/docs/default-source/memos/2008-02-20-whodunit.pdf | 2008-02-20 | 5730
+- S079 | Memo: Now What | https://www.oaktreecapital.com/docs/default-source/memos/2008-01-10-now-what.pdf | 2008-01-10 | 6799
+- S080 | Memo: No Different This Time: The Lessons of ‘07 | https://www.oaktreecapital.com/docs/default-source/memos/2007-12-17-no-different-this-time-the-lessons-of-07.pdf | 2007-12-17 | 6081
+- S081 | Memo: Now It’s All Bad? | https://www.oaktreecapital.com/docs/default-source/memos/2007-09-10-now-its-all-bad.pdf | 2007-09-10 | 6674
+- S082 | Memo: It’s All Good . . . Really? | https://www.oaktreecapital.com/docs/default-source/memos/2007-07-30-its-all-good-really.pdf | 2007-07-30 | 3929
+- S083 | Memo: It’s All Good | https://www.oaktreecapital.com/docs/default-source/memos/2007-07-16-its-all-good.pdf | 2007-07-16 | 7126
+- S084 | Memo: Everyone Knows | https://www.oaktreecapital.com/docs/default-source/memos/2007-04-26-everyone-knows.pdf | 2007-04-26 | 5023
+- S085 | Memo: The Race to the Bottom | https://www.oaktreecapital.com/docs/default-source/memos/2007-02-14-the-race-to-the-bottom.pdf | 2007-02-14 | 4567
+- S086 | Memo: Pigweed | https://www.oaktreecapital.com/docs/default-source/memos/2006-12-07-pigweed.pdf | 2006-12-07 | 6993
+- S087 | Memo: The New Paradigm | https://www.oaktreecapital.com/docs/default-source/memos/2006-10-19-the-new-paradigm.pdf | 2006-10-19 | 6108
+- S088 | Memo: Dare to Be Great | https://www.oaktreecapital.com/docs/default-source/memos/2006-09-07-dare-to-be-great.pdf | 2006-09-07 | 5928
+- S089 | Memo: You Can’t Eat IRR | https://www.oaktreecapital.com/docs/default-source/memos/2006-07-12-you-cant-eat-irr.pdf | 2006-07-12 | 6123
+- S090 | Memo: Returns Absolute Returns and Risk | https://www.oaktreecapital.com/docs/default-source/memos/2006-06-13-returns-absolute-returns-and-risk.pdf | 2006-06-13 | 5234
+- S091 | Memo: It Is What It Is | https://www.oaktreecapital.com/docs/default-source/memos/2006-03-27-it-is-what-it-is.pdf | 2006-03-27 | 3675
+- S092 | Memo: Risk | https://www.oaktreecapital.com/docs/default-source/memos/2006-01-19-risk.pdf | 2006-01-19 | 5514
+- S093 | Memo: Hindsight First, Please (or, What Were They Thinking?) | https://www.oaktreecapital.com/docs/default-source/memos/2005-10-17-hindsight-first-please-or-what-where-they-thinking.pdf | 2005-10-17 | 5986
+- S094 | Memo: A Case in Point | https://www.oaktreecapital.com/docs/default-source/memos/2005-06-06-a-case-in-point.pdf | 2005-06-06 | 3130
+- S095 | Memo: There They Go Again | https://www.oaktreecapital.com/docs/default-source/memos/2005-05-06-there-they-go-again.pdf | 2005-05-06 | 4436
+- S096 | Memo: Risk and Return Today | https://www.oaktreecapital.com/docs/default-source/memos/2004-10-27-risk-and-return-today.pdf | 2004-10-27 | 3425
+- S097 | Memo: Hedge Funds a Case for Caution | https://www.oaktreecapital.com/docs/default-source/memos/2004-10-06-hedge-funds-a-case-for-caution.pdf | 2004-10-06 | 6202
+- S098 | Memo: The Happy Medium | https://www.oaktreecapital.com/docs/default-source/memos/2004-07-21-the-happy-medium.pdf | 2004-07-21 | 5306
+- S099 | Memo: Whats Your Game Plan | https://www.oaktreecapital.com/docs/default-source/memos/2003-09-05-whats-your-game-plan.pdf | 2003-09-05 | 3442
+- S100 | Memo: The Most Important Thing | https://www.oaktreecapital.com/docs/default-source/memos/2003-07-01-the-most-important-thing.pdf | 2003-07-01 | 5852
+- S101 | Memo: Whats Going On | https://www.oaktreecapital.com/docs/default-source/memos/2003-05-16-whats-going-on.pdf | 2003-05-16 | 3733
+- S102 | Memo: Whad Ya Know | https://www.oaktreecapital.com/docs/default-source/memos/2003-03-11-whad-ya-know.pdf | 2003-03-11 | 6705
+- S103 | Memo: Returns and How They Get That Way | https://www.oaktreecapital.com/docs/default-source/memos/2002-11-11-returns-and-how-they-get-that-way.pdf | 2002-11-11 | 6058
+- S104 | Memo: Quo Vadis? | https://www.oaktreecapital.com/docs/default-source/memos/2002-07-26-quo-vadis.pdf | 2002-07-26 | 3638
+- S105 | Memo: The Realists Creed | https://www.oaktreecapital.com/docs/default-source/memos/2002-05-31-the-realists-creed.pdf | 2002-05-31 | 5455
+- S106 | Memo: Learning from Enron | https://www.oaktreecapital.com/docs/default-source/memos/2002-03-14-learning-from-enron.pdf | 2002-03-14 | 9039
+- S107 | Memo: You Cant Predict You Can Prepare | https://www.oaktreecapital.com/docs/default-source/memos/2001-11-20-you-cant-predict-you-can-prepare.pdf | 2001-11-20 | 5370
+- S108 | Memo: What Lies Ahead | https://www.oaktreecapital.com/docs/default-source/memos/2001-10-04-what-lies-ahead.pdf | 2001-10-04 | 3775
+- S109 | Memo: Whats It All About Alpha | https://www.oaktreecapital.com/docs/default-source/memos/2001-07-11-whats-it-all-about-alpha.pdf | 2001-07-11 | 4628
+- S110 | Memo: Safety First . . . But Where? | https://www.oaktreecapital.com/docs/default-source/memos/2001-04-10-safety-first-but-where.pdf | 2001-04-10 | 5030
+- S111 | Memo: Were Not in 1999 Anymore | https://www.oaktreecapital.com/docs/default-source/memos/2000-12-31-were-not-in-1999-anymore.pdf | 2000-12-31 | 4386
+- S112 | Memo: Investment Miscellany | https://www.oaktreecapital.com/docs/default-source/memos/2000-11-16-investment-miscellany.pdf | 2000-11-16 | 3098
+- S113 | Memo: Irrational Exuberance | https://www.oaktreecapital.com/docs/default-source/memos/2000-05-01-irrational-exuberance.pdf | 2000-05-01 | 4072
+- S114 | Memo: Bubble | https://www.oaktreecapital.com/docs/default-source/memos/2000-01-02-bubble.pdf | 2000-01-02 | 5996
+- S115 | Memo: Hows the Market | https://www.oaktreecapital.com/docs/default-source/memos/1999-04-15-hows-the-market.pdf | 1999-04-15 | 1395
+- S116 | Memo: Genius Isnt Enough | https://www.oaktreecapital.com/docs/default-source/memos/1998-10-09-genius-isn-39-t-enough.pdf | 1998-10-09 | 3730
+- S117 | Memo: Who Knew | https://www.oaktreecapital.com/docs/default-source/memos/1998-01-08-who-knew.pdf | 1998-01-08 | 1411
+- S118 | Memo: Are You An Investor or a Speculator | https://www.oaktreecapital.com/docs/default-source/memos/are-you-an-investor-or-a-speculator.pdf | 1997-09-03 | 2594
+- S119 | Memo: Will It Be Different This Time | https://www.oaktreecapital.com/docs/default-source/memos/1996-11-25-will-it-be-different-this-time.pdf | 1996-11-25 | 2134
+- S120 | Memo: The Value of Predictions II or Give That Man a Cigar | https://www.oaktreecapital.com/docs/default-source/memos/1996-07-22-the-value-of-predictions-ii-or-give-that-man-a-cigar.pdf | 1996-07-22 | 2150
+- S121 | Memo: How the Game Should Be Played | https://www.oaktreecapital.com/docs/default-source/memos/1995-05-26-how-the-game-should-be-played.pdf | 1995-05-26 | 1074
+- S122 | Memo: How Does an Inefficient Market Get That Way | https://www.oaktreecapital.com/docs/default-source/memos/1994-07-15-how-does-an-inefficient-market-get-that-way.pdf | 1994-07-15 | 1125
+- S123 | Memo: Risk in Todays Markets Revisited | https://www.oaktreecapital.com/docs/default-source/memos/1994-04-11-risk-in-todays-markets-revisted.pdf | 1994-04-11 | 2229
+- S124 | Memo: Risk in Todays Markets | https://www.oaktreecapital.com/docs/default-source/memos/1994-02-17-risk-in-todays-markets.pdf | 1994-02-17 | 1850
+- S125 | Memo: Random Thoughts on the Identification of Investment Opportunities | https://www.oaktreecapital.com/docs/default-source/memos/1994-01-24-random-thoughts-on-the-identification-of-inv-opportunities.pdf | 1994-01-24 | 1047
+- S126 | Memo: The Value of Predictions, or Whered All This Rain Come From? | https://www.oaktreecapital.com/docs/default-source/memos/1993-02-15-the-value-of-predictions-or-where-39-d-all-this-rain-come-from.pdf | 1993-02-15 | 2890
+- S127 | Memo: Microeconomics | https://www.oaktreecapital.com/docs/default-source/memos/1992-10-08-microeconomics.pdf | 1992-10-08 | 1147
+- S128 | Memo: The Route to Performance | https://www.oaktreecapital.com/docs/default-source/memos/1990-10-12-the-route-to-performance.pdf | 1990-10-12 | 1037
+- S129 | The Tim Ferriss Show Transcripts: Howard Marks (#338) - The Blog of Author Tim Ferriss | https://tim.blog/2018/09/27/the-tim-ferriss-show-transcripts-howard-marks/ | 2018-09-27 | 16704
+- S130 | The Tim Ferriss Show Transcripts: Howard Marks on the US Dollar, Three Ways to Add Defense, and Good Questions (#431) - The Blog of Author Tim Ferriss | https://tim.blog/2020/05/18/howard-marks-2-transcript/ | 2020-05-19 | 8516
+- S134 | Investing Wisely in an Uncertain World with Howard Marks | https://theinvestorspodcast.com/?p=73288 | 2022-03-15 | 14401
+- S136 | 3 Takeaways podcast Ep 219 transcript (Lynn Thoman) | https://www.buzzsprout.com/1236866/15826712/transcript | 2024-11-01 | 3539
+- S137 | Oaktree's Howard Marks Helps Investors Understand / The Motley Fool | https://www.fool.com/investing/2025/06/23/oaktrees-howard-marks-helps-investors-understand/ | 2025-06-23 | 9638
+- S138 | 50 Years of Investing Wisdom in 50 Minutes (Goldman Sachs talk with Katie Koch, transcript) | https://singjupost.com/transcript-of-howard-marks-50-years-of-investing-wisdom-in-50-minutes | 2025-03-17 | 7290
