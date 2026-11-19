@@ -1,0 +1,86 @@
+# Sources: Nassim Nicholas Taleb
+
+80 sources (29 web, 43 pdf, 8 local), 620,710 words. Video dates are upload dates. Every quote in this brain carries one of these ids.
+
+Format: id | title | url | date | words
+
+- S001 | Opacity: What We Do Not See, a philosophical notebook (fooledbyrandomness.com) | https://www.fooledbyrandomness.com/notebook.htm | 2008 | 48694
+- S002 | The Fat Tails Statistical Project (fooledbyrandomness.com) | https://www.fooledbyrandomness.com/FatTails.html | 2018 | 1236
+- S003 | Why We Do Not Know What We Talk About When We Talk About Probability (Humboldt lecture) | https://www.fooledbyrandomness.com/probability.pdf | 2012 | 3883
+- S004 | Why Did the Crisis of 2008 Happen? (draft essay) | https://www.fooledbyrandomness.com/crisis.pdf | 2010-10 | 3110
+- S005 | The Future Has Thicker Tails than the Past: Model Error as Branching Counterfactuals | https://www.fooledbyrandomness.com/errors.pdf | 2011-05 | 5988
+- S006 | A focus on the exceptions that prove the rule (Mandelbrot and Taleb, FT) | https://fooledbyrandomness.com/FT-MandelbrotTaleb.pdf | 2006 | 2915
+- S007 | Probability, Risk, and Extremes (Darwin College Lectures) | http://fooledbyrandomness.com/DarwinCollege.pdf | 2017 | 6194
+- S009 | How to Legally Own Another Person (Skin in the Game draft chapter) | https://fooledbyrandomness.com/employee.pdf | 2015-11 | 5207
+- S010 | A Map and Simple Heuristic to Detect Fragility, Antifragility, and Model Error | https://www.fooledbyrandomness.com/heuristic.pdf | 2011-06 | 7998
+- S011 | (Anti)Fragility and Convex Responses in Medicine | https://fooledbyrandomness.com/medicine.pdf | 2018 | 8392
+- S012 | Convexity, Robustness, and Model Error inside the Fourth Quadrant | https://www.fooledbyrandomness.com/OxfordBTLecture.pdf | 2010-07 | 7552
+- S013 | The Decline of Violent Conflicts: What Do the Data Really Say? (with Cirillo) | https://www.fooledbyrandomness.com/pinker.pdf | 2016 | 9620
+- S014 | The Precautionary Principle: Fragility and Black Swans from Policy Actions (with Bar-Yam, Douady, Norman, Read) | https://www.fooledbyrandomness.com/precautionary.pdf | 2014 | 16664
+- S016 | The Most Intolerant Wins (Skin in the Game draft chapter) | https://www.fooledbyrandomness.com/minority.pdf | 2016-05 | 7237
+- S017 | Understanding is a Poor Substitute for Convexity (essay) | https://www.fooledbyrandomness.com/ConvexityScience.pdf | 2012 | 2320
+- S018 | What are the chances of a third world war? / Long peace (with Cirillo) | https://www.fooledbyrandomness.com/longpeace.pdf | 2016 | 11169
+- S019 | Risk Neutral Option Pricing With Neither Dynamic Hedging nor Complete Markets | https://www.fooledbyrandomness.com/PCParity.pdf | 2014 | 1851
+- S020 | Statistical Consequences of Fat Tails (Technical Incerto, arXiv) | https://arxiv.org/pdf/2001.10488 | 2020-01 | 162161
+- S021 | The Precautionary Principle with Application to GMOs (arXiv) | https://arxiv.org/pdf/1410.5787 | 2014-10 | 14669
+- S022 | The Skin In The Game Heuristic for Protection Against Tail Events (with Martin) | https://arxiv.org/pdf/1308.0958 | 2013-08 | 9376
+- S023 | Mathematical Definition, Mapping, and Detection of (Anti)Fragility (with Douady) | https://arxiv.org/pdf/1208.1189 | 2012-08 | 8889
+- S024 | The Future Has Thicker Tails than the Past (arXiv) | https://arxiv.org/pdf/1209.2298 | 2012-09 | 5996
+- S025 | Bitcoin, Currencies, and Fragility | https://arxiv.org/pdf/2106.14204 | 2021-06 | 5627
+- S026 | Tail Risk of Contagious Diseases (with Cirillo) | https://arxiv.org/pdf/2004.08658 | 2020-04 | 5082
+- S027 | On the Statistical Differences between Binary Forecasts and Real World Payoffs | https://arxiv.org/pdf/1907.11162 | 2019-07 | 10527
+- S028 | Four Points Beginner Risk Managers Should Learn from Jeff Holman | https://arxiv.org/pdf/1401.2524 | 2014-01 | 2875
+- S029 | Working With Convex Responses: Antifragility From Finance to Oncology (with West) | https://arxiv.org/pdf/2209.14631 | 2022-09 | 11078
+- S030 | On Single Point Forecasts for Fat-Tailed Variables (with Bar-Yam, Cirillo) | https://arxiv.org/pdf/2007.16096 | 2020-07 | 7134
+- S031 | How Much Data Do You Need? An Operational Metric for Fat-tailedness | https://arxiv.org/pdf/1802.05495 | 2018-02 | 7467
+- S032 | Where Do Thin Tails Come From? | https://arxiv.org/pdf/1307.6695 | 2013-07 | 1883
+- S033 | On the Statistical Properties and Tail Risk of Violent Conflicts (with Cirillo) | https://arxiv.org/pdf/1505.04722 | 2015-05 | 10144
+- S034 | Election Predictions as Martingales: An Arbitrage Approach | https://arxiv.org/pdf/1703.06351 | 2017-03 | 3802
+- S035 | What You See and What You Do Not See: The Hidden Moments of a Probability Distribution | https://arxiv.org/pdf/2004.05894 | 2020-04 | 1235
+- S036 | A Short Note on P-Value Hacking | https://arxiv.org/pdf/1603.07532 | 2016-03 | 2615
+- S037 | Tail Risk Constraints and Maximum Entropy (with Geman, Geman) | https://arxiv.org/pdf/1412.7647 | 2014-12 | 5185
+- S038 | Branching Epistemic Uncertainty and Thickness of Tails (with Cirillo) | https://arxiv.org/pdf/1912.00277 | 2019-11 | 6766
+- S039 | The Probability Conflation: A Reply | https://arxiv.org/pdf/2301.10985 | 2023-01 | 2808
+- S040 | How We Tend To Overestimate Powerlaw Tail Exponents | https://arxiv.org/pdf/1210.1966 | 2012-10 | 809
+- S041 | Hidden Risks and Optionalities in American Options | https://arxiv.org/pdf/2602.14350 | 2026-02 | 7306
+- S042 | Tail Option Pricing Under Power Laws | https://arxiv.org/pdf/1908.02347 | 2019-08 | 2597
+- S043 | The Fourth Quadrant: A Map of the Limits of Statistics (Edge) | https://www.edge.org/conversation/nassim_nicholas_taleb-the-fourth-quadrant-a-map-of-the-limits-of-statistics | 2008-09 | 5728
+- S044 | The Opiates of the Middle Classes (Edge) | https://www.edge.org/conversation/nassim_nicholas_taleb-the-opiates-of-the-middle-classes | 2006 | 774
+- S045 | Real Life Is Not a Casino (Edge) | https://www.edge.org/conversation/nassim_nicholas_taleb-real-life-is-not-a-casino | 2008 | 1291
+- S046 | The Hard Problem (Edge talk) | https://www.edge.org/conversation/nassim_nicholas_taleb-the-hard-problem | 2006 | 1779
+- S047 | Understanding Is a Poor Substitute for Convexity (Edge) | https://www.edge.org/conversation/nassim_nicholas_taleb-understanding-is-a-poor-substitute-for-convexity-antifragility | 2012-12 | 2389
+- S048 | Learning to Expect the Unexpected (Edge) | https://www.edge.org/conversation/nassim_nicholas_taleb-learning-to-expect-the-unexpected | 2004-04 | 3927
+- S049 | Ten Principles for a Black-Swan-Robust World (Edge) | https://www.edge.org/conversation/nassim_nicholas_taleb-ten-principles-for-a-black-swan-robust-world | 2009-04 | 735
+- S050 | Nassim Nicholas Taleb on Self-Education and Doing the Math (Ep. 41 - Live at Mercatus) | https://conversationswithtyler.com/episodes/nassim-nicholas-taleb/ | 2018-07-07 | 8244
+- S051 | Nassim Taleb: Meditations on Extremistan (#158) | https://josephnoelwalker.com/nassim-taleb-158/ | 2024-09-20 | 16203
+- S052 | Talks at Google podcast, Skin in the Game (transcript) | https://services.google.com/fh/files/misc/talks_at_google_-_ep_30_-_2019_03_05_-_nassim_nicholas_taleb-transcript.pdf | 2019-03 | 9797
+- S053 | The Tim Ferriss Show Transcripts: Nassim Nicholas Taleb & Scott Patterson: How Traders Make Billions in The New Age of Crisis, Defending Against Silent Risks,  | https://tim.blog/2023/09/08/nassim-nicholas-taleb-scott-patterson-transcript/ | 2023-09-08 | 21293
+- S054 | Podcast #395: Skin in the Game / The Art of Manliness | https://www.artofmanliness.com/character/advice/taleb-interview-skin-in-the-game/ | 2018-04-11 | 5695
+- S055 | Motley Fool Interview: Nassim Nicholas Taleb / The Motley Fool | https://www.fool.com/investing/2018/04/03/motley-fool-interview-nassim-nicholas-taleb.aspx | 2018-04-03 | 6403
+- S056 | Deep Read: Nassim Taleb, NPR Planet Money | https://www.npr.org/transcripts/129276793 | 2010-08 | 3777
+- S059 | Bitcoin is the Detector of Imbeciles (Medium, Incerto) | https://medium.com/incerto/bitcoin-is-the-detector-of-imbeciles-e5cc5eeccdbf | 2023-01-04 | 2671
+- S060 | How I write (Medium, Incerto) | https://medium.com/incerto/how-i-write-8b495eae0330 | 2022-10-30 | 1660
+- S061 | No, Covid 19 is not an old person problem (Medium, Incerto) | https://medium.com/incerto/no-covid-19-is-not-an-old-person-problem-6968f720d153 | 2021-11-29 | 561
+- S062 | Safe Heaven (Medium, Incerto) | https://medium.com/incerto/safe-heaven-e76392796ef5 | 2021-05-06 | 2166
+- S063 | Religion, Violence, Tolerance and Progress (Medium, Incerto) | https://medium.com/incerto/religion-violence-tolerance-progress-nothing-to-do-with-theology-a31f351c729e | 2020-10-21 | 2246
+- S064 | The Masks Masquerade (Medium, Incerto) | https://medium.com/incerto/the-masks-masquerade-7de897b517b7 | 2020-06-14 | 1004
+- S065 | The World in Which We Live Now (Medium) | https://nntaleb.medium.com/the-world-in-which-we-live-7255aad3e18c | 2025-09-15 | 2381
+- S066 | The Book is a Book, not Disembodied Information (Medium) | https://nntaleb.medium.com/the-book-is-a-book-not-disembodied-information-a3fa583b9e8a | 2026-08-11 | 809
+- S067 | Commencement Address, American University of Beirut | https://www.fooledbyrandomness.com/AUBCommencement.pdf | 2016-06 | 1946
+- S068 | Is the Pope Atheist? (Skin in the Game draft chapter) | https://www.fooledbyrandomness.com/popeatheist.pdf | 2015-12 | 1137
+- S069 | Skin in the Game prologue and postscript draft | https://www.fooledbyrandomness.com/incerto.pdf | 2016-01 | 3124
+- S070 | On the Biases in the Estimation of Inequality (with Douady) | https://www.fooledbyrandomness.com/inequality.pdf | 2015 | 4319
+- S072 | How Debt Ruins Systems (Reason interview) | https://reason.com/?p=184029 | 2013-03 | 3020
+- S073 | Philosophy Now interview with Constantine Sandis | https://philosophynow.org/issues/69/Nassim_Nicholas_Taleb | 2008-09 | 2700
+- S074 | Next Finance interview: portfolio theory is a bit like astrology | https://mobile.next-finance.net/Nassim-Taleb-portfolio-theory-it-s | 2008 | 1004
+- S075 | CFA Institute Magazine interview: rules of thumb for investors | https://rheawessel.com/?p=4605 | 2013 | 3351
+- S076 | Risk and Robustness: A Conversation with Nassim Nicholas Taleb - IPI Global Observatory | https://theglobalobservatory.org/2014/09/risk-and-robustness-nassim-nicholas-taleb/ | 2014-09-22 | 2082
+- S077 | Nassim: We Worry about Terror, But Disease is the Black Swan of the World | https://nassimtaleb.org/?p=1232 | 2016-09-13 | 3577
+- S078 | Antifragile: Things That Gain from Disorder, Talks at Google | https://rosetta.to/u/talksatgoogle/antifragille-things-that-gain-from-disorder-nassim-nicholas-taleb-talks-at-googl | 2013-01 | 9810
+- S079 | Skin in the Game, Talks at Google | https://rosetta.to/u/talksatgoogle/skin-in-the-game-nassim-nicholas-taleb-talks-at-google | 2018-11 | 10033
+- S080 | Systemic Risk of Pandemic via Novel Pathogens: Coronavirus: A Note - New England Complex Systems Institute | https://www.necsi.edu/systemic-risk-of-pandemic-via-novel-pathogens-coronavirus-a-note | 2020-01 | 1601
+- S081 | CNN GPS with Fareed Zakaria: antifragility segment | http://transcripts.cnn.com/TRANSCRIPTS/1212/02/fzgps.01.html | 2012-12 | 7127
+- S082 | Nassim Nicholas Taleb and Bryan Caplan on What’s Missing in Education (BONUS) | https://conversationswithtyler.com/?p=1493 | 2018-07-07 | 7682
+- S083 | Nassim Taleb: and Universa: Versus the World | https://www.institutionalinvestor.com/article/2bsx81qp5g2t3adglle68/portfolio/nassim-taleb-and-universa-versus-the-world | 2020-09 | 2668
+- S084 | The Intellectual Yet Idiot excerpts (nassimtaleb.org, Sept 2016) | https://nassimtaleb.org/2016/09/ | 2016-09 | 6451
+- S085 | Sprint Keynote Q&A on Risk & Robustness with Nassim Nicholas Taleb | https://www.peoplematters.in/amp/article/organisational-culture/sprint-keynote-qa-on-risk-robustness-with-nassim-nicholas-taleb-27045 | 2020-09-21 | 1484

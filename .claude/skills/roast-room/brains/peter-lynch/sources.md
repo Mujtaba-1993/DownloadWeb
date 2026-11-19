@@ -1,0 +1,92 @@
+# Sources: Peter Lynch
+
+86 sources (43 writing, 43 web), 209,634 words. Video dates are upload dates. Every quote in this brain carries one of these ids.
+
+Format: id | title | url | date | words
+
+- S001 | Worth column: Besting the Blundering Herd | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1993-01-01 | 1938
+- S002 | Worth column: Buy American | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1993-02-01 | 1800
+- S003 | Worth column: IPOs Explained | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1993-03-01 | 1961
+- S004 | Worth column: A Fad With Staying Power | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1993-04-01 | 1588
+- S005 | Worth column: Bestowing Gifts | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1993-05-01 | 2008
+- S006 | Worth column: Of Betting on Biotech | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1993-06-01 | 1644
+- S007 | Worth column: A Chicken's Guide to Biotech | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1993-08-01 | 1877
+- S008 | Worth column: What Goes Around... | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1993-09-01 | 1669
+- S009 | Worth column: Investing on the House | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1993-10-01 | 1837
+- S010 | Worth column: Detroit's Comeback | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1993-11-01 | 1856
+- S011 | Worth column: Prospecting in California | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1994-01-01 | 1741
+- S012 | Worth column: Making a Bid for Sotheby's | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1994-02-01 | 1881
+- S013 | Worth column: Company After My Own Heart | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1994-03-01 | 1825
+- S014 | Worth column: Bank On It | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1994-04-01 | 3557
+- S015 | Worth column: Charlie Silk's 150-Bagger | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1994-05-01 | 2210
+- S016 | Worth column: The Second Half Effect | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1994-06-01 | 1666
+- S017 | Worth column: The Stock Market Hit Parade | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1994-08-01 | 2354
+- S018 | Worth column: Wall Street v. Five-Line Family | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1994-09-01 | 2000
+- S019 | Worth column: What Goes Around Turns Around | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1994-10-01 | 1757
+- S020 | Worth column: Finding Bargains Losers List | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1994-11-01 | 1567
+- S021 | Worth column: Put Your Broker to Work | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1995-01-01 | 1516
+- S022 | Worth column: The Next Oil Boom | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1995-02-01 | 1717
+- S023 | Worth column: Catch a Ride | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1995-03-01 | 1957
+- S024 | Worth column: The Current Thinking | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1995-04-01 | 1793
+- S025 | Worth column: Bet the Houses | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1995-05-01 | 1651
+- S026 | Worth column: Golden Years | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1995-06-01 | 1830
+- S027 | Worth column: Free at Last | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1995-08-01 | 1057
+- S028 | Worth column: Fear of Crashing | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1995-09-01 | 3606
+- S029 | Worth column: Still Tough to Beat | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1995-10-01 | 3055
+- S030 | Worth column: Peter Lynch By Post | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1996-01-01 | 1989
+- S031 | Worth column: Mind Your P's and E's | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1996-02-01 | 1838
+- S032 | Worth column: The 5 Percent Solution | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1996-04-01 | 1869
+- S033 | Worth column: In Defense of the Invisible Hand | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1996-06-01 | 3431
+- S034 | Worth column: Self-Service | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1996-10-01 | 1947
+- S035 | Worth column: Pain and Gain | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1997-01-01 | 2807
+- S036 | Worth column: Peter Lynch: Use Your Edge | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1997-03-01 | 3067
+- S037 | Worth column: Send in the Money! | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1997-05-01 | 3831
+- S038 | Worth column: The REIT Craze | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1997-08-01 | 1958
+- S039 | Worth column: Keep Digging | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1997-11-01 | 2539
+- S040 | Worth column: Best of the Best | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1998-03-01 | 1147
+- S041 | Worth column: Peter Lynch: Hope You Guess Our Name | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1998-06-01 | 2682
+- S042 | Worth column: Hidden in Plain Sight | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1998-10-01 | 4704
+- S043 | Worth column: Lost Time | https://dividendgrowthinvestor.com/2020/05/peter-lynch-articles-for-worth-magazine.html | 1999-06-01 | 1016
+- S044 | Interview With Peter Lynch / Betting On The Market / FRONTLINE / PBS | https://www.pbs.org/wgbh/pages/frontline/shows/betting/pros/lynch.html | 1997-01-14 | 9637
+- S045 | How Peter Lynch Became The Greatest Fund Manager Of All Time | https://podscripts.co/podcasts/the-compound-and-friends/how-peter-lynch-became-the-greatest-fund-manager-of-all-time | 2025-10-03 | 9397
+- S046 | Stock Shop with Peter Lynch: A Gem of a Video Discovery on Lynch’s Stock Picking Process | https://geoinvesting.com/?p=76117 | 2019-12-02 | 10322
+- S047 | How to Make Millions in a Market Crash (clip transcript) | https://gotranscript.com/public/peter-lynch-on-market-volatility-lessons-from-a-legendary-investor | undated | 2240
+- S048 | Peter Lynch chat on Prodigy (partial transcript) | https://hedgefundalpha.com/?p=799140 | 1996-02-05 | 930
+- S053 | National Press Club lecture 1994 (partial transcript) | https://hedgefundalpha.com/?p=1306554 | 1994-10-07 | 1929
+- S061 | Peter Lynch speaks on investing strategies and misconceptions | https://archive.mpr.org/stories/1993/05/26/peter-lynch-on-investing-strategies-and-misconceptions | 1993-05-26 | 9311
+- S062 | Wall Street Week: Peter Lynch on the Nineties (machine transcript) | https://americanarchive.org/transcripts/cpb-aacip-394-9995xnsr | 1990-01-05 | 4757
+- S063 | Wall Street Week: Two Hall of Famers, Lynch and Templeton (machine transcript) | https://americanarchive.org/transcripts/cpb-aacip-394-35t76v43 | 1994-04-08 | 4850
+- S064 | Wall Street Week: Lynch and Dick Fabian on mutual funds (machine transcript, date approx.) | https://americanarchive.org/transcripts/cpb-aacip-394-375tb8kx | 1985-01-01 | 7121
+- S066 | Wall Street Week: An Investment Primer (machine transcript) | https://americanarchive.org/transcripts/cpb-aacip-394-19s1rw5v | 1980-06-18 | 7388
+- S067 | Wall Street Week: 20th anniversary, live from New York (machine transcript) | https://americanarchive.org/transcripts/cpb-aacip-394-01pg4n72 | 1990-11-01 | 4950
+- S070 | Wall Street Week: 20 Years retrospective (machine transcript) | https://americanarchive.org/transcripts/cpb-aacip-394-15bccb6q | 1990-11-15 | 9481
+- S073 | An Investing Legend Speaks / The Motley Fool | https://www.fool.com/archive/portfolios/rulemaker/2000/10/12/an-investing-legend-speaks.aspx | 2000-10-12 | 734
+- S074 | Lynch: Old-fashioned Legwork Is Key to Good Investing | https://csmonitor.com/1993/0412/12072.html | 1993-04-12 | 1068
+- S075 | US Economy: an Upbeat View | https://csmonitor.com/1996/0321/21081.html | 1996-03-21 | 1375
+- S076 | The Wizard Bows Out | https://content.time.com/time/magazine/article/0,9171,969804,00.html | 1990-04-09 | 1301
+- S077 | “You need 3-4 Good Companies to Invest in Over Ten Years” Crossing Wall Street | https://www.crossingwallstreet.com/?p=4876 | undated | 1515
+- S078 | Peter Lynch says all-in on passive investing is all wrong / Financial Planning | https://www.financial-planning.com/articles/peter-lynch-says-all-in-on-passive-investing-is-all-wrong | 2021-12-07 | 350
+- S079 | Peter Lynch, 25 Years Later: It's Not Just 'What You Know' | https://www.foxbusiness.com/markets/peter-lynch-25-years-later-its-not-just-what-you-know | 2016-01-04 | 630
+- S080 | Investing icon Peter Lynch warned against speculating, panicking, and trying to predict the market in a rare interview. Here are the 9 best quotes. | https://news.yahoo.com/investing-icon-peter-lynch-warned-104907720.html | 2022-07-02 | 651
+- S081 | 'I mean, how dumb was I?' Legendary investor Peter Lynch says these are the top mistakes he's made: and what he looks for in a company / Fortune | https://fortune.com/2023/04/26/legendary-investor-peter-lynch-biggest-mistakes-best-advice/ | 2023-04-26 | 540
+- S082 | Investing Legend Peter Lynch on the Investments He Regrets Not Making in Recent Years | https://www.nbcmiami.com/news/business/money-report/investing-legend-peter-lynch-on-the-investments-he-regrets-not-making-in-recent-years/3021416/ | 2023-04-25 | 534
+- S083 | "People are wasting time trying to predict the future": highlights from the Peter Lynch interview: Oninvest | https://en.oninvest.com/article/people-are-wasting-time-trying-to-predict-the-future-highlights-from-the-peter-lynch-interview | 2025-10-08 | 1282
+- S084 | Peter Lynch: Buy Stocks That Are In The Second Innings Of The Ballgame | https://acquirersmultiple.com/2020/01/peter-lynch-buy-stocks-that-are-in-the-second-innings-of-the-ballgame/ | 2020-01-08 | 1122
+- S085 | Peter Lynch: Lessons From An Investing Legend | https://acquirersmultiple.com/2019/10/peter-lynch-lessons-from-an-investing-legend | 2019-10-22 | 1935
+- S086 | Peter Lynch: The Biggest Mistakes Investors Make and How to Avoid Them | https://acquirersmultiple.com/2025/10/peter-lynch-the-biggest-mistakes-investors-make-and-how-to-avoid-them/ | 2025-10-06 | 485
+- S087 | Peter Lynch: In Investing Your Stomach Is More Important Than Your Brain | https://acquirersmultiple.com/?p=23063 | 2020-10-15 | 484
+- S088 | Peter Lynch: The '87 Crash and Recession Worries • Novel Investor | https://novelinvestor.com/peter-lynch-the-87-crash-and-recession-worries/ | 2019-05-10 | 1261
+- S089 | Common Sense Principles from Two Legends • Novel Investor | https://novelinvestor.com/common-sense-principles-from-two-legends/ | 2022-01-12 | 2579
+- S090 | AAII Article from January 1997 titled, ” The Peter Lynch Approach to Investing in “Understandable” Stocks” / Redfield, Blonsky & Starinsky, LLC | https://www.rbcpa.com/commentary-archive/aaii-article-from-january-1997-titled-the-peter-lynch-approach-to-investing-in-understandable-stocks/ | 1997-01 | 3391
+- S091 | Peter Lynch on Thrift Conversions | https://thriftconversionconfidential.substack.com/p/peter-lynch-on-thrift-conversions | 2022-01-08 | 1637
+- S094 | Peter Lynch: The Barry Sanders of Investing - A Wealth of Common Sense | https://awealthofcommonsense.com/2019/12/peter-lynch-the-barry-sanders-of-investing/ | 2019-12-28 | 1034
+- S112 | MAGELLAN FUND MANAGER HOPES TO KEEP THE EDGE IN '90S | https://www.deseret.com/1990/1/7/18841992/magellan-fund-manager-hopes-to-keep-the-edge-in-90s/ | 1990-01-07 | 775
+- S113 | MASTERFUL MANAGER OF MAGELLAN FUND WILL STEP DOWN AFTER 13 MAGIC YEARS<BR> RETURN ON INVESTMENTS DURING LYNCH'S TENURE SOARED CLOSE TO 2,500 PERCENT | https://www.deseret.com/1990/3/29/18853793/masterful-manager-of-magellan-fund-will-step-down-after-13-magic-years-br-return-on-investments-duri/ | 1990-03-29 | 830
+- S114 | DO YOUR HOMEWORK, INVESTMENT EXPERT COUNSELS | https://www.deseret.com/1994/9/25/19132802/do-your-homework-investment-expert-counsels/ | 1994-09-25 | 621
+- S115 | Peter Lynch on Common Investor Mistakes • Novel Investor | https://novelinvestor.com/peter-lynch-on-common-investor-mistakes/ | 2022-09-16 | 2399
+- S116 | If You Spend 13 Minutes a Year on Economics You've Wasted 10 Minutes | https://leveragepoint.substack.com/p/if-you-spend-13-minutes-a-year-on | 2022-01-14 | 1396
+- S117 | The Misunderstanding of Peter Lynch's Investment Style | https://basehitinvesting.substack.com/p/the-misunderstanding-of-peter-lynchs-investment-style | 2015-12-11 | 1093
+- S118 | Investing Advice From a Legend - Investing Daily | https://investingdaily.com/51638/investing-advice-from-a-legend | 2019-10-01 | 871
+- S121 | Legendary stock picker Peter Lynch made a remarkably prescient market observation in 1994 🎯 | https://www.tker.co/p/peter-lynch-1994-stock-market-earnings | 2022-03-27 | 1108
+- S122 | Peter Lynch: The Single Most Important Thing • Novel Investor | https://novelinvestor.com/peter-lynch-single-important-thing/ | 2017-04-26 | 908
+- S123 | Peter Lynch | https://thewaiterspad.com/2017/01/27/peter-lynch | 2017-01-27 | 1669
