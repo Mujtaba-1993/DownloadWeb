@@ -91,7 +91,7 @@ details.how{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}de
 <div class="rfb"><button class="btn" id="rf">↻ تحديث</button><span class="note" id="rfn" style="margin:0"></span></div>
 </header>
 
-<nav class="tabs" role="tablist"><button data-go="tl">الفخاخ<span class="cnt" id="n-tl"></span></button><button data-go="trades">الإشارات المدروسة<span class="cnt" id="n-trades"></span></button><button data-go="journal">سجلي<span class="cnt" id="n-journal"></span></button><button data-go="ev">الأدلة والأداء</button></nav>
+<nav class="tabs" role="tablist"><button data-go="tl">الفخاخ<span class="cnt" id="n-tl"></span></button><button data-go="ins">شراء المدراء<span class="cnt" id="n-ins"></span></button><button data-go="trades">الإشارات المدروسة<span class="cnt" id="n-trades"></span></button><button data-go="journal">سجلي<span class="cnt" id="n-journal"></span></button><button data-go="ev">الأدلة والأداء</button></nav>
 
 <div class="risk bar" id="riskbar"><label>رأس المال<input id="cap" inputmode="decimal" autocomplete="off"></label><label>المخاطرة لكل صفقة %<input id="rsk" inputmode="decimal" autocomplete="off"></label><div class="out" id="rout"></div></div>
 
@@ -113,6 +113,15 @@ details.how{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}de
 <h3>حسب الفترة (اليومي)</h3><div class="tb"><table id="tlper"></table></div>
 <h3>هل الفخ نفسه هو مصدر الربح؟</h3><div class="tb"><table id="tlcmp"></table></div>
 <ul id="tltests"></ul></details></section>
+</div>
+
+<div class="tab" data-tab="ins" hidden>
+<section class="panel"><div class="ph"><h2>شراء المدراء <span class="chip md">ميزة متوسطة</span></h2><span class="note" id="inscount" style="margin:0"></span></div>
+<p class="lead">أسهم اشترى منها مدراء الشركة أو كبار ملاكها في آخر أيام، وتحقق فيها الشرطان: <b>السوق تحت متوسط 200 يوم</b> و<b>السهم نازل 30% أو أكثر عن قمة السنة</b>. الاحتفاظ 60 جلسة بلا وقف، والكمية محسوبة على أسوأ خسارة تاريخية.</p>
+<div id="insl"></div><button class="btn more" id="insmore" hidden></button></section>
+<section class="panel"><div class="ph"><h2>نتيجة الاختبار</h2><span class="note" id="insn" style="margin:0"></span></div>
+<div class="kp" id="inskp"></div><p class="verdict" id="insverdict"></p>
+<details class="how"><summary>تفاصيل الاختبار</summary><div class="tb"><table id="insper"></table></div><ul id="instests"></ul></details></section>
 </div>
 
 <div class="tab" data-tab="trades" hidden>
@@ -231,7 +240,7 @@ let D=ALL[MKT],TL=[];
 const $=id=>document.getElementById(id),sg=x=>(x>0?'+':'')+x+'%',pc=x=>x==null?'—':(x>0?'+':'')+x+'%',num=x=>(x||0).toLocaleString('en'),fx=x=>x>=1000?x.toLocaleString('en',{maximumFractionDigits:1}):String(x);
 const tick=s=>String(s).replace('.SR',''),nameOf=s=>(D.names&&D.names[s])||'',GP={A:'pos',B:'wn',C:'neg'};
 const sym=s=>`<b class="sym">${tick(s)}</b>${nameOf(s)?` <span class="note">${nameOf(s)}</span>`:''}`;
-const KIND={tl:'فخ الترند',pt:'فخ النمط',dip:'هبوط عميق',sch:'توافق المدارس',fake:'كسر كاذب أسبوعي',fake4:'كسر كاذب · 4 ساعات',pat:'نمط هابط · يومي',pat4:'نمط هابط · 4 ساعات',pat1:'نمط هابط · ساعة',gap:'فجوة هبوط',ct:'عكس المتداولين'},PNM={sym_triangle:'مثلث متماثل',desc_triangle:'مثلث هابط',asc_triangle:'مثلث صاعد',falling_wedge:'وتد هابط',down_channel:'قناة هابطة'},TFN={d:'يومي',h4:'4 ساعات',h1:'ساعة'};
+const KIND={ins:'شراء المدراء',tl:'فخ الترند',pt:'فخ النمط',dip:'هبوط عميق',sch:'توافق المدارس',fake:'كسر كاذب أسبوعي',fake4:'كسر كاذب · 4 ساعات',pat:'نمط هابط · يومي',pat4:'نمط هابط · 4 ساعات',pat1:'نمط هابط · ساعة',gap:'فجوة هبوط',ct:'عكس المتداولين'},PNM={sym_triangle:'مثلث متماثل',desc_triangle:'مثلث هابط',asc_triangle:'مثلث صاعد',falling_wedge:'وتد هابط',down_channel:'قناة هابطة'},TFN={d:'يومي',h4:'4 ساعات',h1:'ساعة'};
 const VU={w:['أسبوع','أسابيع'],s:['جلسة','جلسات'],b4:['شمعة 4 ساعات','شموع 4 ساعات'],b1:['شمعة ساعة','شموع ساعة']};
 const CL={panic:['هبوط حاد 7%+ بحجم تداول عالٍ','يبيعون بذعر','شراء'],fomo:['قفزة 7%+ بحجم تداول عالٍ','يطاردون الصعود ويشترون','تجنّب الشراء'],hi52:['اختراق قمة 52 أسبوعاً','يشترون الاختراق','تجنّب الشراء'],lo52:['كسر قاع 52 أسبوعاً','يبيعون أو يضربهم الوقف','شراء'],rsi70:['RSI فوق 70','يبيعون','شراء أو احتفاظ'],rsi30:['RSI تحت 30','يشترون','تجنّب الشراء'],golden:['التقاطع الذهبي (50 فوق 200)','يشترون','تجنّب الشراء'],death:['تقاطع الموت (50 تحت 200)','يبيعون','شراء']};
 const VD={win:['العكس نجح','pos'],lose:['المتداولون على حق','neg'],none:['لا فرق واضح','wn']};
@@ -320,18 +329,18 @@ function ticket(t){const z=size(t);return `${tick(t.s)} · شراء محدد · 
 // --- trend trap: ascending trendline broken, then reclaimed
 let TLO=-1,TLSHOW=5,TLT=[];
 function tlChart(t){const G=t.geo,C=G.bars,n=C.length,X=8,N=n+X,W=Math.max(330,Math.min(660,(($('tll')||{}).clientWidth||700)-26)),H=W<480?280:320,PL=6,PR=66,PT=20,PB=18;
- const LN=G.line?[G.line]:[G.lo,G.up],lf=L=>{const m=(L[1][1]-L[0][1])/Math.max(1,L[1][0]-L[0][0]);return i=>L[0][1]+m*(i-L[0][0])},xs=[t.stop,t.tgt];LN.forEach(L=>{const f=lf(L);xs.push(f(L[0][0]),f(n-1))});
+ const LN=G.line?[G.line]:G.lo?[G.lo,G.up]:[],lf=L=>{const m=(L[1][1]-L[0][1])/Math.max(1,L[1][0]-L[0][0]);return i=>L[0][1]+m*(i-L[0][0])},xs=[t.stop,t.tgt];LN.forEach(L=>{const f=lf(L);xs.push(f(L[0][0]),f(n-1))});
  const lo=Math.min(...xs,...C.map(c=>c[2])),hi=Math.max(...xs,...C.map(c=>c[1])),pad=(hi-lo)*.07,a=lo-pad,b=hi+pad,x=i=>PL+(i+.5)*(W-PL-PR)/N,y=v=>PT+(b-v)/(b-a)*(H-PT-PB),bw=Math.max(1.5,(W-PL-PR)/N*.62),AF='font-family="IBM Plex Sans Arabic,sans-serif"';
  let g='';for(let k=0;k<4;k++){const v=a+(b-a)*(k+.5)/4;g+=`<line x1="${PL}" x2="${W-PR}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/>`}
  const cs=C.map((c,i)=>{const up=c[3]>=c[0],col=up?'var(--up)':'var(--dn)',yo=y(c[0]),yc=y(c[3]);return `<line x1="${x(i)}" x2="${x(i)}" y1="${y(c[1])}" y2="${y(c[2])}" stroke="${col}" stroke-width="1"/><rect x="${x(i)-bw/2}" y="${Math.min(yo,yc)}" width="${bw}" height="${Math.max(1,Math.abs(yc-yo))}" fill="${col}"/>`}).join('');
  const ln=(v,col,lab)=>`<line x1="${PL}" x2="${W-PR}" y1="${y(v)}" y2="${y(v)}" stroke="${col}" stroke-width="1.2" stroke-dasharray="5 4"/><rect x="${W-PR+2}" y="${y(v)-9}" width="${PR-4}" height="18" rx="3" fill="${col}"/><text x="${W-PR/2}" y="${y(v)+4}" text-anchor="middle" font-size="11" font-family="IBM Plex Mono,monospace" font-weight="600" fill="#0a0d0c">${fx(v)}</text><text x="${PL+4}" y="${y(v)-4}" font-size="11" ${AF} fill="${col}">${lab}</text>`;
  const cx=v=>Math.max(PL+30,Math.min(W-PR-30,v)),tag=(i,v,txt,col,dy)=>`<text x="${cx(x(i))}" y="${y(v)+dy}" text-anchor="middle" font-size="11.5" font-weight="700" ${AF} fill="${col}" stroke="#0d1110" stroke-width="3" paint-order="stroke">${txt}</text>`;
- const i0=G.brk[0],i1=G.ret;
+ const i0=G.brk?G.brk[0]:0,i1=G.ret;
  const zone=`<rect x="${x(i0)-bw}" y="${PT}" width="${x(i1)-x(i0)+2*bw}" height="${H-PT-PB}" fill="var(--dn)" opacity=".10"/>`;
  const cl=v=>Math.max(a,Math.min(b,v)),line=LN.map(L=>{const ly=lf(L),x0=L[0][0];return `<line x1="${x(x0)}" y1="${y(ly(x0))}" x2="${x(n-1)}" y2="${y(ly(n-1))}" stroke="var(--info)" stroke-width="2"/><line x1="${x(n-1)}" y1="${y(ly(n-1))}" x2="${x(N-1)}" y2="${y(cl(ly(N-1)))}" stroke="var(--info)" stroke-width="2" stroke-dasharray="3 4"/>`}).join('');
- const rings=(G.T||G.ph.concat(G.pl)).map(p=>`<circle cx="${x(p[0])}" cy="${y(p[1])}" r="6" fill="none" stroke="var(--info)" stroke-width="2"/>`).join('');
- const ov=zone+line+rings+tag(i0,G.brk[1],'كسر','var(--dn)',16)+tag(i1,C[i1][1],'رجوع ▲','var(--up)',-8);
- return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="شارت: خط الترند والكسر والرجوع مع الدخول والوقف والهدف">${g}${cs}${ov}${ln(t.tgt,'var(--up)','الهدف')}${ln(t.entry,'var(--fg)','الدخول')}${ln(t.stop,'var(--dn)','الوقف')}</svg><div class="lg"><span><i class="ln" style="background:var(--info)"></i>${G.line?'خط الترند':'خطّا النمط'}</span><span><i class="rg" style="border-color:var(--info)"></i>${G.line?`لمسات الخط (${t.touches})`:'القمم والقيعان التي رُسم عليها'}</span><span><i style="background:var(--dn);opacity:.5;border-radius:2px"></i>منطقة الكسر</span></div>`}
+ const rings=(G.T||(G.ph||[]).concat(G.pl||[])).map(p=>`<circle cx="${x(p[0])}" cy="${y(p[1])}" r="6" fill="none" stroke="var(--info)" stroke-width="2"/>`).join('');
+ const ov=G.brk?zone+line+rings+tag(i0,G.brk[1],'كسر','var(--dn)',16)+tag(i1,C[i1][1],'رجوع ▲','var(--up)',-8):(G.ent!=null&&G.ent>=0?tag(G.ent,C[G.ent][2],'▲ بعد الإعلان','var(--up)',16):'');const LB=t.lab||['الهدف','الدخول','الوقف'];
+ return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="شارت: خط الترند والكسر والرجوع مع الدخول والوقف والهدف">${g}${cs}${ov}${ln(t.tgt,'var(--up)',LB[0])}${ln(t.entry,'var(--fg)',LB[1])}${ln(t.stop,'var(--dn)',LB[2])}</svg><div class="lg"${G.brk?'':' hidden'}><span><i class="ln" style="background:var(--info)"></i>${G.line?'خط الترند':'خطّا النمط'}</span><span><i class="rg" style="border-color:var(--info)"></i>${G.line?`لمسات الخط (${t.touches})`:'القمم والقيعان التي رُسم عليها'}</span><span><i style="background:var(--dn);opacity:.5;border-radius:2px"></i>منطقة الكسر</span></div>`}
 function tlFacts(t){const r=[],f=(a,b)=>r.push(`<div><span>${a}</span><b>${b}</b></div>`),z=size(t);
  f('النوع',t.kind=='pt'?'فخ النمط · '+PNM[t.typ]:'فخ الترند');f('تاريخ الكسر',t.bdate);f('تاريخ الرجوع',t.date);if(t.kind=='tl'){f('لمسات الخط',t.touches);if(t.clr!=null)f('إغلاق الرجوع فوق الخط بـ','+'+t.clr+'%')}f(t.kind=='pt'?'عمر النمط (جلسات)':'عمر الخط (جلسات)',t.span);if(t.kind=='pt')f('الخط العلوي الآن',t.upper);f('عمق الكسر تحت الخط',t.depth+'%');f('جلسات تحت الخط',t.below);
  f('صالحة لدخول جديد (جلسات)',t.vl<=0?'اليوم فقط':t.vl);f('الخروج الإجباري بعد (جلسات)',t.left);
@@ -367,7 +376,30 @@ function renderTLstudy(){const S=D.tlstats;if(!S)return;const R=S.recent,sg2=v=>
 <li><b>اختبار فني:</b> عدد لمسات الخط (2 أو 3 أو 4 وأكثر) لا يغيّر نسبة الرجوع. نموذج من 19 عاملاً اختُبر على سنوات لم يرها (منذ 2014): أفضل 20% من الإشارات نجحت ${S.model.wtop}% بمعامل ربح ${S.model.top} مقابل ${S.model.all} للكل، وهو فرق لا يكفي لبناء درجات.</li>
 <li><b>اختبار إخباري:</b> تواريخ إعلانات الأرباح غير متاحة في مصدر البيانات، فاستُخدم حجم التداول والفجوة يوم الكسر دليلاً على وجود خبر. لا فرق في النتيجة بين كسر بحجم عالٍ وكسر بحجم عادي.</li>
 <li>القائمة تضم الأسهم الموجودة اليوم فقط، وهذا يرفع كل الأرقام قليلاً.</li>`}
-function renderTrades(){renderTL();TL=D.trades||[];$('n-trades').textContent=TL.length||'';const cur=MKT=='us'?'$':'ر.س';
+// --- insider buying (shown only while the market is below its 200-day average)
+let INO=-1,INSHOW=5,INT=[];
+function insRow(t,i){const z=size(t),o=INO==i,v=t.val>=1e6?(t.val/1e6).toFixed(1)+'M':Math.round(t.val/1e3)+'K';return `<div class="tr${o?' open':''}${t.missed?' miss':''}" data-ins="${i}"><div class="rk">${i+1}</div><div class="sy"><b>${t.s}</b><span class="chip t-pt">${t.n} ${t.n>2?'مدراء':t.n==2?'مديران':'مدير'}</span>${t.missed?'<span class="chip t-gap">فات، لا تطارد</span>':''}<span class="nm">${t.name}</span></div>
+<div class="nv"><i>الدخول</i>${fx(t.entry)}<small>حد الشراء ${fx(t.lim)}</small></div><div class="nv neg"><i>تحت قمة السنة</i>-${t.dd}%<small>القمة ${fx(t.hi)}</small></div><div class="nv"><i>اشتروا بـ</i>$${v}<small>${t.date}</small></div>
+<div class="nv"><i>خسارة مفترضة</i>${z?`<span class="neg">-${num(Math.round(z.loss))}</span>`:'—'}<small>-${t.risk}%</small></div><div class="nv"><i>الخروج بعد</i>${t.left}<small>جلسة</small></div><div class="nv"><i>الكمية</i>${z?num(z.n):'—'}${z?`<small>${num(Math.round(z.val))}</small>`:''}</div></div>
+<div class="tx"${o?'':' hidden'}><div>${o?`<p class="why"><b>لماذا هذا السهم؟</b> ${t.n} من داخل الشركة (${t.titles}) اشتروا بـ $${num(t.val)}، آخر إعلان ${t.date}. السهم نازل ${t.dd}% عن قمة السنة، والسوق تحت متوسط 200 يوم.</p>`+tlChart(t):''}</div><div class="facts">${o?insFacts(t,z):''}<button class="btn x" data-copyins="${i}" style="margin-top:6px">نسخ الأمر</button><button class="btn" data-enterins="${i}">دخلت هذه الصفقة</button></div></div>`}
+function insFacts(t,z){const S=D.insstats,r=[],f=(a,b)=>r.push(`<div><span>${a}</span><b>${b}</b></div>`);
+ f('عدد المشترين من الداخل',t.n);f('مناصبهم',t.titles);f('قيمة شرائهم','$'+num(t.val));f('آخر إعلان',t.date);f('تحت قمة السنة','-'+t.dd+'%');f('تداول يومي','$'+t.adv+'M');
+ f('صالحة لدخول جديد (جلسات)',t.vl<=0?'اليوم فقط':t.vl);f('الأمر','شراء محدد');f('لا تدفع أكثر من',t.lim);f('الخروج','بعد '+t.left+' جلسة، بلا وقف');
+ f('نجاح تاريخي',S.win+'%');f('متوسط الرابحة','+'+S.aw+'%');f('متوسط الخاسرة',S.al+'%');f('أسوأ 5% (أساس الكمية)',S.q05+'%');
+ if(z){f('الكمية المقترحة',num(z.n)+' سهم'+(z.lim?' (حد 25% من رأس المال)':''));f('الخسارة المفترضة','-'+num(Math.round(z.loss)))}
+ return r.join('')}
+function renderIns(){const I=D.ins,S=D.insstats;if(!S)return;const r1=v=>Math.round(v*10)/10;
+ INT=I&&I.on?(I.list||[]).map(t=>({...t,kind:'ins',entry:t.cur,risk:r1((1-t.stop/t.cur)*100),share:Math.min(3,I.list.length),lab:['قمة السنة','الدخول','خسارة مفترضة']})):[];
+ const shown=INT.slice(0,INSHOW);
+ $('insl').innerHTML=!I?'<p class="none big">تعذّر جلب إعلانات المدراء في آخر تحديث.</p>':!I.on?`<p class="none big">الشرط غير متحقق الآن: السوق فوق متوسط 200 يوم (${sg(I.mkt)}). في هذا الوضع تقليد المدراء لا يتفوق على السوق، فلا تُعرض أسهم.</p>`:INT.length?`<div class="stale" style="border-color:var(--warn);color:var(--warn);background:#e0a43a14">كل هذه الأسهم رهان واحد على ارتداد السوق، فتتقاسم مخاطرة صفقة واحدة. لا تدخلها كلها.</div><div class="bl"><div class="hd"><div>#</div><div>السهم</div><div class="nv">الدخول</div><div class="nv">تحت قمة السنة</div><div class="nv">اشتروا بـ</div><div class="nv">خسارة مفترضة ($)</div><div class="nv">الخروج بعد</div><div class="nv">الكمية ($)</div></div>${shown.map(insRow).join('')}</div>`:'<p class="none big">لا يوجد سهم يحقق الشروط اليوم.</p>';
+ $('inscount').textContent=I?`السوق ${sg(I.mkt)} عن متوسط 200 يوم`+(INT.length?` · ${shown.length} معروضة من ${INT.length}`:''):'';$('n-ins').textContent=INT.length||'';
+ $('insmore').hidden=INT.length<=INSHOW;$('insmore').textContent=`عرض الكل (${INT.length})`;
+ $('insn').textContent=num(S.n)+' حالة منذ '+S.since;
+ $('inskp').innerHTML=`<div class="k"><b>${S.win}%</b><span>أغلقت بربح بعد 60 جلسة</span></div><div class="k"><b class="pos">+${S.ex}%</b><span>فوق السوق في 60 جلسة · تفوّق ${S.beat}%</span></div><div class="k"><b class="neg">${S.q05}%</b><span>أسوأ 5% من الحالات</span></div><div class="k"><b class="wn">+${S.allex}%</b><span>تقليد كل المدراء بلا شروط (${num(S.alln)} حالة)</span></div>`;
+ $('insverdict').innerHTML=`<b>الخلاصة:</b> تقليد المدراء وحده لا يكفي. ينجح حين يشترون وسط الخوف: السوق تحت متوسطه والسهم مضروب. حين السوق فوق متوسطه كانت النتيجة ${S.above.ex}% عن السوق. التحفظ: من 2022 ضعفت الميزة (فوق السوق +1.2% فقط)، و43% من الحالات التاريخية بلا أسعار اليوم لأن شركاتها شُطبت، وهذا يرفع الأرقام.`;
+ $('insper').innerHTML='<tr><th>الفترة</th><th>الحالات</th><th>أغلقت بربح</th><th>متوسط الصفقة</th><th>فوق السوق</th><th>تفوّق</th></tr>'+S.per.map(r=>`<tr><td>${r[0]}</td><td class="n">${num(r[1])}</td><td class="n">${r[2]}%</td><td class="n pos">+${r[3]}%</td><td class="n">+${r[4]}%</td><td class="n">${r[5]}%</td></tr>`).join('');
+ $('instests').innerHTML='<li><b>القاعدة:</b> شراء معلن من داخل الشركة بـ 50 ألف دولار أو أكثر في آخر 14 يوماً. سعر السهم 5 دولارات أو أكثر، وتداوله اليومي 5 ملايين دولار أو أكثر. الدخول افتتاح الجلسة التالية للإعلان، ويبقى السهم معروضاً 5 جلسات. الخروج إغلاق الجلسة 60.</li><li>فُحص 14 شرطاً في السهم والسوق. حجم الشراء، ومنصب المشتري، وحجم التداول لم تفرّق. حالة السوق وبُعد السهم عن قمته هما اللذان فرّقا، في ما قبل 2018 وما بعدها.</li><li>هذه الخانة لا تدخل بعد في سجل الاقتراحات الحي ولا المحفظة التجريبية.</li><li>المصدر: openinsider.com، المبني على إعلانات هيئة الأوراق الأمريكية.</li>'}
+function renderTrades(){renderIns();renderTL();TL=D.trades||[];$('n-trades').textContent=TL.length||'';const cur=MKT=='us'?'$':'ر.س';
  const vis=TL.map((t,i)=>[t,i]).filter(([t])=>UNFOLD||!t.fold),folded=TL.filter(t=>t.fold),cl=(TL.find(t=>t.cluster)||{}).cluster||0,shown=vis.slice(0,SHOW);
  const foldRow=folded.length&&!UNFOLD?`<div class="fold"><span><b>${folded.length} صفقة مشابهة مطويّة</b> · كلها نفس الرهان على ارتداد السوق بعد الهبوط. الثلاث المعروضة تتقاسم مخاطرة صفقة واحدة.</span><button class="btn x" id="unfold">عرضها</button></div>`:'';
  const stale=BUILT_MS&&Date.now()-BUILT_MS>20*3600e3;
@@ -446,7 +478,7 @@ render();
 const cap=$('cap'),rsk=$('rsk');cap.value=CAP;rsk.value=RSK;
 [cap,rsk].forEach(el=>el.oninput=()=>{const c=parseFloat(String(cap.value).replace(/,/g,'')),r=parseFloat(rsk.value);if(c>0)CAP=c;if(r>0&&r<=100)RSK=r;try{localStorage.setItem('rr-cap',CAP);localStorage.setItem('rr-rsk',RSK)}catch(e){}renderTrades()});
 document.querySelectorAll('#mk button').forEach(b=>b.onclick=()=>{MKT=b.dataset.mk;try{localStorage.setItem('rr-mkt',MKT)}catch(e){}render()});
-$('more').onclick=()=>{SHOW=999;renderTrades()};$('tlmore').onclick=()=>{TLSHOW=999;renderTL()};
+$('more').onclick=()=>{SHOW=999;renderTrades()};$('tlmore').onclick=()=>{TLSHOW=999;renderTL()};$('insmore').onclick=()=>{INSHOW=999;renderIns()};
 function go(n){if(!document.querySelector(`[data-tab="${n}"]`))n='tl';$('riskbar').hidden=n=='ev'||n=='journal';document.querySelectorAll('.tab').forEach(e=>e.hidden=e.dataset.tab!=n);document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.go==n))}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{location.hash=b.dataset.go;go(b.dataset.go);window.scrollTo(0,0)});
 addEventListener('hashchange',()=>go(location.hash.slice(1)));go(location.hash.slice(1)||'tl');
@@ -470,16 +502,19 @@ function jrender(){
 function alertMsg(m){jl.insertAdjacentHTML('afterbegin',`<p class="none st-loss">${m}</p>`)}
 document.addEventListener('click',async e=>{
  const r=e.target.closest('.tr');if(r&&r.dataset.tl!=null&&!e.target.closest('button')){const i=+r.dataset.tl;TLO=TLO==i?-1:i;renderTL();return}
+ if(r&&r.dataset.ins!=null&&!e.target.closest('button')){const i=+r.dataset.ins;INO=INO==i?-1:i;renderIns();return}
  if(r&&r.dataset.pb!=null){const i=+r.dataset.pb;PBO=PBO==i?-1:i;renderPB();return}
  if(r&&!e.target.closest('button')){const i=+r.dataset.row;OPEN=OPEN==i?-1:i;renderTrades();return}
  const b=e.target.closest('button');if(b&&b.id=='unfold'){UNFOLD=true;renderTrades();return}
  if(b&&b.dataset.copy){const tx=ticket(TL[+b.dataset.copy]);try{await navigator.clipboard.writeText(tx);b.textContent='نُسخ ✓'}catch(err){b.textContent=tx}return}
  if(b&&b.dataset.copytl){const t=TLT[+b.dataset.copytl],z=size(t),tx=`${tick(t.s)} · شراء محدد · لا تدفع أكثر من ${t.lim}${z?' · الكمية '+z.n:''} · الهدف ${t.tgt} · الوقف ${t.stop}`;try{await navigator.clipboard.writeText(tx);b.textContent='نُسخ ✓'}catch(err){b.textContent=tx}return}
+ if(b&&b.dataset.copyins){const t=INT[+b.dataset.copyins],z=size(t),tx=`${t.s} · شراء محدد · لا تدفع أكثر من ${t.lim}${z?' · الكمية '+z.n:''} · بلا وقف · خروج بعد ${t.left} جلسة`;try{await navigator.clipboard.writeText(tx);b.textContent='نُسخ ✓'}catch(err){b.textContent=tx}return}
+ if(b&&b.dataset.enterins)b.dataset.enter='in'+b.dataset.enterins;
  if(b&&b.dataset.entertl)b.dataset.enter='tl'+b.dataset.entertl;
  if(!b||b.id=='rf'||!(b.dataset.enter||b.dataset.res||b.dataset.del))return;
  if(!DB){b.textContent='السجل يحتاج تسجيل الدخول في claude.ai';return}
  try{b.disabled=true;
- if(b.dataset.enter){const t=b.dataset.enter.startsWith('tl')?TLT[+b.dataset.enter.slice(2)]:TL[+b.dataset.enter];await DB.collection('trades').add({s:t.s,side:'شراء',kind:t.kind,entry:t.entry,level:t.tgt,stop:t.stop,mk:MKT,status:'open',opened:new Date().toISOString()});b.textContent='سُجّلت ✓'}
+ if(b.dataset.enter){const t=b.dataset.enter.startsWith('tl')?TLT[+b.dataset.enter.slice(2)]:b.dataset.enter.startsWith('in')?INT[+b.dataset.enter.slice(2)]:TL[+b.dataset.enter];await DB.collection('trades').add({s:t.s,side:'شراء',kind:t.kind,entry:t.entry,level:t.tgt,stop:t.stop,mk:MKT,status:'open',opened:new Date().toISOString()});b.textContent='سُجّلت ✓'}
  else if(b.dataset.res){const[id,st]=b.dataset.res.split('|');await DB.collection('trades').doc(id).update({status:st,closed:st=='open'?null:new Date().toISOString()})}
  else if(b.dataset.del){await DB.collection('trades').doc(b.dataset.del).delete()}
  }catch(err){alertMsg('لم يُحفظ: '+(err&&err.message||err))}finally{if(!b.dataset.enter)b.disabled=false;else setTimeout(()=>{b.disabled=false;b.textContent='دخلت هذه الصفقة'},2500)}});

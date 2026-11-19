@@ -402,6 +402,54 @@ def ptraps(s,Dd):
         span=i-P['x0'],below=i-i0,depth=round((1-ext/Lo(i0))*100,1),upper=r(U(n-1)),age=n-1-i,left=PT['maxd']-(n-1-i),vl=PT['fresh']-(n-1-i),vu='s',
         geo=dict(bars=[[r(o[k]),r(h[k]),r(l[k]),r(c[k])] for k in range(a0,n)],up=[[xs-a0,r(U(xs))],[n-1-a0,r(U(n-1))]],lo=[[xs-a0,r(Lo(xs))],[n-1-a0,r(Lo(n-1))]],
             ph=[[x-a0,r(p)] for x,p in P['A'] if x>=a0],pl=[[x-a0,r(p)] for x,p in P['B'] if x>=a0],brk=[i0-a0,r(ext)],ret=i-a0))]
+# --- Insider buying: company officers and big holders must report every purchase within two business days. Copying all
+# of them is not worth it (+0.6% over the market in 60 sessions, 22,550 cases since 2008). It paid only when the market
+# was below its 200-day average and the stock was 30% or more below its 52-week high (see INS_STATS). Held 60 sessions,
+# no stop in the study. Source: openinsider.com (built on SEC Form 4). 43% of historical cases have no price data today
+# (delisted), which flatters the numbers.
+INS=dict(days=14,minval=50,dd=0.30,px=5.0,adv=5e6,fresh=5,hold=60,loss=0.38)
+INS_STATS=dict(n=4080,win=64,avg=11.7,med=9.1,ex=5.7,beat=56,q05=-37.8,al=-19.7,aw=28.9,since=2008,allex=0.6,alln=22550,above=dict(ex=-0.9,beat=45),
+    per=[['2008–2012',1396,59,6.1,6.2,56],['2013–2017',373,64,6.9,1.6,57],['2018–2021',1012,85,30.0,12.4,64],['2022–2026',1299,55,4.8,1.2,49]])
+def _ydaily(s,days=420):
+    import time
+    now=int(time.time());u=f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(s.replace('.','-'))}?period1={now-days*86400}&period2={now}&interval=1d"
+    for _ in range(3):
+        try:
+            r=json.load(urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'}),timeout=30))['chart']['result'][0];q=r['indicators']['quote'][0]
+            return [(a,o,h,l,c,v or 0) for a,o,h,l,c,v in zip(r['timestamp'],q['open'],q['high'],q['low'],q['close'],q['volume']) if o and h and l and c]
+        except Exception: pass
+    return None
+def insiders():
+    import re
+    sp=_ydaily('SPY',420)
+    if not sp or len(sp)<210: return None
+    sc=[x[4] for x in sp];mkt=round((sc[-1]/(sum(sc[-200:])/200)-1)*100,1);out=dict(mkt=mkt,on=mkt<0,list=[],seen=0)
+    u=f"http://openinsider.com/screener?s=&o=&pl=&ph=&ll=&lh=&fd={INS['days']}&fdr=&td=0&tdr=&fdlyl=&fdlyh=&daysago=&xp=1&vl={INS['minval']}&vh=&ocl=&och=&sic1=-1&sicl=100&sich=9999&grp=0&nfl=&nfh=&nil=&nih=&nol=&noh=&v2l=&v2h=&oc2l=&oc2h=&sortcol=0&cnt=1000&page=1"
+    try: h=urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'}),timeout=90).read().decode('utf8','ignore')
+    except Exception: return None
+    i=h.find('class="tinytable"');j=h.find('</table>',i);G={};num=lambda x:float(re.sub(r'[^0-9.\-]','',x) or 0)
+    for r in re.findall(r'<tr[^>]*>(.*?)</tr>',h[i:j],re.S)[1:]:
+        c=[re.sub('<[^>]+>','',x).replace('&nbsp;',' ').replace('&amp;','&').strip() for x in re.findall(r'<td[^>]*>(.*?)</td>',r,re.S)]
+        if len(c)<13: continue
+        tk=c[3].split('>')[-1].strip()
+        if not tk or not tk.replace('.','').isalnum(): continue
+        g=G.setdefault(tk,dict(name=c[4],ins={},val=0.0,fd=c[1][:10]));g['ins'][c[5]]=c[6];g['val']+=num(c[12]);g['fd']=max(g['fd'],c[1][:10])
+    out['seen']=len(G)
+    if not out['on']: return out
+    with cf.ThreadPoolExecutor(10) as ex: px=dict(zip(G,ex.map(_ydaily,G)))
+    for tk,g in G.items():
+        B=px.get(tk)
+        if not B or len(B)<200: continue
+        k=next((k for k,x in enumerate(B) if ny_date(x[0]).isoformat()>g['fd']),None)   # first session after the filing day
+        n=len(B);cur=B[-1][4];ref=B[k][1] if k is not None else cur;age=(n-1-k) if k is not None else 0
+        if age>INS['fresh']: continue
+        e=k if k is not None else n;hi=max(x[2] for x in B[max(0,e-252):e]);dd=1-B[e-1][4]/hi;adv=sorted(x[4]*x[5] for x in B[e-20:e])[10]
+        if dd<INS['dd'] or ref<INS['px'] or adv<INS['adv']: continue
+        r2=lambda v:round(v,2);tt=sorted(set(g['ins'].values()));lim=r2(ref*1.03)
+        out['list'].append(dict(s=tk,name=g['name'],n=len(g['ins']),titles=', '.join(tt)[:60],val=round(g['val']),date=g['fd'],ref=r2(ref),cur=r2(cur),chg=round((cur/ref-1)*100,1),dd=round(dd*100),hi=r2(hi),
+            adv=round(adv/1e6,1),age=age,left=INS['hold']-age,vl=INS['fresh']-age,lim=lim,missed=cur>lim,stop=r2(cur*(1-INS['loss'])),tgt=r2(hi),geo=dict(bars=[[r2(x[1]),r2(x[2]),r2(x[3]),r2(x[4])] for x in B[-170:]],ent=(k-(n-min(n,170))) if k is not None else None)))
+    out['list'].sort(key=lambda x:(x['missed'],-x['n'],-x['val']))
+    return out
 def _geo(Dd,pat,i0,i,ext):
     # What the page needs to draw a pattern signal on its own timeframe: the bars, the two fitted lines, the six
     # pivots they were fitted to, the bar that closed below the lower line and the bar that closed back inside.
@@ -1020,6 +1068,8 @@ def run_market(mid,base):
     need={x['s'] for x in fake+fake4+gps+dps+scs+ccand+[p for p in pats if p['tf']=='d']}
     charts={x:[[round(b[4],2),round(b[1],2),round(b[2],2),round(b[3],2)] for b in tails[x][-90:]] for x in need if x in tails}
     M=dict(charts=charts,fake=fake,fake4=fake4,gaps=gps,dips=dps,dstats=DIP_STATS[mid],schools=scs,sstats=SCH_STATS[mid],dcmp=DIP_CMP[mid],gstats=GAP_STATS[mid],gcmp=GAP_CMP[mid],audit=AUDIT[mid],tl=tls,tlstats=TL_STATS,pt=ptr,ptstats=PT_STATS,pton=perf['cats'].get('pt',{}).get('on',True),tlon=perf['cats'].get('tl',{}).get('on',True),pb=pbs,pbstats=PB_STATS[mid],pbtf=PB_TF[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
+    M['ins']=insiders() if mid=='us' else None;M['insstats']=INS_STATS
+    print(P+'INSIDERS',json.dumps(M['ins'] and dict(mkt=M['ins']['mkt'],on=M['ins']['on'],seen=M['ins']['seen'],list=[{k:v for k,v in x.items() if k!='geo'} for x in M['ins']['list']]),ensure_ascii=False))
     M['trades']=build_trades(M)
     print(P+'TRADES',json.dumps([{k:v for k,v in t.items() if k not in ('chart','geo')} for t in M['trades'][:12]],ensure_ascii=False))
     return M
@@ -1127,6 +1177,8 @@ def live_prices(M,px):
     upd(M.get('tl',[]),lambda x:x['ref'],lambda x:x['tgt'],lambda x:x['date'],lambda x,cur:cur<=x['stop'])
     upd(M.get('pt',[]),lambda x:x['ref'],lambda x:x['tgt'],lambda x:x['date'],lambda x,cur:cur<=x['stop'])
     for x in M.get('tl',[])+M.get('pt',[]): x['missed']=x['cur']>x['lim']
+    for x in (M.get('ins') or {}).get('list',[]):
+        if x['s'] in px: x['cur']=round(px[x['s']][0],2);x['chg']=round((x['cur']/x['ref']-1)*100,1);x['missed']=x['cur']>x['lim'];x['stop']=round(x['cur']*(1-INS['loss']),2)
     upd(M.get('fake',[]),lambda x:x['close'],lambda x:x['T'][0] if x['side']=='دعم' else None,lambda x:(d.date.fromisoformat(x['wk'])+d.timedelta(days=6)).isoformat())
     upd(M.get('fake4',[]),lambda x:x['close'],lambda x:x['T'][0],lambda x:x['wk'][:10],lambda x,cur:cur<x['ext'])
     for c in (M.get('ct') or {}).get('cand',[]):
