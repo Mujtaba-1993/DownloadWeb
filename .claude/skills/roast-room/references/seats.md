@@ -51,6 +51,7 @@ On-call seats (in `roster.json`, off the default board; the Chair recommends the
 | Thorp | `council-thorp` | Edge and position sizing | Is the edge real and measured, and how much should you bet on it? | `brains/ed-thorp/` |
 | Marks | `council-marks` | Market cycles and risk | Where are we in the cycle, and is the price below what it is worth? | `brains/howard-marks/` |
 | Lynch | `council-lynch` | Stock picking and insider signals | Do you understand the company and its story, and are the insiders buying? | `brains/peter-lynch/` |
+| Taleb | `council-taleb` | Tail risk and ruin | Can this blow you up, and do you survive the worst case? | `brains/nassim-taleb/` |
 
 - Naval (own the equity, tiny teams, self-fund) against Hormozi and Gary V (more volume, more offers, more output that the founder still has to rent their hours to).
 - Codie (buy proven cash flow) against Graham and Naval (build something new people want).
@@ -64,5 +65,7 @@ On-call seats (in `roster.json`, off the default board; the Chair recommends the
 - Thorp's Kelly math fits repeated, measurable bets; on one-shot business calls he gives a ceiling on risk, and the Chair should weigh him less there.
 - Lynch (know the company, check the balance sheet, insiders buying as confirmation) against Marks (read the cycle and the market's temperature) and Thorp (a measured, backtested edge sized by math): Lynch says nobody times the market and a screen is not a story; Marks and Thorp say a story is not a measured edge. Lynch and Buffett agree on balance sheets and patience.
 - Lynch judges single stocks one story at a time; on a market-level filter or a system's overall edge he defers, and the Chair should weigh him on the stock-level evidence.
+- Taleb (find the uncle point, assume the worst case is worse than the data, cap the loss by structure) against Buffett and Lynch (hold good businesses through drawdowns) and against Thorp when a measured edge is sized from historical tails. Taleb and Thorp agree that ruin ends compounding and that Kelly-style sizing beats averages; they split on whether the past tail can be trusted.
+- Taleb's lens is built for ruin; on small, reversible bets he overweights the downside, and the Chair should weigh him most when a loss could force a sale or hit savings the owner needs.
 
 If Round 1 comes back unanimous, the Chair should be suspicious and press the seat whose pillar is most at risk in Round 2.
