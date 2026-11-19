@@ -245,7 +245,7 @@ PCFG={'d':dict(tol=0.025,brk=0.01,F=0.03,wmin=0.02,fresh=6),'h4':dict(tol=0.02,b
 # small intraday falls of 3-8% lose, and only falls of 12%+ (the daily rule again) are positive. On the Saudi
 # market the rule loses with a stop, so nothing is suggested there. Shown in its own tab, not in the trade blotter.
 PB=dict(th=0.08,dep=0.12,cap=0.22,tgt=0.08,stop=0.08,maxd=40,fresh=5)
-PB_STATS={'us':dict(on=True,n=17249,win=58,avg=1.17,pf=1.35,ex=0.95,t=5.4,dd50=-8.4,dd75=-16.2,since=1980,per=[['1980–1999',dict(n=5162,win=58,avg=1.12,pf=1.33,ex=0.94)],['2000–2007',dict(n=3841,win=57,avg=0.96,pf=1.28,ex=0.85)],['2008–2013',dict(n=2394,win=60,avg=1.45,pf=1.45,ex=0.83)],['2014–2019',dict(n=1459,win=61,avg=1.54,pf=1.51,ex=0.48)],['2020–2026',dict(n=4052,win=58,avg=1.16,pf=1.34,ex=1.28)]],sig=[25.4,23.6]),
+PB_STATS={'us':dict(on=True,n=17249,win=58,avg=1.17,pf=1.35,ex=0.33,ex20=0.95,t=5.1,dd50=-8.4,dd75=-16.2,since=1980,per=[['1980–1999',dict(n=5162,win=58,avg=1.12,pf=1.33,ex=0.94)],['2000–2007',dict(n=3841,win=57,avg=0.96,pf=1.28,ex=0.85)],['2008–2013',dict(n=2394,win=60,avg=1.45,pf=1.45,ex=0.83)],['2014–2019',dict(n=1459,win=61,avg=1.54,pf=1.51,ex=0.48)],['2020–2026',dict(n=4052,win=58,avg=1.16,pf=1.34,ex=1.28)]],sig=[25.4,23.6]),
           'sa':dict(on=False,n=3323,win=50,avg=-0.23,pf=0.95,ex=0.52,t=1.6,dd50=-9.6,dd75=-17.2,since=2008,per=[['2008–2013',dict(n=683,win=47,avg=-0.80,pf=0.83,ex=-0.60)],['2014–2019',dict(n=891,win=52,avg=-0.02,pf=1.00,ex=0.74)],['2020–2026',dict(n=1744,win=50,avg=-0.11,pf=0.97,ex=0.85)]],sig=[23.2,22.5])}
 # Per timeframe, stocks above the daily 200-day average: [fall from peak, cases, win % (equal target and stop), excess
 # over the market after costs %, t-stat, first half, second half]. Daily horizon 20 sessions; 4h 20 bars; 1h 35 bars.
@@ -950,12 +950,44 @@ def run_market(mid,base):
     print(P+'CONTRARIAN_CANDIDATES',json.dumps(ccand))
     need={x['s'] for x in fake+fake4+gps+dps+scs+ccand+[p for p in pats if p['tf']=='d']}
     charts={x:[[round(b[4],2),round(b[1],2),round(b[2],2),round(b[3],2)] for b in tails[x][-90:]] for x in need if x in tails}
-    M=dict(charts=charts,fake=fake,fake4=fake4,gaps=gps,dips=dps,dstats=DIP_STATS[mid],schools=scs,sstats=SCH_STATS[mid],dcmp=DIP_CMP[mid],gstats=GAP_STATS[mid],gcmp=GAP_CMP[mid],tl=tls,tlstats=TL_STATS,tlon=perf['cats'].get('tl',{}).get('on',True),pb=pbs,pbstats=PB_STATS[mid],pbtf=PB_TF[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
+    M=dict(charts=charts,fake=fake,fake4=fake4,gaps=gps,dips=dps,dstats=DIP_STATS[mid],schools=scs,sstats=SCH_STATS[mid],dcmp=DIP_CMP[mid],gstats=GAP_STATS[mid],gcmp=GAP_CMP[mid],audit=AUDIT[mid],tl=tls,tlstats=TL_STATS,tlon=perf['cats'].get('tl',{}).get('on',True),pb=pbs,pbstats=PB_STATS[mid],pbtf=PB_TF[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
     M['trades']=build_trades(M)
     print(P+'TRADES',json.dumps([{k:v for k,v in t.items() if k not in ('chart','geo')} for t in M['trades'][:12]],ensure_ascii=False))
     return M
 HIDE=('fake','fake4','pat4','pat1')   # dropped from the blotter by the review panel: break-even after costs or tiny samples. Still tracked in the background.
 FALL=('dip','ct','gap')                # one correlated bet: buying stocks that have just fallen
+# --- Audit of every suggestion type (Nov 2026). Twenty independent re-tests, one per type and market, each rebuilt the
+# rule point-in-time on the full history and traded it as the blotter does (next open, the tool's target and stop,
+# 0.2% cost). A type is kept only if its average net result is positive, it beats the equal-weight market over the
+# same holding window, both halves of history are positive, the month-clustered t is 2 or more and it has 200+
+# trades. Everything else is removed from the blotter and from the hourly signals: "unproven" = positive but not
+# distinguishable from the market or from chance, "drop" = loses or lags the market. Most removed types do make
+# money in absolute terms; what they lack is an edge over simply holding the market.
+# Rows: [name, verdict, trades, win %, average net %, excess over the market %, note].
+AUDIT_OFF={'us':('sch','fake','pat','ct','gap|2-4%'),'sa':('sch','fake','pat','ct','gap|2-4%','gap|7%+')}
+AUDIT={'us':[['الهبوط العميق','keep',5329,83.1,4.31,1.21,'القاعدة بلا وقف؛ أي وقف يضعفها'],
+  ['فجوة هبوط 4% فأكثر','keep',3596,64.3,2.16,0.79,'الأقوى فجوات 7%+ (فرق +1.45%)'],
+  ['الهبوط من القمة','keep',18773,58.8,1.23,0.33,'أفضلية صغيرة وضعفت منذ 2000'],
+  ['فجوة هبوط 2–4%','unproven',5888,68.6,1.15,0.18,'تربح مع السوق فقط'],
+  ['توافق المدارس','unproven',2782,64.1,1.61,0.05,'الربح كله من صعود السوق'],
+  ['نمط هابط · 4 ساعات','unproven',131,50.4,0.50,0.31,'131 صفقة فقط، والوتد يخسر'],
+  ['نمط هابط · يومي','drop',1391,55.7,0.91,-0.09,'لا يتفوّق على السوق'],
+  ['نمط هابط · ساعة','drop',493,42.2,-0.02,0.01,'الأهداف أصغر من التكلفة'],
+  ['كسر كاذب أسبوعي','drop',1170,59.7,0.16,-0.55,'الخسارة المتوسطة أكبر من الربح المتوسط'],
+  ['كسر كاذب · 4 ساعات','drop',122,56.6,-0.53,-0.68,'يخسر بعد التكلفة'],
+  ['عكس المتداولين (ذعر / قاع 52 أسبوعاً)','drop',15004,75.5,1.03,-0.44,'يربح أقل من السوق للمدة نفسها']],
+ 'sa':[['الهبوط العميق','keep',1046,82.6,5.52,2.32,'القاعدة بلا وقف؛ أي وقف يضعفها'],
+  ['فجوة هبوط 4–7%','keep',508,74.0,3.28,1.62,''],
+  ['فجوة هبوط 2–4%','unproven',912,72.8,1.72,0.97,'قوة الدليل تحت 2'],
+  ['فجوة هبوط 7%+','unproven',372,75.8,3.27,1.47,'قوة الدليل 0.5 فقط'],
+  ['اختراق قمة 52 أسبوعاً (مع المتداولين)','unproven',1369,78.0,1.07,0.64,'قوة الدليل 0.5 فقط'],
+  ['نمط هابط · ساعة و4 ساعات','unproven',418,43.3,0.18,0.14,'الوتد يخسر، والقناة 87 صفقة فقط'],
+  ['نمط هابط · يومي','unproven',361,49.3,0.16,0.04,'النصف الثاني يخسر'],
+  ['توافق المدارس','drop',312,55.0,-0.71,0.79,'يخسر'],
+  ['كسر كاذب أسبوعي','drop',202,42.6,-0.63,-0.42,'يخسر في نصفي التاريخ'],
+  ['الهبوط من القمة','drop',3322,49.9,-0.24,0.08,'يخسر مع الوقف']]}
+def audit_off(cat,mid=None):
+    return any(cat==p or (('|' not in p) and cat.startswith(p)) for p in AUDIT_OFF[mid or MK['id']])
 def build_trades(M):
     # One ranked blotter of every buy setup whose conditions are complete.
     # - Setups whose study has NO stop (deep dip, all-schools, gap) are shown as "no stop" and sized from the loss of
@@ -973,6 +1005,7 @@ def build_trades(M):
             if t2<tgt: d=dict(d,tgt0=round(tgt,2));tgt=t2
         if loss: stop=entry*(1-loss/100)
         if not(entry and stop and tgt) or not(stop<entry<tgt): return
+        if audit_off(x.get('cat') or kind): return
         rew=(tgt/entry-1)*100;risk=(1-stop/entry)*100;p=(conf or 50)/100;ev=p*rew-(1-p)*(al or risk)
         lim=round(min(ref*1.02,tgt*0.995),2) if ref else None
         T.append(dict(kind=kind,fam=fam or ('fall' if kind in FALL else kind),s=x['s'],entry=round(entry,2),stop=round(stop,2),tgt=round(tgt,2),rew=round(rew,1),risk=round(risk,1),rr=round(rew/risk,2),conf=conf,ev=round(ev,2),er=round(ev/risk,2),
@@ -1050,18 +1083,18 @@ def intraday(out,mid):
     for p in pats:
         kd={'h4':'pat4','h1':'pat1'}[p['tf']];p['cat']=kd+'|'+p['typ'];p['lid']=f"{kd}|{p['s']}|{p['date'][:10]}|{p['typ']}|{p['date'][10:]}"
         v=PAT_STATS[mid].get(p['tf'],{}).get(p['typ']);p['adj']=(cats.get(p['cat']) or {}).get('adj') or (round(100*v['far']/max(1,v['far']+v['stopd'])) if v else 50)
-        if (cats.get(p['cat']) or {}).get('on') is False: continue
+        if (cats.get(p['cat']) or {}).get('on') is False or audit_off(p['cat']): continue
         if p['lid'] not in have:
             have.add(p['lid']);new.append(p)
             log.append(dict(id=p['lid'],mk=mid,kind=kd,s=p['s'],d=p['date'][:10],entry=p['close'],tgt=p['tgt'],stop=p['stop'],cat=p['cat'],pr=None,first=today,status='open',res=None,grade=None))
     json.dump(log,open(LOGF,'w',encoding='utf8'),ensure_ascii=False)
-    pats=[p for p in pats if (cats.get(p['cat']) or {}).get('on') is not False]
+    pats=[p for p in pats if (cats.get(p['cat']) or {}).get('on') is not False and not audit_off(p['cat'])]
     pats.sort(key=lambda p:({'h4':1,'h1':2}[p['tf']],p['age'],-p['rew']/max(p['risk'],0.1)))
     validity([],[],[],pats,[],[],[])
     D[mid]['pats']=[p for p in D[mid].get('pats',[]) if p['tf']=='d']+pats;D['built']=d.datetime.now(d.timezone.utc).isoformat(timespec='seconds');D[mid]['intraday_at']=ny_now().strftime('%Y-%m-%d %H:%M')
     D[mid]['trades']=build_trades(D[mid])
     for m in MARKETS:   # study tables of the pullback tab, also for data saved before that tab existed
-        if D.get(m): D[m]['pbstats']=PB_STATS[m];D[m]['pbtf']=PB_TF[m];D[m].setdefault('pb',[])
+        if D.get(m): D[m]['pbstats']=PB_STATS[m];D[m]['pbtf']=PB_TF[m];D[m].setdefault('pb',[]);D[m]['audit']=AUDIT[m]
     render(D,out)
     print('INTRADAY',mid,okn,'stocks',len(pats),'live signals',json.dumps({k:len(D[mid].get(k,[])) for k in ('dips','schools','gaps','fake','fake4')}))
     print('NEW',json.dumps([{k:v for k,v in x.items() if k not in ('chart','geo')} for x in new]))
