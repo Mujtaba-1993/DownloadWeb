@@ -410,6 +410,10 @@ def ptraps(s,Dd):
 # no stop in the study. Source: openinsider.com (built on SEC Form 4). 43% of historical cases have no price data today
 # (delisted), which flatters the numbers.
 INS=dict(days=14,minval=50,dd=0.30,px=5.0,adv=5e6,fresh=5,hold=60,loss=0.38)
+INS_GRADE=dict(A=dict(n=1255,ex=9.6,beat=61,win=69,avg=16.2,q05=-34.4,old=[548,9.2,62],new=[707,10.0,60],tg=[[5,93,2.8,12],[8,87,4.3,18],[10,83,5.3,22],[15,74,7.7,30],[20,63,8.9,37],[30,44,11.3,46]]),
+    B=dict(n=2825,ex=4.0,beat=54,win=62,avg=9.7,q05=-39.6,tg=[[5,89,2.1,15],[8,82,3.1,21],[10,78,3.9,25],[15,67,5.4,33],[20,56,6.5,39],[30,38,8.0,48]]),
+    pts=[['مديران أو أكثر اشتروا في نفس اليوم',2,584,12.6,63],['رفعوا حصتهم 20% أو أكثر',1,1602,7.3,58],['دفعوا أعلى من إغلاق اليوم السابق',1,2115,6.7,57],['المشتري مالك كبير فقط (ليس مديراً)',-1,750,5.2,51]],
+    out=dict(n=3445,ex=0.0,beat=48),noise=[['مشترٍ روتيني (نفس الشهر كل سنة)',538,0.1,45],['أول شراء منذ سنتين',1894,5.0,57],['سجل المدير السابق رابح',949,6.4,56],['المدير التنفيذي',1085,4.7,54]])
 INS_STATS=dict(tg=[[5,90,2.3,14],[8,84,3.5,20],[10,80,4.3,24],[15,70,6.1,32],[20,58,7.2,39],[30,40,9.0,47]],n=4080,win=64,avg=11.7,med=9.1,ex=5.7,beat=56,q05=-37.8,al=-19.7,aw=28.9,since=2008,allex=0.6,alln=22550,above=dict(ex=-0.9,beat=45),
     per=[['2008–2012',1396,59,6.1,6.2,56],['2013–2017',373,64,6.9,1.6,57],['2018–2021',1012,85,30.0,12.4,64],['2022–2026',1299,55,4.8,1.2,49]])
 def _ydaily(s,days=420):
@@ -446,7 +450,8 @@ def insiders():
         if len(c)<13: continue
         tk=c[3].split('>')[-1].strip()
         if not tk or not tk.replace('.','').isalnum(): continue
-        g=G.setdefault(tk,dict(name=c[4],ins={},val=0.0,fd=c[1][:10]));g['ins'][c[5]]=c[6];g['val']+=num(c[12]);g['fd']=max(g['fd'],c[1][:10])
+        g=G.setdefault(tk,dict(name=c[4],ins={},val=0.0,fd=c[1][:10],days={},own=0.0,buys=[]));g['ins'][c[5]]=c[6];g['val']+=num(c[12]);g['fd']=max(g['fd'],c[1][:10])
+        g['days'].setdefault(c[1][:10],set()).add(c[5]);g['own']=max(g['own'],100.0 if c[11].strip()=='New' else num(c[11]));g['buys'].append((c[2][:10],num(c[8])))
     out['seen']=len(G)
     if not out['on']: return out
     with cf.ThreadPoolExecutor(10) as ex: px=dict(zip(G,ex.map(_ydaily,G)))
@@ -459,9 +464,20 @@ def insiders():
         e=k if k is not None else n;hi=max(x[2] for x in B[max(0,e-252):e]);dd=1-B[e-1][4]/hi;adv=sorted(x[4]*x[5] for x in B[e-20:e])[10]
         if dd<INS['dd'] or ref<INS['px'] or adv<INS['adv']: continue
         r2=lambda v:round(v,2);tt=sorted(set(g['ins'].values()));lim=r2(ref*1.03)
+        same=max(len(v) for v in g['days'].values());prem=[]
+        for td,pp in g['buys']:
+            kk=next((q for q,x in enumerate(B) if ny_date(x[0]).isoformat()>=td),None)
+            if kk and pp>0: prem.append(pp/B[kk-1][4]-1)
+        prem=sum(prem)/len(prem) if prem else 0.0;tl=' '.join(tt).lower();ten=('10%' in tl) and not any(w in tl for w in ('ceo','cfo','dir','pres','coo','chief','officer','vp','vice'))
+        why=[];pts=0
+        if same>=2: pts+=2;why.append(f'{same} اشتروا في نفس اليوم')
+        if g['own']>=20: pts+=1;why.append(f"رفعوا حصتهم {round(g['own'])}%")
+        if prem>0: pts+=1;why.append(f'دفعوا أعلى من الإغلاق بـ {round(prem*100,1)}%')
+        if ten: pts-=1;why.append('المشتري مالك كبير فقط')
+        grade='A' if pts>=2 else 'B' if pts==1 else 'C'
         out['list'].append(dict(s=tk,name=g['name'],n=len(g['ins']),titles=', '.join(tt)[:60],val=round(g['val']),date=g['fd'],ref=r2(ref),cur=r2(cur),chg=round((cur/ref-1)*100,1),dd=round(dd*100),hi=r2(hi),
-            adv=round(adv/1e6,1),age=age,left=INS['hold']-age,vl=INS['fresh']-age,lim=lim,missed=cur>lim,stop=r2(cur*(1-INS['loss'])),tgt=r2(hi),geo=dict(bars=[[r2(x[1]),r2(x[2]),r2(x[3]),r2(x[4])] for x in B[-170:]],ent=(k-(n-min(n,170))) if k is not None else None)))
-    out['list'].sort(key=lambda x:(x['missed'],-x['n'],-x['val']))
+            adv=round(adv/1e6,1),same=same,own=round(g['own']),prem=round(prem*100,1),pts=pts,grade=grade,why=why,age=age,left=INS['hold']-age,vl=INS['fresh']-age,lim=lim,missed=cur>lim,stop=r2(cur*(1-INS['loss'])),tgt=r2(hi),geo=dict(bars=[[r2(x[1]),r2(x[2]),r2(x[3]),r2(x[4])] for x in B[-170:]],ent=(k-(n-min(n,170))) if k is not None else None)))
+    out['list'].sort(key=lambda x:(x['missed'],-x['pts'],-x['n'],-x['val']))
     return out
 def _geo(Dd,pat,i0,i,ext):
     # What the page needs to draw a pattern signal on its own timeframe: the bars, the two fitted lines, the six
@@ -730,7 +746,7 @@ def fakeouts(s,lv,B):
 # background and is switched back on if its record recovers.
 LOGF=os.path.join(H,'log.txt')
 PRIOR={'fake|A':(68,20),'fake|B':(66,20),'fake|C':(57,20),'fake4':(60,20),'ct|panic':(71,20),'ct|lo52':(78,20)}  # (expected win %, weight)
-HORIZON={'sch':60,'dip':88,'gap':30,'fake':91,'fake4':45,'ct':88,'pat':60,'pat4':30,'pat1':14,'tl':60,'pt':60}  # calendar days before an unresolved suggestion counts as a miss
+HORIZON={'sch':60,'dip':88,'gap':30,'fake':91,'fake4':45,'ct':88,'pat':60,'pat4':30,'pat1':14,'tl':60,'pt':60,'ins':90}  # calendar days before an unresolved suggestion counts as a miss
 def resolve(e,tl,now):
     # returns ('win'|'loss', date) or None while still open
     d0=d.date.fromisoformat(e['d'])
@@ -748,7 +764,7 @@ def resolve(e,tl,now):
     if loss: return 'loss',loss
     if (now.date()-d0).days>HORIZON[e['kind']]: return 'loss',now.date().isoformat()
     return None
-def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=(),ptr=()):
+def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=(),ptr=(),ins=()):
     now=ny_now();today=now.date().isoformat()
     try: log=json.load(open(LOGF,encoding='utf8'))
     except Exception: log=[]
@@ -767,6 +783,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=(),pt
     for x in dps: x['cat']='dip';x['lid']=add('dip',x['s'],x['date'],'deep',x['ref'],x['tgt'],None,'dip',None)
     for p in pats:
         kd={'d':'pat','h4':'pat4','h1':'pat1'}[p['tf']];p['cat']=kd+'|'+p['typ'];p['lid']=add(kd,p['s'],p['date'][:10],p['typ']+'|'+p['date'][10:],p['close'],p['tgt'],p['stop'],p['cat'],None)
+    for x in ins: x['cat']='ins|'+x['grade'];x['lid']=add('ins',x['s'],x['date'],'buy',x['ref'],round(x['ref']*1.15,2),None,x['cat'],None,x['grade'])
     for x in ptr: x['cat']='pt';x['lid']=add('pt',x['s'],x['date'],x['typ'],x['ref'],x['tgt'],x['stop'],'pt',None)
     for x in tls: x['cat']='tl';x['lid']=add('tl',x['s'],x['date'],'up',x['ref'],x['tgt'],x['stop'],'tl',None)
     for f in fake4: f['cat']='fake4';f['lid']=add('fake4',f['s'],f['wk'][:10],f['level'],f['close'],f['T'][0],f['ext'],'fake4',None)
@@ -790,7 +807,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=(),pt
             r=resolve(e,tails[e['s']],now)
             if r: e['status'],e['res']=r;done.append(e)
     cats={}
-    pri=dict(PRIOR);pri['tl']=(TL_STATS['win'],20);pri['pt']=(PT_STATS['win'],20);pri['dip']=(DIP_STATS[MK['id']]['win'],20)
+    pri=dict(PRIOR);pri['tl']=(TL_STATS['win'],20);pri['pt']=(PT_STATS['win'],20);pri['ins|A']=(74,20);pri['ins|B']=(67,20);pri['ins|C']=(67,20);pri['dip']=(DIP_STATS[MK['id']]['win'],20)
     if SCH_STATS[MK['id']]['on']: pri['sch']=(SCH_STATS[MK['id']]['win'],20)
     for b,v in GAP_STATS[MK['id']].items(): pri['gap|'+b]=(v['fill'],20)   # expected: the gap closes within 20 sessions
     for tf,kd in (('d','pat'),('h4','pat4'),('h1','pat1')):  # expected hit rate of each pattern on this market and timeframe
@@ -811,6 +828,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=(),pt
     for g in gps: g['adj']=cats[g['cat']]['adj']
     for x in tls: x['adj']=cats['tl']['adj']
     for x in ptr: x['adj']=cats['pt']['adj']
+    for x in ins: x['adj']=cats[x['cat']]['adj']
     for x in dps: x['adj']=cats['dip']['adj']
     for x in scs: x['adj']=cats['sch']['adj']
     for c in ccand:
@@ -895,7 +913,7 @@ def relearn(data,old,years,pos_idx=None):
 # forward with the champion rule (virtual money only: nothing is ever sent to a broker).
 COST=0.002  # round-trip cost assumed per simulated trade
 GRID={'ct':([0.04,0.06,0.08,0.10,0.15,None],[0.05,0.08,0.12,0.20,None],(0.06,None)),'fake':([0.03,0.05,0.08,0.12,None],['wick',0.05,0.08,0.12,None],(0.05,'wick'))}
-MAXD={'tl':40,'pt':40,'sch':40,'dip':60,'gap':20,'ct':60,'fake':65,'fake4':30,'pat':40,'pat4':20,'pat1':7};DEFAULT_PT={'tl':dict(T=None,S='wick',f='all'),'pt':dict(T=None,S='wick',f='all'),'sch':dict(T=SCH['tgt'],S=None,f='all'),'dip':dict(T=DIP['tgt'],S=None,f='all'),'gap':dict(T=None,S=None,f='all'),'pat':dict(T=None,S='wick',f='all'),'pat4':dict(T=None,S='wick',f='all'),'pat1':dict(T=None,S='wick',f='all'),'ct':dict(T=0.06,S=None,f='all'),'fake':dict(T=0.05,S='wick',f='all'),'fake4':dict(T=0.03,S='wick',f='all')}
+MAXD={'ins':60,'tl':40,'pt':40,'sch':40,'dip':60,'gap':20,'ct':60,'fake':65,'fake4':30,'pat':40,'pat4':20,'pat1':7};DEFAULT_PT={'ins':dict(T=0.15,S=None,f='all'),'tl':dict(T=None,S='wick',f='all'),'pt':dict(T=None,S='wick',f='all'),'sch':dict(T=SCH['tgt'],S=None,f='all'),'dip':dict(T=DIP['tgt'],S=None,f='all'),'gap':dict(T=None,S=None,f='all'),'pat':dict(T=None,S='wick',f='all'),'pat4':dict(T=None,S='wick',f='all'),'pat1':dict(T=None,S='wick',f='all'),'ct':dict(T=0.06,S=None,f='all'),'fake':dict(T=0.05,S='wick',f='all'),'fake4':dict(T=0.03,S='wick',f='all')}
 def lab(kind,data,model,years,pos_idx=None):
     try: import numpy as np
     except Exception: return None
@@ -1057,7 +1075,8 @@ def run_market(mid,base):
     dps.sort(key=lambda x:(x['age'],-x['depth']))
     scs.sort(key=lambda x:(x['age'],-x['cnt']))
     pbs.sort(key=lambda x:(x['age'],-x['depth']))
-    fake,fake4,ccand,pats,gps,perf,dps,scs=selflearn(fake,fake4,ccand,tails,labs,pats,gps,dps,scs,tls,ptr)
+    INSD=insiders() if mid=='us' else None
+    fake,fake4,ccand,pats,gps,perf,dps,scs=selflearn(fake,fake4,ccand,tails,labs,pats,gps,dps,scs,tls,ptr,(INSD or {}).get('list') or [])
     validity(fake,fake4,ccand,pats,gps,dps,scs)
     tls=[x for x in tls if perf['cats'].get('tl',{}).get('on',True)];tls.sort(key=lambda x:(x['age'],-x['touches']))
     ptr=[x for x in ptr if perf['cats'].get('pt',{}).get('on',True)];ptr.sort(key=lambda x:(x['age'],-x['rew']))
@@ -1081,7 +1100,7 @@ def run_market(mid,base):
     need={x['s'] for x in fake+fake4+gps+dps+scs+ccand+[p for p in pats if p['tf']=='d']}
     charts={x:[[round(b[4],2),round(b[1],2),round(b[2],2),round(b[3],2)] for b in tails[x][-90:]] for x in need if x in tails}
     M=dict(charts=charts,fake=fake,fake4=fake4,gaps=gps,dips=dps,dstats=DIP_STATS[mid],schools=scs,sstats=SCH_STATS[mid],dcmp=DIP_CMP[mid],gstats=GAP_STATS[mid],gcmp=GAP_CMP[mid],audit=AUDIT[mid],tl=tls,tlstats=TL_STATS,pt=ptr,ptstats=PT_STATS,pton=perf['cats'].get('pt',{}).get('on',True),tlon=perf['cats'].get('tl',{}).get('on',True),pb=pbs,pbstats=PB_STATS[mid],pbtf=PB_TF[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
-    M['ins']=insiders() if mid=='us' else None;M['insstats']=INS_STATS
+    M['ins']=INSD;M['insstats']=INS_STATS;M['insgrade']=INS_GRADE
     print(P+'INSIDERS',json.dumps(M['ins'] and dict(mkt=M['ins']['mkt'],on=M['ins']['on'],seen=M['ins']['seen'],list=[{k:v for k,v in x.items() if k!='geo'} for x in M['ins']['list']]),ensure_ascii=False))
     M['trades']=build_trades(M)
     ER=earnings_soon() if mid=='us' else {};M['earn_ok']=bool(ER)
