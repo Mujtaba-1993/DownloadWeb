@@ -18,7 +18,7 @@ def get(s):
             ct=contrarian(s,Dd)  # computed here so the daily rows can be dropped
             if FCOLLECT is not None: fake_hist(list(W.values()))
             I=get4h(s)
-            return list(W.values()),ct,(I[0] if I and MK['h4'] else None),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Dd[-150:]],patterns(s,Dd)+(I[1] if I else []),gaps(s,Dd),dips(s,Dd),schools(s,Dd),pullbacks(s,Dd),tlines(s,Dd)
+            return list(W.values()),ct,(I[0] if I and MK['h4'] else None),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Dd[-150:]],patterns(s,Dd)+(I[1] if I else []),gaps(s,Dd),dips(s,Dd),schools(s,Dd),pullbacks(s,Dd),tlines(s,Dd),ptraps(s,Dd)
         except Exception: pass
 def get4h(s):
     # One hourly download (about 250 days). Returns (4-hour bars for the weekly-level false breakouts, intraday pattern signals).
@@ -337,6 +337,69 @@ def tlines(s,Dd):
     return [dict(s=s,date=ny_date(Dd[i][0]).isoformat(),bdate=ny_date(Dd[i0][0]).isoformat(),ref=r(ref),cur=r(cur),chg=round((cur/ref-1)*100,1),stop=r(stop),tgt=r(tgt),rew=round(TL['rr']*risk*100,1),risk=round(risk*100,1),
         touches=len(L['T']),span=i-L['xa'],below=i-i0,depth=round((1-ext/ln(i0))*100,1),age=n-1-i,left=TL['maxd']-(n-1-i),vl=TL['fresh']-(n-1-i),vu='s',
         geo=dict(bars=[[r(o[k]),r(h[k]),r(l[k]),r(c[k])] for k in range(a0,n)],line=[[xs-a0,r(ln(xs))],[n-1-a0,r(ln(n-1))]],T=[[x-a0,r(p)] for x,p in L['T'] if x>=a0],brk=[i0-a0,r(ext)],ret=i-a0))]
+# --- Pattern trap: a narrowing pattern (falling wedge or a triangle) closes below its lower line and within 5 sessions
+# closes back inside. On US stocks since 1980 the next break was upward 63% of the time (see PT_STATS). The other
+# shapes (channels, rectangles, rising wedge, broadening) do not show this and are not listed.
+PT=dict(K=5,tol=0.025,brk=0.01,F=0.03,R=5,fresh=3,rr=2.0,maxd=40,buf=0.002)
+PT_TYPES=('falling_wedge','sym_triangle','desc_triangle','asc_triangle')
+PT_STATS=dict(n=2407,opp=63,win=46,avg=1.17,pf=1.45,since=1980,back=35,exall=0.96,exrecent=0.05,
+    typ=[['falling_wedge',499,74,47,1.67,1.59],['sym_triangle',382,66,43,0.71,1.23],['desc_triangle',757,64,45,1.00,1.39],['asc_triangle',874,56,47,1.26,1.53]],
+    other=[['قناة هابطة',525,54],['مستطيل',1080,40],['وتد صاعد',1292,37],['قناة صاعدة',1624,20],['نمط متّسع',3876,13]],
+    per=[['1980–1999',748,69,48,1.45,1.24],['2000–2013',813,59,45,1.05,1.64],['2014–2026',846,62,44,1.03,0.05]])
+def ptraps(s,Dd):
+    now=ny_now()
+    if Dd and ny_date(Dd[-1][0])==now.date() and (now.hour,now.minute)<MK['close']: Dd=Dd[-461:-1]
+    else: Dd=Dd[-460:]
+    n=len(Dd)
+    if n<300: return []
+    K=PT['K'];F=PT['F'];o=[x[1] for x in Dd];h=[x[2] for x in Dd];l=[x[3] for x in Dd];c=[x[4] for x in Dd];PH=[];PL=[];pat=None;st=None;sig=None
+    def fit(P):
+        k=len(P);mx=sum(p[0] for p in P)/k;my=sum(p[1] for p in P)/k;sxx=sum((p[0]-mx)**2 for p in P)
+        m=sum((p[0]-mx)*(p[1]-my) for p in P)/sxx;b=my-m*mx
+        return m,b,max(abs(p[1]-(m*p[0]+b))/p[1] for p in P)
+    def typ(cu,cl,w0,w1):
+        fu=abs(cu)<F;fl=abs(cl)<F
+        if fu and fl: return 'rect'
+        if cu<=-F and cl>=F: return 'sym_triangle'
+        if fu and cl>=F: return 'asc_triangle'
+        if cu<=-F and fl: return 'desc_triangle'
+        if cu<=-F and cl<=-F and w1<0.7*w0: return 'falling_wedge'
+        return 'other'
+    for i in range(K*2,n):
+        j=i-K;newp=False
+        if h[j]==max(h[j-K:j+K+1]): PH.append((j,h[j]));newp=True
+        if l[j]==min(l[j-K:j+K+1]): PL.append((j,l[j]));newp=True
+        if st is None and newp and len(PH)>=3 and len(PL)>=3:
+            A=PH[-3:];B=PL[-3:];x0=min(A[0][0],B[0][0]);pat=None
+            if 25<=i-x0<=150:
+                mu,bu,du=fit(A);ml,bl,dl=fit(B)
+                if du<=PT['tol'] and dl<=PT['tol']:
+                    u0,u1,l0,l1=mu*x0+bu,mu*i+bu,ml*x0+bl,ml*i+bl
+                    if min(u0,u1,l0,l1)>0 and u1>l1 and u0>l0:
+                        mid=(u0+l0)/2;w0=(u0-l0)/mid;w1=(u1-l1)/mid
+                        if w1>=0.02 and w0<=0.6 and l1<c[i]<u1: pat=dict(typ=typ((u1-u0)/mid,(l1-l0)/mid,w0,w1),mu=mu,bu=bu,ml=ml,bl=bl,born=i,x0=x0,A=A,B=B)
+        if pat is None: continue
+        u=pat['bu']+pat['mu']*i;lo=pat['bl']+pat['ml']*i
+        if st is None:
+            if i-pat['born']>40 or u<=lo: pat=None
+            elif i>pat['born'] and c[i]<lo*(1-PT['brk']): st=(-1,i,l[i])
+            elif i>pat['born'] and c[i]>u*(1+PT['brk']): st=(1,i,h[i])
+        else:
+            sd,i0,ext=st;ext=min(ext,l[i]) if sd<0 else max(ext,h[i]);st=(sd,i0,ext)
+            if (sd<0 and c[i]>lo) or (sd>0 and c[i]<u):
+                if sd<0 and pat['typ'] in PT_TYPES: sig=(i,i0,ext,pat)
+                pat=None;st=None
+            elif i-i0>=PT['R']: pat=None;st=None
+    if sig is None or n-1-sig[0]>PT['fresh']: return []
+    i,i0,ext,P=sig;ref=o[i+1] if i+1<n else c[i];risk=1-ext/ref+PT['buf']
+    if not 0.003<risk<=0.2: return []
+    stop=ref*(1-risk);tgt=ref*(1+PT['rr']*risk);cur=c[-1]
+    if i+1<n and (max(h[i+1:])>=tgt or min(l[i+1:])<=stop): return []
+    U=lambda x:P['bu']+P['mu']*x;Lo=lambda x:P['bl']+P['ml']*x;a0=max(0,P['x0']-6,n-170);r=lambda v:round(v,2);xs=max(P['x0'],a0)
+    return [dict(s=s,typ=P['typ'],date=ny_date(Dd[i][0]).isoformat(),bdate=ny_date(Dd[i0][0]).isoformat(),ref=r(ref),cur=r(cur),chg=round((cur/ref-1)*100,1),stop=r(stop),tgt=r(tgt),rew=round(PT['rr']*risk*100,1),risk=round(risk*100,1),
+        span=i-P['x0'],below=i-i0,depth=round((1-ext/Lo(i0))*100,1),upper=r(U(n-1)),age=n-1-i,left=PT['maxd']-(n-1-i),vl=PT['fresh']-(n-1-i),vu='s',
+        geo=dict(bars=[[r(o[k]),r(h[k]),r(l[k]),r(c[k])] for k in range(a0,n)],up=[[xs-a0,r(U(xs))],[n-1-a0,r(U(n-1))]],lo=[[xs-a0,r(Lo(xs))],[n-1-a0,r(Lo(n-1))]],
+            ph=[[x-a0,r(p)] for x,p in P['A'] if x>=a0],pl=[[x-a0,r(p)] for x,p in P['B'] if x>=a0],brk=[i0-a0,r(ext)],ret=i-a0))]
 def _geo(Dd,pat,i0,i,ext):
     # What the page needs to draw a pattern signal on its own timeframe: the bars, the two fitted lines, the six
     # pivots they were fitted to, the bar that closed below the lower line and the bar that closed back inside.
@@ -604,7 +667,7 @@ def fakeouts(s,lv,B):
 # background and is switched back on if its record recovers.
 LOGF=os.path.join(H,'log.txt')
 PRIOR={'fake|A':(68,20),'fake|B':(66,20),'fake|C':(57,20),'fake4':(60,20),'ct|panic':(71,20),'ct|lo52':(78,20)}  # (expected win %, weight)
-HORIZON={'sch':60,'dip':88,'gap':30,'fake':91,'fake4':45,'ct':88,'pat':60,'pat4':30,'pat1':14,'tl':60}  # calendar days before an unresolved suggestion counts as a miss
+HORIZON={'sch':60,'dip':88,'gap':30,'fake':91,'fake4':45,'ct':88,'pat':60,'pat4':30,'pat1':14,'tl':60,'pt':60}  # calendar days before an unresolved suggestion counts as a miss
 def resolve(e,tl,now):
     # returns ('win'|'loss', date) or None while still open
     d0=d.date.fromisoformat(e['d'])
@@ -622,7 +685,7 @@ def resolve(e,tl,now):
     if loss: return 'loss',loss
     if (now.date()-d0).days>HORIZON[e['kind']]: return 'loss',now.date().isoformat()
     return None
-def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=()):
+def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=(),ptr=()):
     now=ny_now();today=now.date().isoformat()
     try: log=json.load(open(LOGF,encoding='utf8'))
     except Exception: log=[]
@@ -641,6 +704,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=()):
     for x in dps: x['cat']='dip';x['lid']=add('dip',x['s'],x['date'],'deep',x['ref'],x['tgt'],None,'dip',None)
     for p in pats:
         kd={'d':'pat','h4':'pat4','h1':'pat1'}[p['tf']];p['cat']=kd+'|'+p['typ'];p['lid']=add(kd,p['s'],p['date'][:10],p['typ']+'|'+p['date'][10:],p['close'],p['tgt'],p['stop'],p['cat'],None)
+    for x in ptr: x['cat']='pt';x['lid']=add('pt',x['s'],x['date'],x['typ'],x['ref'],x['tgt'],x['stop'],'pt',None)
     for x in tls: x['cat']='tl';x['lid']=add('tl',x['s'],x['date'],'up',x['ref'],x['tgt'],x['stop'],'tl',None)
     for f in fake4: f['cat']='fake4';f['lid']=add('fake4',f['s'],f['wk'][:10],f['level'],f['close'],f['T'][0],f['ext'],'fake4',None)
     for c in ccand:
@@ -649,7 +713,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=()):
     for e in mine:
         if 'pt' not in e or e['pt']['status']=='pending':  # the exit rule is frozen once the paper trade is actually entered
             lb=labs.get(e['kind']) or {};ch=lb['champ'] if lb.get('valid_ok') else DEFAULT_PT[e['kind']];g=e.get('grade')
-            if e['kind'].startswith('pat') or e['kind']=='tl': ch=dict(ch,T=round(e['tgt']/e['entry']-1,4))  # target = the pattern's upper line
+            if e['kind'].startswith('pat') or e['kind'] in ('tl','pt'): ch=dict(ch,T=round(e['tgt']/e['entry']-1,4))  # target = the pattern's upper line
             e['pt']=dict(T=ch['T'],S=ch['S'],maxd=MAXD[e['kind']],ok=ch['f']=='all' or (g in ('A','B') if ch['f']=='AB' else g=='A'),status='pending')
         if e['pt']['status']!='closed' and e['s'] in tails: paper(e,tails[e['s']])
     def pstat(E):
@@ -663,7 +727,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=()):
             r=resolve(e,tails[e['s']],now)
             if r: e['status'],e['res']=r;done.append(e)
     cats={}
-    pri=dict(PRIOR);pri['tl']=(TL_STATS['win'],20);pri['dip']=(DIP_STATS[MK['id']]['win'],20)
+    pri=dict(PRIOR);pri['tl']=(TL_STATS['win'],20);pri['pt']=(PT_STATS['win'],20);pri['dip']=(DIP_STATS[MK['id']]['win'],20)
     if SCH_STATS[MK['id']]['on']: pri['sch']=(SCH_STATS[MK['id']]['win'],20)
     for b,v in GAP_STATS[MK['id']].items(): pri['gap|'+b]=(v['fill'],20)   # expected: the gap closes within 20 sessions
     for tf,kd in (('d','pat'),('h4','pat4'),('h1','pat1')):  # expected hit rate of each pattern on this market and timeframe
@@ -674,7 +738,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=()):
     for c in list(pri)+sorted({e['cat'] for e in mine}-set(pri)):
         pr,k=pri.get(c,(50,10))
         E=[e for e in mine if e['cat']==c];w=sum(e['status']=='win' for e in E);l=sum(e['status']=='loss' for e in E);n=w+l
-        post=(pr*k+100*w)/(k+n);on=not(n>=15 and 100*w/n<(34 if c=='tl' else 45))   # the trend trap aims at twice its risk: it breaks even near 34%
+        post=(pr*k+100*w)/(k+n);on=not(n>=15 and 100*w/n<(34 if c in ('tl','pt') else 45))   # the trend trap aims at twice its risk: it breaks even near 34%
         cats[c]=dict(n=len(E),open=len(E)-n,w=w,l=l,rate=round(100*w/n) if n else None,prior=pr,adj=round(post),on=on)
     json.dump(log,open(LOGF,'w',encoding='utf8'),ensure_ascii=False)
     for f in fake:
@@ -683,6 +747,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=()):
     for p in pats: p['adj']=cats[p['cat']]['adj']
     for g in gps: g['adj']=cats[g['cat']]['adj']
     for x in tls: x['adj']=cats['tl']['adj']
+    for x in ptr: x['adj']=cats['pt']['adj']
     for x in dps: x['adj']=cats['dip']['adj']
     for x in scs: x['adj']=cats['sch']['adj']
     for c in ccand:
@@ -767,7 +832,7 @@ def relearn(data,old,years,pos_idx=None):
 # forward with the champion rule (virtual money only: nothing is ever sent to a broker).
 COST=0.002  # round-trip cost assumed per simulated trade
 GRID={'ct':([0.04,0.06,0.08,0.10,0.15,None],[0.05,0.08,0.12,0.20,None],(0.06,None)),'fake':([0.03,0.05,0.08,0.12,None],['wick',0.05,0.08,0.12,None],(0.05,'wick'))}
-MAXD={'tl':40,'sch':40,'dip':60,'gap':20,'ct':60,'fake':65,'fake4':30,'pat':40,'pat4':20,'pat1':7};DEFAULT_PT={'tl':dict(T=None,S='wick',f='all'),'sch':dict(T=SCH['tgt'],S=None,f='all'),'dip':dict(T=DIP['tgt'],S=None,f='all'),'gap':dict(T=None,S=None,f='all'),'pat':dict(T=None,S='wick',f='all'),'pat4':dict(T=None,S='wick',f='all'),'pat1':dict(T=None,S='wick',f='all'),'ct':dict(T=0.06,S=None,f='all'),'fake':dict(T=0.05,S='wick',f='all'),'fake4':dict(T=0.03,S='wick',f='all')}
+MAXD={'tl':40,'pt':40,'sch':40,'dip':60,'gap':20,'ct':60,'fake':65,'fake4':30,'pat':40,'pat4':20,'pat1':7};DEFAULT_PT={'tl':dict(T=None,S='wick',f='all'),'pt':dict(T=None,S='wick',f='all'),'sch':dict(T=SCH['tgt'],S=None,f='all'),'dip':dict(T=DIP['tgt'],S=None,f='all'),'gap':dict(T=None,S=None,f='all'),'pat':dict(T=None,S='wick',f='all'),'pat4':dict(T=None,S='wick',f='all'),'pat1':dict(T=None,S='wick',f='all'),'ct':dict(T=0.06,S=None,f='all'),'fake':dict(T=0.05,S='wick',f='all'),'fake4':dict(T=0.03,S='wick',f='all')}
 def lab(kind,data,model,years,pos_idx=None):
     try: import numpy as np
     except Exception: return None
@@ -893,10 +958,10 @@ def run_market(mid,base):
         print(P+'ERROR',f'only {okn} of {len(S)} stocks downloaded (index data: {bool(SPY)})');return None
     MODEL=relearn(FCOLLECT,MODEL,5,FEATS.index('pos'));CMODEL=relearn(COLLECT,CMODEL,3)
     labs={'fake':lab('fake',FCOLLECT,MODEL,5,FEATS.index('pos')),'ct':plab(COLLECT,CMODEL,[x[0] for x in data if x])}
-    fake=[];fake4=[];tails={};pats=[];gps=[];dps=[];scs=[];pbs=[];tls=[]
+    fake=[];fake4=[];tails={};pats=[];gps=[];dps=[];scs=[];pbs=[];tls=[];ptr=[]
     for s,X in zip(S,data):
         if not X or len(X[0])<260: continue
-        B,ct,X4,tl,pts,gp,dp,sc_,pb_,tl_=X;tails[s]=tl;pats+=pts;gps+=gp;dps+=dp;scs+=sc_;pbs+=pb_;tls+=tl_
+        B,ct,X4,tl,pts,gp,dp,sc_,pb_,tl_,pt_=X;tails[s]=tl;pats+=pts;gps+=gp;dps+=dp;scs+=sc_;pbs+=pb_;tls+=tl_;ptr+=pt_
         if ct:
             cev+=ct[0];ccand+=ct[2]
             for m,x in ct[1].items():
@@ -929,10 +994,11 @@ def run_market(mid,base):
     dps.sort(key=lambda x:(x['age'],-x['depth']))
     scs.sort(key=lambda x:(x['age'],-x['cnt']))
     pbs.sort(key=lambda x:(x['age'],-x['depth']))
-    fake,fake4,ccand,pats,gps,perf,dps,scs=selflearn(fake,fake4,ccand,tails,labs,pats,gps,dps,scs,tls)
+    fake,fake4,ccand,pats,gps,perf,dps,scs=selflearn(fake,fake4,ccand,tails,labs,pats,gps,dps,scs,tls,ptr)
     validity(fake,fake4,ccand,pats,gps,dps,scs)
     tls=[x for x in tls if perf['cats'].get('tl',{}).get('on',True)];tls.sort(key=lambda x:(x['age'],-x['touches']))
-    for x in tls: x['lim']=round(min(x['ref']*1.02,x['tgt']*0.995),2);x['missed']=x['cur']>x['lim']
+    ptr=[x for x in ptr if perf['cats'].get('pt',{}).get('on',True)];ptr.sort(key=lambda x:(x['age'],-x['rew']))
+    for x in tls+ptr: x['lim']=round(min(x['ref']*1.02,x['tgt']*0.995),2);x['missed']=x['cur']>x['lim']
     print(P+'SUMMARY',okn,'stocks',len(FCOLLECT),'historical false-breakout signals',len(COLLECT),'historical contrarian signals')
     print(P+'MODELS',json.dumps({k:{x:m['info'].get(x) for x in ('retrained','transfer','auc_new','auc_old','n_train','n_test','since','total')} for k,m in (('fake',MODEL),('ct',CMODEL))}))
     print(P+'LAB',json.dumps({k:(v and dict(champ=v['champ'],base=v['base'],sims=v['sims'])) for k,v in labs.items()}))
@@ -946,11 +1012,12 @@ def run_market(mid,base):
     print(P+'SCHOOLS',json.dumps(scs))
     print(P+'PULLBACKS',json.dumps([{k:v for k,v in x.items() if k not in ('chart','mal')} for x in pbs]))
     print(P+'TREND_TRAP',json.dumps([{k:v for k,v in x.items() if k!='geo'} for x in tls]))
+    print(P+'PATTERN_TRAP',json.dumps([{k:v for k,v in x.items() if k!='geo'} for x in ptr]))
     print(P+'CONTRARIAN_STATS',json.dumps(cst))
     print(P+'CONTRARIAN_CANDIDATES',json.dumps(ccand))
     need={x['s'] for x in fake+fake4+gps+dps+scs+ccand+[p for p in pats if p['tf']=='d']}
     charts={x:[[round(b[4],2),round(b[1],2),round(b[2],2),round(b[3],2)] for b in tails[x][-90:]] for x in need if x in tails}
-    M=dict(charts=charts,fake=fake,fake4=fake4,gaps=gps,dips=dps,dstats=DIP_STATS[mid],schools=scs,sstats=SCH_STATS[mid],dcmp=DIP_CMP[mid],gstats=GAP_STATS[mid],gcmp=GAP_CMP[mid],audit=AUDIT[mid],tl=tls,tlstats=TL_STATS,tlon=perf['cats'].get('tl',{}).get('on',True),pb=pbs,pbstats=PB_STATS[mid],pbtf=PB_TF[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
+    M=dict(charts=charts,fake=fake,fake4=fake4,gaps=gps,dips=dps,dstats=DIP_STATS[mid],schools=scs,sstats=SCH_STATS[mid],dcmp=DIP_CMP[mid],gstats=GAP_STATS[mid],gcmp=GAP_CMP[mid],audit=AUDIT[mid],tl=tls,tlstats=TL_STATS,pt=ptr,ptstats=PT_STATS,pton=perf['cats'].get('pt',{}).get('on',True),tlon=perf['cats'].get('tl',{}).get('on',True),pb=pbs,pbstats=PB_STATS[mid],pbtf=PB_TF[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
     M['trades']=build_trades(M)
     print(P+'TRADES',json.dumps([{k:v for k,v in t.items() if k not in ('chart','geo')} for t in M['trades'][:12]],ensure_ascii=False))
     return M
@@ -1056,7 +1123,8 @@ def live_prices(M,px):
     upd(M.get('gaps',[]),lambda x:x['ref'],lambda x:x['pc'],lambda x:x['conf'])
     upd(M.get('pb',[]),lambda x:x['ref'],lambda x:x['tgt'],lambda x:x['date'],lambda x,cur:cur<=x['stop'])
     upd(M.get('tl',[]),lambda x:x['ref'],lambda x:x['tgt'],lambda x:x['date'],lambda x,cur:cur<=x['stop'])
-    for x in M.get('tl',[]): x['missed']=x['cur']>x['lim']
+    upd(M.get('pt',[]),lambda x:x['ref'],lambda x:x['tgt'],lambda x:x['date'],lambda x,cur:cur<=x['stop'])
+    for x in M.get('tl',[])+M.get('pt',[]): x['missed']=x['cur']>x['lim']
     upd(M.get('fake',[]),lambda x:x['close'],lambda x:x['T'][0] if x['side']=='دعم' else None,lambda x:(d.date.fromisoformat(x['wk'])+d.timedelta(days=6)).isoformat())
     upd(M.get('fake4',[]),lambda x:x['close'],lambda x:x['T'][0],lambda x:x['wk'][:10],lambda x,cur:cur<x['ext'])
     for c in (M.get('ct') or {}).get('cand',[]):
