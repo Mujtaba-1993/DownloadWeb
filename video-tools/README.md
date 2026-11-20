@@ -7,3 +7,5 @@
   `python3 make_music.py out.wav [length] [drop_s] [outro_s]`
 - `make_music_emotional.py` — original emotional piano track for memories videos:
   `python3 make_music_emotional.py out.wav length drop_s`
+- `juha_voice.py` + `juha_anim.py` — 2D animated story (Juha and the donkey): Arabic TTS voices (Piper), vector characters (pycairo), parallax world, bubbles, music, SFX:
+  `python3 juha_voice.py && python3 juha_anim.py WORK_DIR out.mp4 [--preview]`
