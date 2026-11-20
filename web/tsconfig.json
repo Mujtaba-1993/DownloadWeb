@@ -12,6 +12,15 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "next/image": [
+        "./src/shims/next-image.tsx"
+      ],
+      "next/link": [
+        "./src/shims/next-link.tsx"
+      ],
+      "next/navigation": [
+        "./src/shims/next-navigation.ts"
       ]
     }
   }
