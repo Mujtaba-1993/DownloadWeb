@@ -90,12 +90,32 @@ add(fx, np.sign(np.sin(2 * np.pi * np.cumsum(f) / SR)) * 0.08 * (1 - t / d), DRO
 t = np.arange(int(1.0 * SR)) / SR
 add(fx, rng.standard_normal(len(t)) * (t / 1.0) ** 2 * 0.15, DROP - 1.0)
 
+# pluck melody (C major pentatonic motif, 8 notes per 2 bars) from the drop to the outro
+MEL = [76, 79, 81, 79, 76, 74, 72, 74, 76, 79, 84, 81, 79, 76, 74, 76]
+mel = np.zeros(N)
+k, mt = 0, DROP
+while mt < OUTRO:
+    if k % 4 != 3:  # leave gaps so it breathes
+        t, e = env(0.3, 0.09)
+        f = note(MEL[k % len(MEL)])
+        add(mel, (np.sin(2 * np.pi * f * t) + 0.3 * np.sin(4 * np.pi * f * t)) * e * 0.18, mt)
+    k += 1
+    mt += BEAT / 2
+mel = Pedalboard([Reverb(room_size=0.5, wet_level=0.3)])(mel.astype(np.float32), SR)
+
+# sidechain "pump": duck bass/stabs/pad right after every kick
+pump = np.ones(N)
+m = (t_all >= DROP) & (t_all < OUTRO)
+ph = ((t_all - DROP) % BEAT)
+pump[m] = 1 - 0.65 * np.exp(-ph[m] / 0.09)
+bass, stabs, pad = bass * pump, stabs * pump, pad * pump
+
 drums = Pedalboard([Compressor(threshold_db=-12, ratio=4)])(drums.astype(np.float32), SR)
 bass = Pedalboard([LowpassFilter(400)])(bass.astype(np.float32), SR)
 stabs = Pedalboard([LowpassFilter(3500), Reverb(room_size=0.4, wet_level=0.25)])(stabs.astype(np.float32), SR)
 pad = Pedalboard([Reverb(room_size=0.8, wet_level=0.4)])(pad.astype(np.float32), SR)
 fx = Pedalboard([HighpassFilter(200)])(fx.astype(np.float32), SR)
-mix = drums * 0.9 + bass * 0.8 + stabs + pad + fx
+mix = drums * 0.9 + bass * 0.8 + stabs + pad + fx + mel
 mix = Pedalboard([Compressor(threshold_db=-10, ratio=3), Limiter(threshold_db=-1)])(mix.astype(np.float32), SR)
 sf.write(sys.argv[1], np.stack([mix, mix], 1), SR)
 print("music saved", sys.argv[1], f"{L}s")
