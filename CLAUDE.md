@@ -17,3 +17,11 @@ Installed from github.com/nateherkai/roast-room (MIT). Skills `/roast-room` and 
 
 - `trendln` (GregoryMorse/trendln, MIT): draws support and resistance lines through the bounces. Use it to draw the owner's lines instead of a hand-written rule. On his EURUSD chart it found his falling line (1.1897 to 1.1249, 8 touches).
 - `stumpy` (stumpy-dev/stumpy): finds windows whose shape matches a given chart (`stumpy.mass`). Use it when the owner sends a chart and asks for similar ones.
+
+## Mujtaba's theory (tab "نظرية مجتبى" in the radar)
+
+The owner's own pattern, added 2026-11-21: a falling line on the small bounces; each daily close above it after the price sat below it is a buy point. Code: `mujtaba()` and `MJ_STATS` in `radar.py`, `renderMJ()` in `template.html`.
+
+- Study (42,814 breaks, lines drawn from the past only): all breaks win 51.7%, calm breaks 53.4%, calm breaks with the S&P 500 below its 200-day average 56.6%, wild breaks 48.0%. A line that worked before does not raise the odds of its next break.
+- Grades on the page: A = calm break and market below its 200-day, B = calm break and market above it, C = wild break (do not enter).
+- The tab is not written to the performance log yet.

@@ -18,7 +18,7 @@ def get(s):
             ct=contrarian(s,Dd)  # computed here so the daily rows can be dropped
             if FCOLLECT is not None: fake_hist(list(W.values()))
             I=get4h(s)
-            return list(W.values()),ct,(I[0] if I and MK['h4'] else None),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Dd[-150:]],patterns(s,Dd)+(I[1] if I else []),gaps(s,Dd),dips(s,Dd),schools(s,Dd),pullbacks(s,Dd),tlines(s,Dd),ptraps(s,Dd)
+            return list(W.values()),ct,(I[0] if I and MK['h4'] else None),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Dd[-150:]],patterns(s,Dd)+(I[1] if I else []),gaps(s,Dd),dips(s,Dd),schools(s,Dd),pullbacks(s,Dd),tlines(s,Dd),ptraps(s,Dd),mujtaba(s,Dd)
         except Exception: pass
 def get4h(s):
     # One hourly download (about 250 days). Returns (4-hour bars for the weekly-level false breakouts, intraday pattern signals).
@@ -341,6 +341,77 @@ def tlines(s,Dd):
     return [dict(s=s,date=ny_date(Dd[i][0]).isoformat(),bdate=ny_date(Dd[i0][0]).isoformat(),ref=r(ref),cur=r(cur),chg=round((cur/ref-1)*100,1),stop=r(stop),tgt=r(tgt),rew=round(TL['rr']*risk*100,1),risk=round(risk*100,1),
         touches=len(L['T']),clr=round(clr*100,1),span=i-L['xa'],below=i-i0,depth=round((1-ext/ln(i0))*100,1),age=n-1-i,left=TL['maxd']-(n-1-i),vl=TL['fresh']-(n-1-i),vu='s',
         geo=dict(bars=[[r(o[k]),r(h[k]),r(l[k]),r(c[k])] for k in range(a0,n)],line=[[xs-a0,r(ln(xs))],[n-1-a0,r(ln(n-1))]],T=[[x-a0,r(p)] for x,p in L['T'] if x>=a0],brk=[i0-a0,r(ext)],ret=i-a0))]
+# --- Mujtaba's theory (the owner's own pattern): a falling line drawn on the small bounces of the last 220 sessions;
+# every daily close above it, after the price sat below it, is a buy point. Studied on about 4,800 US stocks and FX
+# pairs (lines drawn from the past only, 42,814 breaks). What separates the breaks that worked: the break is calm
+# (no huge candle, gap, volume or run-up) and the S&P 500 is below its 200-day average. See MJ_STATS.
+MJ=dict(W=220,K=2,tol=0.25,touch=6,sep=40,fresh=2,near=8.0,strong=2)
+MJ_STATS=dict(n=42814,win=51.7,avg=0.51,calm=dict(n=29555,win=53.4,avg=0.85),wild=dict(n=13259,win=48.0,avg=-0.25),A=dict(n=9274,win=56.6,avg=2.12),B=dict(n=20202,win=51.9,avg=0.27),
+    third=dict(n=11591,win=52.0),none=dict(n=9391,win=52.0),strongmove=37,random=51)
+def _mjline(o,h,l,c,e):
+    """falling line on the small bounces of the W bars before bar e (bar e itself is not used)"""
+    W=MJ['W'];a=e-W
+    if a<1: return None
+    hw=h[a:e];lw=l[a:e];cw=c[a:e]
+    if sum(cw[:60])<=sum(cw[-60:]) or max(abs(cw[k]/cw[k-1]-1) for k in range(1,W))>0.25: return None
+    rng=sorted(hw[k]-lw[k] for k in range(W))[W//2]
+    if rng<=0: return None
+    K=MJ['K'];P=[]
+    for j in range(K,W-K-1):
+        if hw[j]==max(hw[j-K:j+K+1]): P.append((j,hw[j]))
+        if lw[j]==min(lw[j-K:j+K+1]): P.append((j,lw[j]))
+    if len(P)<12: return None
+    tol=MJ['tol']*rng;C=[]
+    for ai in range(len(P)):
+        xa,pa=P[ai]
+        for bi in range(ai+1,len(P)):
+            xb,pb=P[bi]
+            if xb-xa<MJ['sep'] or pb>=pa: continue
+            m=(pb-pa)/(xb-xa);b=pa-m*xa;nt=sum(1 for x,p in P if abs(p-(b+m*x))<=tol)
+            if nt>=MJ['touch']: C.append((nt,m,b))
+    C.sort(key=lambda x:-x[0]);best=None
+    for nt,m,b in C[:8]:
+        ln=lambda x,m=m,b=b:b+m*x
+        if ln(W+1)<=0 or any(cw[W-k]>=ln(W-k) for k in (1,2,3)): continue
+        Bk=[];u=1   # earlier breaks above this line: (bar, rise, strong move then back under the line)
+        while u<W:
+            if cw[u]>ln(u) and cw[u-1]<=ln(u-1):
+                v=u+1
+                while v<W and cw[v]>=ln(v): v+=1
+                top=max(hw[u:v]);Bk.append((u,top/cw[u]-1,(top-cw[u])/rng>=3 and v<W and v-u>=3));u=v
+            else: u+=1
+        key=(sum(1 for x in Bk if x[2]),nt)
+        if best is None or key>best[0]: best=(key,dict(m=m,b=b,a=a,rng=rng,Bk=Bk,T=[(x,p) for x,p in P if abs(p-(b+m*x))<=tol]))
+    return best and best[1]
+def mujtaba(s,Dd):
+    now=ny_now()
+    if Dd and ny_date(Dd[-1][0])==now.date() and (now.hour,now.minute)<MK['close']: Dd=Dd[:-1]
+    W=MJ['W'];Dd=Dd[-(W+30):];n=len(Dd)
+    if n<W+10 or Dd[-1][4]<5: return []
+    o=[x[1] for x in Dd];h=[x[2] for x in Dd];l=[x[3] for x in Dd];c=[x[4] for x in Dd];v=[x[5] for x in Dd];r=lambda x:round(x,2);r1=lambda x:round(x,1)
+    def pack(L,state,e=None):
+        a=L['a'];rng=L['rng'];ln=lambda x:L['b']+L['m']*(x-a);a0=max(a,n-170);T=sorted({x for x,p in L['T']})
+        strong=[x for x in L['Bk'] if x[2]]
+        d=dict(s=s,state=state,cur=r(c[-1]),line=r(ln(n-1)),next=r(ln(n)),dist=r1((c[-1]/ln(n-1)-1)*100),touches=len(T),strong=len(strong),weak=len(L['Bk'])-len(strong),moves=[round(x[1]*100) for x in strong],
+            geo=dict(bars=[[r(o[k]),r(h[k]),r(l[k]),r(c[k])] for k in range(a0,n)],line=[[0,r(ln(a0))],[n-1-a0+5,r(ln(n+4))]],T=[[x+a-a0,r(p)] for x,p in L['T'] if x+a>=a0],B=[[x[0]+a-a0,round(x[1]*100),1 if x[2] else 0] for x in L['Bk'] if x[0]+a>=a0],e=None if e is None else e-a0))
+        return d
+    for e in range(n-1,n-2-MJ['fresh'],-1):     # a break in the last sessions
+        if not c[e]>c[e-1]: continue
+        L=_mjline(o,h,l,c,e)
+        if not L: continue
+        a=L['a'];rng=L['rng'];ln=lambda x:L['b']+L['m']*(x-a)
+        if not(c[e]>ln(e) and c[-1]>ln(n-1)): continue
+        av=sum(v[e-20:e])/20;F=dict(ex=(c[e]-ln(e))/rng,cr=(h[e]-l[e])/rng,gap=(o[e]-c[e-1])/rng,vr=v[e]/av if av else 1,up5=(c[e]-c[e-5])/rng,tight=(max(h[e-10:e])-min(l[e-10:e]))/rng,depth=max((ln(k)-c[k])/rng for k in range(e-20,e)))
+        fails=[t_ for ok,t_ in ((F['ex']<1.5,'الإغلاق بعيد جداً فوق الخط'),(F['cr']<2.5,'شمعة الكسر كبيرة جداً'),(F['gap']<1,'فجوة افتتاح كبيرة'),(F['vr']<2.5,'حجم التداول انفجاري'),(F['up5']<4,'صعود حاد في 5 أيام قبل الكسر'),(F['tight']<7,'المنطقة قبل الكسر واسعة'),(F['depth']>=1,'السعر لم ينزل تحت الخط كفاية'),(F['depth']<6,'السعر كان بعيداً جداً تحت الخط')) if not ok]
+        ref=o[e+1] if e+1<n else c[e];R=rng/c[e];tgt=ref*(1+2*R);stop=ref*(1-2*R)
+        if e+1<n and (max(h[e+1:])>=tgt or min(l[e+1:])<=stop): continue
+        x=pack(L,'buy',e);x.update(date=ny_date(Dd[e][0]).isoformat(),age=n-1-e,ref=r(ref),tgt=r(tgt),stop=r(stop),move=r1(200*R),calm=not fails,fails=fails,f={k:r1(q) for k,q in F.items()})
+        return [x]
+    L=_mjline(o,h,l,c,n)                         # still under the line: wait for the break
+    if not L: return []
+    x=pack(L,'wait')
+    if x['strong']<MJ['strong'] or x['dist']<-MJ['near'] or x['dist']>=0: return []
+    return [x]
 # --- Pattern trap: a narrowing pattern (falling wedge or a triangle) closes below its lower line and within 5 sessions
 # closes back inside. On US stocks since 1980 the next break was upward 63% of the time (see PT_STATS). The other
 # shapes (channels, rectangles, rising wedge, broadening) do not show this and are not listed.
@@ -1042,10 +1113,10 @@ def run_market(mid,base):
         print(P+'ERROR',f'only {okn} of {len(S)} stocks downloaded (index data: {bool(SPY)})');return None
     MODEL=relearn(FCOLLECT,MODEL,5,FEATS.index('pos'));CMODEL=relearn(COLLECT,CMODEL,3)
     labs={'fake':lab('fake',FCOLLECT,MODEL,5,FEATS.index('pos')),'ct':plab(COLLECT,CMODEL,[x[0] for x in data if x])}
-    fake=[];fake4=[];tails={};pats=[];gps=[];dps=[];scs=[];pbs=[];tls=[];ptr=[]
+    fake=[];fake4=[];tails={};pats=[];gps=[];dps=[];scs=[];pbs=[];tls=[];ptr=[];mjs=[]
     for s,X in zip(S,data):
         if not X or len(X[0])<260: continue
-        B,ct,X4,tl,pts,gp,dp,sc_,pb_,tl_,pt_=X;tails[s]=tl;pats+=pts;gps+=gp;dps+=dp;scs+=sc_;pbs+=pb_;tls+=tl_;ptr+=pt_
+        B,ct,X4,tl,pts,gp,dp,sc_,pb_,tl_,pt_,mj_=X;mjs+=mj_;tails[s]=tl;pats+=pts;gps+=gp;dps+=dp;scs+=sc_;pbs+=pb_;tls+=tl_;ptr+=pt_
         if ct:
             cev+=ct[0];ccand+=ct[2]
             for m,x in ct[1].items():
@@ -1103,6 +1174,9 @@ def run_market(mid,base):
     need={x['s'] for x in fake+fake4+gps+dps+scs+ccand+[p for p in pats if p['tf']=='d']}
     charts={x:[[round(b[4],2),round(b[1],2),round(b[2],2),round(b[3],2)] for b in tails[x][-90:]] for x in need if x in tails}
     M=dict(charts=charts,fake=fake,fake4=fake4,gaps=gps,dips=dps,dstats=DIP_STATS[mid],schools=scs,sstats=SCH_STATS[mid],dcmp=DIP_CMP[mid],gstats=GAP_STATS[mid],gcmp=GAP_CMP[mid],audit=AUDIT[mid],tl=tls,tlstats=TL_STATS,pt=ptr,ptstats=PT_STATS,pton=perf['cats'].get('pt',{}).get('on',True),tlon=perf['cats'].get('tl',{}).get('on',True),pb=pbs,pbstats=PB_STATS[mid],pbtf=PB_TF[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
+    mkt=(INSD or {}).get('mkt')
+    for x in mjs: x['grade']=None if x['state']!='buy' else 'C' if not x['calm'] else 'A' if (mkt is not None and mkt<0) else 'B'
+    mjs.sort(key=lambda x:(x['state']!='buy',{'A':0,'B':1,'C':2}.get(x.get('grade'),3),-x['dist']));M['mj']=dict(list=mjs,stats=MJ_STATS,mkt=mkt)
     M['ins']=INSD;M['insstats']=INS_STATS;M['insgrade']=INS_GRADE;M['inscouncil']=INS_COUNCIL
     print(P+'INSIDERS',json.dumps(M['ins'] and dict(mkt=M['ins']['mkt'],on=M['ins']['on'],seen=M['ins']['seen'],list=[{k:v for k,v in x.items() if k!='geo'} for x in M['ins']['list']]),ensure_ascii=False))
     M['trades']=build_trades(M)
