@@ -2,3 +2,5 @@ trendln
 stumpy
 matplotlib
 numpy
+youtube-transcript-api
+yt-dlp
