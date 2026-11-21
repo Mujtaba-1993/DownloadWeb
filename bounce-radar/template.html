@@ -122,6 +122,11 @@ details.how{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}de
 <p class="note" style="margin:0 0 8px">في الشارت: الخط الأزرق = خطك، الدوائر الصفراء = الارتدادات التي يمرّ عليها، المثلث الأخضر = نقطة شراء قوية سابقة والصعود بعدها، النقطة الحمراء = كسر ضعيف، الدائرة الوردية = الكسر الحالي.</p>
 <h3>كسرت الخط الآن</h3><div id="mjb"></div>
 <h3>تحت الخط وتنتظر الكسر</h3><p class="note" style="margin:0 0 6px">خط أعطى نقطتي شراء قويتين على الأقل، والسعر تحته بأقل من 8%. الدخول عند أول إغلاق يومي فوق السعر المكتوب، بشرط أن يكون الكسر هادئاً.</p><div id="mjw"></div><button class="btn more" id="mjmore" hidden></button></section>
+<section class="panel"><div class="ph"><h2>خط نقاط الانطلاق <span class="chip wk">لا ميزة مثبتة</span></h2><span class="note" id="lpcount" style="margin:0"></span></div>
+<p class="lead">فكرتك: نحوّط القيعان التي بدأ منها صعود كبير (8 حركات يومية أو أكثر)، نرسم خطاً يمرّ عليها ونمدّه، وحين يرجع السعر للخط نشتري. في الدراسة نجح الرجوع للخط 51% من 11,651 حالة، أي مثل رمي العملة، فاعتبره للمتابعة.</p>
+<h3>رجعت للخط الآن</h3><div id="lpb"></div>
+<h3>قريبة من الخط</h3><div id="lpw"></div><button class="btn more" id="lpmore" hidden></button>
+<div class="tb" style="margin-top:10px"><table id="lps"></table></div></section>
 <section class="panel"><div class="ph"><h2>متى تدخل: الشروط</h2></div>
 <ol class="mjr"><li>خط نازل يمرّ على 6 ارتدادات صغيرة أو أكثر في آخر 220 جلسة.</li><li>آخر 3 إغلاقات قبل الكسر تحت الخط.</li><li>شمعة يومية تغلق فوق الخط. الدخول من افتتاح الجلسة التالية.</li>
 <li><b>الكسر هادئ</b>، أي لا يوجد أي واحد من هذه: شمعة الكسر أكبر من حركتين يوميتين ونصف، إغلاق أعلى من الخط بحركة ونصف، فجوة افتتاح بحركة يومية كاملة، حجم تداول مرتين ونصف المعتاد، صعود 4 حركات في 5 أيام قبل الكسر، منطقة واسعة قبل الكسر (7 حركات في 10 أيام)، أو سعر لم ينزل تحت الخط حركة واحدة على الأقل أو نزل تحته 6 حركات.</li>
@@ -431,7 +436,7 @@ function mjChart(t){const G=t.geo,C=G.bars,n=C.length,N=n+6,W=700,H=300,PL=6,PR=
  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;direction:ltr" role="img" aria-label="شارت ${t.s} مع الخط ونقاط الشراء">`;
  C.forEach((k,i)=>{const col=k[3]>=k[0]?'var(--up)':'var(--dn)',y1=Y(Math.max(k[0],k[3])),y2=Y(Math.min(k[0],k[3]));s+=`<line x1="${f(X(i))}" x2="${f(X(i))}" y1="${f(Y(k[1]))}" y2="${f(Y(k[2]))}" stroke="${col}"/><rect x="${f(X(i)-bw/2)}" y="${f(y1)}" width="${f(bw)}" height="${f(Math.max(1,y2-y1))}" fill="${col}"/>`});
  s+=`<line x1="${f(X(G.line[0][0]))}" y1="${f(Y(G.line[0][1]))}" x2="${f(X(G.line[1][0]))}" y2="${f(Y(G.line[1][1]))}" stroke="var(--info)" stroke-width="2.2"/>`;
- G.T.forEach(p=>s+=`<circle cx="${f(X(p[0]))}" cy="${f(Y(p[1]))}" r="3.6" fill="none" stroke="var(--warn)" stroke-width="1.4"/>`);
+ G.T.forEach(p=>s+=`<circle cx="${f(X(p[0]))}" cy="${f(Y(p[1]))}" r="${G.big?9:3.6}" fill="none" stroke="var(--warn)" stroke-width="${G.big?2.2:1.4}"/>`);
  const mark=(i,txt,col)=>{const y=Y(C[i][2])+9,x=X(i);s+=`<path d="M${f(x)} ${f(y)}l5 9h-10z" fill="${col}"/><text x="${f(x)}" y="${f(y+21)}" fill="${col}" font-size="11" font-weight="600" text-anchor="middle">${txt}</text>`};
  G.B.forEach(p=>{if(p[2])mark(p[0],'+'+p[1]+'%','var(--up)');else{const x=X(p[0]),y=Y(C[p[0]][2])+8;s+=`<circle cx="${f(x)}" cy="${f(y)}" r="2.6" fill="var(--dn)"/>`}});
  if(G.e!=null){const i=G.e,a=Math.max(0,i-1),b=Math.min(n-1,i+2),y1=Y(Math.max(...C.slice(a,b+1).map(k=>k[1]))),y2=Y(Math.min(...C.slice(a,b+1).map(k=>k[2])));s+=`<ellipse cx="${f((X(a)+X(b))/2)}" cy="${f((y1+y2)/2)}" rx="${f((X(b)-X(a))/2+9)}" ry="${f((y2-y1)/2+9)}" fill="none" stroke="#ec407a" stroke-width="2.2"/>`;mark(i,'شراء','var(--up)')}
@@ -461,6 +466,16 @@ ${x.fails.length?`<p class="note" style="margin:0;color:var(--dn)">${x.fails.joi
 <div class="mjf"><span>السعر الآن <b>${x.cur}</b></span><span>بُعده عن الخط <b>${x.dist}%</b></span><span>الخط على <b>${x.touches}</b> ارتدادات</span><span>نقاط شراء قوية سابقة <b>${x.strong}</b> (${mv(x)})</span>${x.weak?`<span>كسرات ضعيفة <b>${x.weak}</b></span>`:''}</div>${mjChart(x)}</article>`).join(''):`<p class="none">لا يوجد زوج قريب من خطه على فريم ${FXN[FXTF]}.</p>`;
  const S=F.stats;$('fxs').innerHTML='<tr><th>الفريم</th><th>الفترة</th><th>كل الكسرات</th><th>نجح</th><th>كسر هادئ</th><th>نجح</th><th>كسر عنيف نجح</th></tr>'+Object.keys(FXN).map(k=>`<tr><td>${FXN[k]}</td><td class="n">${S[k].since}–2026</td><td class="n">${num(S[k].n)}</td><td class="n">${S[k].win}%</td><td class="n">${num(S[k].calm.n)}</td><td class="n">${S[k].calm.win}%</td><td class="n">${S[k].wild.win}%</td></tr>`).join('');
  $('fxn').textContent='"نجح" = صعد حركتين من حركات الشمعة قبل أن ينزل مثلهما خلال 60 شمعة. في العملات رمي العملة يعطي 50%، فكل الأرقام قريبة منه. بيانات الساعة تغطي نحو سنتين فقط، وعدد الحالات على 4 ساعات قليل. الهدف والوقف المعروضان هما قياس الدراسة (حركتان)، والأرقام قبل فرق السعر والعمولة.'}
+let LPSHOW=4;
+function renderLP(){const J=D.lp;if(!J||!$('lpb'))return;const L=J.list||[],B=L.filter(x=>x.state=='buy'),Wt=L.filter(x=>x.state=='wait'),S=J.stats,sl=x=>x.slope>5?'صاعد':x.slope<-5?'هابط':'أفقي',cs=x=>x.geo.step>1?` · كل شمعة = ${x.geo.step} أيام`:'';
+ $('lpcount').textContent=`${B.length} رجعت · ${J.total-B.length} قريبة`;
+ $('lpb').innerHTML=B.length?B.map(x=>`<article class="mjc"><header><b>${x.s}</b><span class="note" style="margin:0">لمس الخط يوم ${x.date}${cs(x)}</span></header>
+<div class="mjf"><span>الدخول <b>${x.ref}</b></span><span>الهدف <b>${x.tgt}</b></span><span>الوقف <b>${x.stop}</b></span><span>المسافة لكل منهما <b>${x.move}%</b></span><span>السعر الآن <b>${x.cur}</b></span><span>الخط على <b>${x.npts}</b> نقاط انطلاق</span><span>خط <b>${sl(x)}</b></span></div>${mjChart(x)}</article>`).join(''):'<p class="none">لا يوجد سهم رجع لخطه في آخر 3 جلسات.</p>';
+ $('lpw').innerHTML=Wt.length?Wt.slice(0,LPSHOW).map(x=>`<article class="mjc"><header><b>${x.s}</b><span class="note" style="margin:0">الخط عند <b style="color:var(--warn);font-family:var(--m)">${x.line}</b>${cs(x)}</span></header>
+<div class="mjf"><span>السعر الآن <b>${x.cur}</b></span><span>فوق الخط بـ <b>${x.dist}%</b></span><span>الخط على <b>${x.npts}</b> نقاط انطلاق</span><span>خط <b>${sl(x)}</b></span></div>${mjChart(x)}</article>`).join(''):'<p class="none">لا يوجد سهم قريب من خطه الآن.</p>';
+ const mb=$('lpmore');mb.hidden=Wt.length<=LPSHOW;mb.textContent=`اعرض الباقي (${Wt.length-LPSHOW})`;
+ const row=(nm,o)=>`<tr><td>${nm}</td><td class="n">${num(o.n)}</td><td class="n">${o.win}%</td></tr>`;
+ $('lps').innerHTML='<tr><th>الحالة</th><th>عدد مرات الرجوع للخط</th><th>نجح</th></tr>'+row('الكل',S)+row('خط على نقطتين',S.p2)+row('خط على 3 نقاط',S.p3)+row('خط على 4 نقاط فأكثر',S.p4)+row('السوق فوق متوسط 200 يوم',S.up)+row('السوق تحت متوسط 200 يوم',S.dn)}
 function renderIns(){const I=D.ins,S=D.insstats;if(!S)return;const r1=v=>Math.round(v*10)/10;
  INT=I&&I.on&&I.deep!==false?(I.list||[]).map(t=>({...t,kind:'ins',entry:t.cur,risk:r1((1-t.stop/t.cur)*100),share:Math.min(3,I.list.length),lab:['الهدف','الدخول','خسارة مفترضة'],tgt:Math.round(t.cur*(1+INTG/100)*100)/100,tgp:((D.insgrade||{})[t.grade=='A'?'A':'B']||S).tg.find(r=>r[0]==INTG)?.[1]})):[];
  const shown=INT.slice(0,INSHOW);
@@ -484,7 +499,7 @@ function renderIns(){const I=D.ins,S=D.insstats;if(!S)return;const r1=v=>Math.ro
  $('insverdict').innerHTML=`<b>الخلاصة:</b> تقليد المدراء وحده لا يكفي. ينجح حين يشترون وسط الخوف: السوق تحت متوسطه والسهم مضروب. حين السوق فوق متوسطه كانت النتيجة ${S.above.ex}% عن السوق. التحفظ: من 2022 ضعفت الميزة (فوق السوق +1.2% فقط)، و43% من الحالات التاريخية بلا أسعار اليوم لأن شركاتها شُطبت، وهذا يرفع الأرقام.`;
  $('insper').innerHTML='<tr><th>الفترة</th><th>الحالات</th><th>أغلقت بربح</th><th>متوسط الصفقة</th><th>فوق السوق</th><th>تفوّق</th></tr>'+S.per.map(r=>`<tr><td>${r[0]}</td><td class="n">${num(r[1])}</td><td class="n">${r[2]}%</td><td class="n pos">+${r[3]}%</td><td class="n">+${r[4]}%</td><td class="n">${r[5]}%</td></tr>`).join('');
  $('instests').innerHTML='<li><b>القاعدة:</b> شراء معلن من داخل الشركة بـ 50 ألف دولار أو أكثر في آخر 14 يوماً. سعر السهم 5 دولارات أو أكثر، وتداوله اليومي 5 ملايين دولار أو أكثر. الدخول افتتاح الجلسة التالية للإعلان، ويبقى السهم معروضاً 5 جلسات. الخروج إغلاق الجلسة 60.</li><li>فُحص 14 شرطاً في السهم والسوق. حجم الشراء، ومنصب المشتري، وحجم التداول لم تفرّق. حالة السوق وبُعد السهم عن قمته هما اللذان فرّقا، في ما قبل 2018 وما بعدها.</li><li>كل سهم يظهر هنا يُسجَّل في سجل الاقتراحات الحي والمحفظة التجريبية (هدف +15%، خروج بعد 60 جلسة)، فتقيّم الخانة نفسها مع الوقت. تجد نتائجها في «الأدلة والأداء».</li><li>المصدر: openinsider.com، المبني على إعلانات هيئة الأوراق الأمريكية.</li>'}
-function renderTrades(){renderIns();renderTL();renderMJ();renderFX();TL=D.trades||[];$('n-trades').textContent=TL.length||'';const cur=MKT=='us'?'$':'ر.س';
+function renderTrades(){renderIns();renderTL();renderMJ();renderLP();renderFX();TL=D.trades||[];$('n-trades').textContent=TL.length||'';const cur=MKT=='us'?'$':'ر.س';
  const vis=TL.map((t,i)=>[t,i]).filter(([t])=>UNFOLD||!t.fold),folded=TL.filter(t=>t.fold),cl=(TL.find(t=>t.cluster)||{}).cluster||0,shown=vis.slice(0,SHOW);
  const foldRow=folded.length&&!UNFOLD?`<div class="fold"><span><b>${folded.length} صفقة مشابهة مطويّة</b> · كلها نفس الرهان على ارتداد السوق بعد الهبوط. الثلاث المعروضة تتقاسم مخاطرة صفقة واحدة.</span><button class="btn x" id="unfold">عرضها</button></div>`:'';
  const stale=BUILT_MS&&Date.now()-BUILT_MS>20*3600e3;
@@ -563,7 +578,7 @@ render();
 const cap=$('cap'),rsk=$('rsk');cap.value=CAP;rsk.value=RSK;
 [cap,rsk].forEach(el=>el.oninput=()=>{const c=parseFloat(String(cap.value).replace(/,/g,'')),r=parseFloat(rsk.value);if(c>0)CAP=c;if(r>0&&r<=100)RSK=r;try{localStorage.setItem('rr-cap',CAP);localStorage.setItem('rr-rsk',RSK)}catch(e){}renderTrades()});
 document.querySelectorAll('#mk button').forEach(b=>b.onclick=()=>{MKT=b.dataset.mk;try{localStorage.setItem('rr-mkt',MKT)}catch(e){}render()});
-$('more').onclick=()=>{SHOW=999;renderTrades()};$('tlmore').onclick=()=>{TLSHOW=999;renderTL()};$('insmore').onclick=()=>{INSHOW=999;renderIns()};$('mjmore').onclick=()=>{MJSHOW=999;renderMJ()};$('cpc').value=INTG;['cpx','cpc'].forEach(i=>$(i).oninput=calc);calc();
+$('more').onclick=()=>{SHOW=999;renderTrades()};$('tlmore').onclick=()=>{TLSHOW=999;renderTL()};$('insmore').onclick=()=>{INSHOW=999;renderIns()};$('mjmore').onclick=()=>{MJSHOW=999;renderMJ()};$('lpmore').onclick=()=>{LPSHOW=999;renderLP()};$('cpc').value=INTG;['cpx','cpc'].forEach(i=>$(i).oninput=calc);calc();
 function go(n){if(!document.querySelector(`[data-tab="${n}"]`))n='tl';$('riskbar').hidden=n=='ev'||n=='journal';document.querySelectorAll('.tab').forEach(e=>e.hidden=e.dataset.tab!=n);document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.go==n))}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{location.hash=b.dataset.go;go(b.dataset.go);window.scrollTo(0,0)});
 addEventListener('hashchange',()=>go(location.hash.slice(1)));go(location.hash.slice(1)||'tl');

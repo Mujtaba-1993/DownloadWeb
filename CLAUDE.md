@@ -33,3 +33,4 @@ From github.com/Jakeschincariol/day-trader-skill (MIT, commit 3d0f4ef), copied i
 
 - `trader-broker` only prepares order tickets. No broker is connected (the owner trades in the Sahm app); never place an order.
 - `trader-analyst` and the SEC part of `trader-news` need a contact e-mail in `SEC_USER_AGENT`. Do not put the owner's e-mail there; he can set it himself.
+- Launch line (added 2026-11-21, `launch()` and `LP_STATS` in `radar.py`, `renderLP()` in `template.html`, shown inside the Mujtaba tab): line through the bottoms that started a big rise (8 daily ranges); buy when the price returns to it. Study: 11,651 returns, 51.0% worked, 48.2% when the market is below its 200-day. Labelled as unproven.

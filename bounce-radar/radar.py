@@ -18,7 +18,7 @@ def get(s):
             ct=contrarian(s,Dd)  # computed here so the daily rows can be dropped
             if FCOLLECT is not None: fake_hist(list(W.values()))
             I=get4h(s)
-            return list(W.values()),ct,(I[0] if I and MK['h4'] else None),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Dd[-150:]],patterns(s,Dd)+(I[1] if I else []),gaps(s,Dd),dips(s,Dd),schools(s,Dd),pullbacks(s,Dd),tlines(s,Dd),ptraps(s,Dd),mujtaba(s,Dd)
+            return list(W.values()),ct,(I[0] if I and MK['h4'] else None),[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Dd[-150:]],patterns(s,Dd)+(I[1] if I else []),gaps(s,Dd),dips(s,Dd),schools(s,Dd),pullbacks(s,Dd),tlines(s,Dd),ptraps(s,Dd),mujtaba(s,Dd),launch(s,Dd)
         except Exception: pass
 def get4h(s):
     # One hourly download (about 250 days). Returns (4-hour bars for the weekly-level false breakouts, intraday pattern signals).
@@ -452,6 +452,59 @@ def forex():
     with cf.ThreadPoolExecutor(8) as ex: res=list(ex.map(one,FX_PAIRS))
     L=[x for r in res for x in r[0]];L.sort(key=lambda x:(x['state']!='buy',not x.get('calm',True),-x['dist']))
     return dict(list=L,stats=MJ_FX,ok=sum(1 for r in res if r[1]),n=len(FX_PAIRS),at=d.datetime.now(d.timezone(d.timedelta(hours=3))).strftime('%Y-%m-%d %H:%M'))
+# --- Launch line (the owner's idea, 2026-11-21): circle the bottoms a big rise started from (8 daily ranges or more), draw
+# the line through them and extend it; when the price comes back to the line, buy. Studied on liquid US stocks over 12
+# years (line drawn from the past only): 11,651 returns to the line, 51.0% worked, a coin flip. Shown as unproven.
+LP=dict(big=8.0,look=750,tol=0.5,life=250,near=6.0,fresh=2)
+LP_STATS=dict(n=11651,win=51.0,p2=dict(n=8696,win=51.4),p3=dict(n=2486,win=49.5),p4=dict(n=469,win=51.6),up=dict(n=7206,win=52.7),dn=dict(n=4445,win=48.2),again=32)
+def launch(s,Dd):
+    now=ny_now()
+    if Dd and ny_date(Dd[-1][0])==now.date() and (now.hour,now.minute)<MK['close']: Dd=Dd[:-1]
+    Dd=Dd[-1300:];n=len(Dd)
+    if n<600 or Dd[-1][4]<5: return []
+    o=[x[1] for x in Dd];h=[x[2] for x in Dd];l=[x[3] for x in Dd];c=[x[4] for x in Dd];r=lambda x:round(x,2)
+    dr=[(h[k]-l[k])/c[k] for k in range(n)];R=[0.0]*n;med=0.0
+    for i in range(250,n):
+        if i==250 or i%20==0: med=sorted(dr[i-250:i+1])[125]
+        R[i]=med
+    lows=[];d=0;hi=h[250];hx=250;lo=l[250];lx=250;line=None;armed=False;touch=None
+    for i in range(251,n):
+        if R[i]<0.006: continue
+        thr=LP['big']*R[i];rng=R[i]*c[i];new=False
+        if d>=0 and h[i]>hi: hi=h[i];hx=i
+        if d<=0 and l[i]<lo: lo=l[i];lx=i
+        if d>=0 and l[i]<=hi*(1-thr) and hx<i: d=-1;lo=l[i];lx=i
+        elif d<=0 and h[i]>=lo*(1+thr) and lx<i: lows.append((lx,lo));d=1;hi=h[i];hx=i;new=True
+        if new and len(lows)>=2:
+            k=lows[-1];best=None;cand=[q for q in lows[:-1] if 20<=k[0]-q[0]<=LP['look']][-8:]
+            for j in cand:
+                m=(k[1]-j[1])/(k[0]-j[0]);b=k[1]-m*k[0]
+                if any(c[x]<b+m*x-rng for x in range(j[0],i+1)): continue       # the line sits under the price between its points
+                on=[q for q in cand+[k] if abs(q[1]-(b+m*q[0]))<=LP['tol']*rng];key=(len(on),j[0])
+                if best is None or key>best[0]: best=(key,m,b,on)
+            line=None if best is None else dict(m=best[1],b=best[2],pts=best[3],born=i);armed=False;touch=None
+        if line is None: continue
+        y=line['b']+line['m']*i
+        if i-line['born']>LP['life'] or y<=0 or c[i]<y-1.5*rng: line=None;continue
+        if not armed:
+            if c[i]>y+2*rng and i>line['born']: armed=True
+            continue
+        if l[i]<=y+0.3*rng: touch=(i,line);line=None
+    L=None;e=None
+    if touch and n-1-touch[0]<=LP['fresh']: e,L=touch;state='buy'
+    elif line is not None and armed: L=line;state='wait'
+    if L is None: return []
+    ln=lambda x:L['b']+L['m']*x;dist=(c[-1]/ln(n-1)-1)*100
+    if state=='wait' and not 0<dist<=LP['near']: return []
+    a0=max(0,L['pts'][0][0]-20);st=max(1,-(-(n-a0)//260));G=[];g=lambda x:(x-a0)//st
+    for k in range(a0,n,st): G.append([r(o[k]),r(max(h[k:k+st])),r(min(l[k:k+st])),r(c[min(n-1,k+st-1)])])
+    x=dict(s=s,state=state,cur=r(c[-1]),line=r(ln(n-1)),next=r(ln(n)),dist=round(dist,1),npts=len(L['pts']),slope=round(L['m']*250/c[-1]*100),
+        geo=dict(bars=G,line=[[0,r(ln(a0))],[len(G)+4,r(ln(a0+(len(G)+4)*st))]],T=[[g(p[0]),r(p[1])] for p in L['pts']],B=[],e=None if e is None else g(e),big=1,step=st))
+    if state=='buy':
+        ref=o[e+1] if e+1<n else c[e];Rr=R[e];tgt=ref*(1+2*Rr);stop=ref*(1-2*Rr)
+        if e+1<n and (max(h[e+1:])>=tgt or min(l[e+1:])<=stop): return []
+        x.update(date=ny_date(Dd[e][0]).isoformat(),ref=r(ref),tgt=r(tgt),stop=r(stop),move=round(200*Rr,1))
+    return [x]
 # --- Pattern trap: a narrowing pattern (falling wedge or a triangle) closes below its lower line and within 5 sessions
 # closes back inside. On US stocks since 1980 the next break was upward 63% of the time (see PT_STATS). The other
 # shapes (channels, rectangles, rising wedge, broadening) do not show this and are not listed.
@@ -1153,10 +1206,10 @@ def run_market(mid,base):
         print(P+'ERROR',f'only {okn} of {len(S)} stocks downloaded (index data: {bool(SPY)})');return None
     MODEL=relearn(FCOLLECT,MODEL,5,FEATS.index('pos'));CMODEL=relearn(COLLECT,CMODEL,3)
     labs={'fake':lab('fake',FCOLLECT,MODEL,5,FEATS.index('pos')),'ct':plab(COLLECT,CMODEL,[x[0] for x in data if x])}
-    fake=[];fake4=[];tails={};pats=[];gps=[];dps=[];scs=[];pbs=[];tls=[];ptr=[];mjs=[]
+    fake=[];fake4=[];tails={};pats=[];gps=[];dps=[];scs=[];pbs=[];tls=[];ptr=[];mjs=[];lps=[]
     for s,X in zip(S,data):
         if not X or len(X[0])<260: continue
-        B,ct,X4,tl,pts,gp,dp,sc_,pb_,tl_,pt_,mj_=X;mjs+=mj_;tails[s]=tl;pats+=pts;gps+=gp;dps+=dp;scs+=sc_;pbs+=pb_;tls+=tl_;ptr+=pt_
+        B,ct,X4,tl,pts,gp,dp,sc_,pb_,tl_,pt_,mj_,lp_=X;mjs+=mj_;lps+=lp_;tails[s]=tl;pats+=pts;gps+=gp;dps+=dp;scs+=sc_;pbs+=pb_;tls+=tl_;ptr+=pt_
         if ct:
             cev+=ct[0];ccand+=ct[2]
             for m,x in ct[1].items():
@@ -1217,6 +1270,7 @@ def run_market(mid,base):
     mkt=(INSD or {}).get('mkt')
     for x in mjs: x['grade']=None if x['state']!='buy' else 'C' if not x['calm'] else 'A' if (mkt is not None and mkt<0) else 'B'
     mjs.sort(key=lambda x:(x['state']!='buy',{'A':0,'B':1,'C':2}.get(x.get('grade'),3),-x['dist']));M['mj']=dict(list=mjs,stats=MJ_STATS,mkt=mkt,tf=MJ_TF)
+    lps.sort(key=lambda x:(x['state']!='buy',-x['npts'],x['dist']));M['lp']=dict(list=lps[:40],total=len(lps),stats=LP_STATS)
     if mid=='us':
         try: M['fx']=forex();print(P+'FOREX',M['fx']['ok'],'of',M['fx']['n'],'pairs;',sum(1 for x in M['fx']['list'] if x['state']=='buy'),'breaks',sum(1 for x in M['fx']['list'] if x['state']=='wait'),'waiting')
         except Exception as e: print(P+'FOREX_ERROR',str(e)[:160])
