@@ -5,6 +5,10 @@ import {Hook} from './Hook';
 import {Pen} from './Pen';
 import {Pen2} from './Pen2';
 import {Dami} from './Dami';
+import {Colors} from './Colors';
+import {Doors} from './Doors';
+import {DoorsEN, DUR_EN} from './DoorsEN';
+import {ToolsReel, DUR_TOOLS} from './ToolsReel';
 export const Root: React.FC = () => (<>
   <Composition id="Kinetic" component={Kinetic} durationInFrames={90} fps={30} width={1080} height={1920} defaultProps={{line1: 'تحسبه جدار زجاج ثابت؟', line2: 'شوف'}} />
   <Composition id="Hook" component={Hook} durationInFrames={75} fps={30} width={1080} height={1920} defaultProps={{line1: 'تحسبه جدار زجاج ثابت؟', line2: 'شوف', top: 430}} />
@@ -14,4 +18,8 @@ export const Root: React.FC = () => (<>
   <Composition id="Pen" component={Pen} durationInFrames={420} fps={30} width={1080} height={1920} />
   <Composition id="Pen2" component={Pen2} durationInFrames={435} fps={30} width={1080} height={1920} />
   <Composition id="Dami" component={Dami} durationInFrames={380} fps={30} width={1080} height={1920} />
+  <Composition id="Colors" component={Colors} durationInFrames={458} fps={30} width={1080} height={1920} />
+  <Composition id="Doors" component={Doors} durationInFrames={540} fps={30} width={1080} height={1920} />
+  <Composition id="DoorsEN" component={DoorsEN} durationInFrames={DUR_EN} fps={30} width={1080} height={1920} />
+  <Composition id="ToolsReel" component={ToolsReel} durationInFrames={DUR_TOOLS} fps={30} width={1080} height={1920} />
 </>);

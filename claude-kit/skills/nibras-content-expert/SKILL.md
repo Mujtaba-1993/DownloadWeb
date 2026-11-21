@@ -185,3 +185,11 @@ Schwartz awareness: problem-unaware → lead with the pain (heat, dust, noise); 
 3. Audar-TTS-V1 Flash (Arabic-first, Gulf) installed in ~/tools/audar-venv + ~/skills-src/Audar-TTS-V1 but BLOCKED: codec neuphonic/neucodec is gated on HF; user declined giving an HF token. Don't ask again unless user brings it up.
 4. Paid best: ElevenLabs v3 (skill installed, needs key). Never Piper/edge-tts (user: robotic).
 ## 22. pro-motion (jack-reson8, MIT) — the motion-graphics method: audio first, real refs, 3 style frames, one protagonist, designed transitions. Project ~/films/nibras; render: `CHROME=<headless shell> node tools/render-fast.js film.html out/x.mp4 --dur N --audio music/track.mp3` (patched --no-sandbox).
+
+## 23. Script formula (ref peter.visuals DdttI7oyswS, 5k likes): Hook -> Promise -> Value1 -> OPEN LOOP ("but there's one more thing…", black screen, word-by-word) -> Value2 -> OPEN LOOP 2 ("this is where most people get it wrong…") -> Value3 -> CTA ("screenshot this"/comment). Minimal monochrome motion, one diagram that rotates to each step, words appear word-by-word. Open loops = retention.
+## 24. Higgsfield Virality Predictor (connector, free, 15 s): v1 colours 48/hook 30, pen 41/hook 21. No face + no voice in first second = weak hook. Always: voice from frame 0, motion from frame 0.
+
+## 25. Editorial collage style (ref jordans.archivess DeKDmkmh_gM, 545k likes, "no AI"): 24fps, paper <-> black alternating, product cutouts tumbling/rotating ring (ring3d), single-word cards on black with blinking cursor ("نور." "خصوصية." "هدوء."), orange duotone silhouette, cyan/blue anamorphic light-streak transitions, spaced letters with an object replacing a letter (H[logo]ME), grain. Poetic English VO (Kokoro af_heart 0.95) + Arabic big type. Built: ~/films/jw/film.js -> reels/home_editorial.mp4.
+- English voice: Kokoro-onnx ~/tools/kokoro-venv + ~/tools/kokoro_tts.py (voice af_heart). Never imitate a real celebrity voice.
+
+## 26. Brand file: see brand.md in this skill folder — read it before every video. Motion libs: ~/tools/motion-libs (p5.brush, matter-js, roughjs, pixi.js+filters, animejs, thinking-orbs). Ref withian.t DeHP8DPsimI: open-source effects + own music beat map + brand file + reference library.
