@@ -10,3 +10,10 @@ Installed from github.com/nateherkai/roast-room (MIT). Skills `/roast-room` and 
 - To add an advisor, run `/newroaster <name>`. Keep `--quick` depth unless the owner asks for more.
 - The room web app was not installed (this repo's `app/` is an Android app). Councils run in chat and are saved under `sessions/`.
 - Seats are simulations built from public work, not the real people. Never present a seat's words as the person's unless it is a verbatim quote with a source id from that seat's brain.
+
+## Research tools (installed from GitHub projects)
+
+`pip install -r bounce-radar/requirements-research.txt` before any chart-pattern study.
+
+- `trendln` (GregoryMorse/trendln, MIT): draws support and resistance lines through the bounces. Use it to draw the owner's lines instead of a hand-written rule. On his EURUSD chart it found his falling line (1.1897 to 1.1249, 8 touches).
+- `stumpy` (stumpy-dev/stumpy): finds windows whose shape matches a given chart (`stumpy.mass`). Use it when the owner sends a chart and asks for similar ones.

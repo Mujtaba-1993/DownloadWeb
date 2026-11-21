@@ -1,0 +1,4 @@
+trendln
+stumpy
+matplotlib
+numpy
