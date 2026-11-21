@@ -193,3 +193,22 @@ Schwartz awareness: problem-unaware → lead with the pain (heat, dust, noise); 
 - English voice: Kokoro-onnx ~/tools/kokoro-venv + ~/tools/kokoro_tts.py (voice af_heart). Never imitate a real celebrity voice.
 
 ## 26. Brand file: see brand.md in this skill folder — read it before every video. Motion libs: ~/tools/motion-libs (p5.brush, matter-js, roughjs, pixi.js+filters, animejs, thinking-orbs). Ref withian.t DeHP8DPsimI: open-source effects + own music beat map + brand file + reference library.
+
+## 27. João (it.iss.joao) — 3.4M + 3.1M view reels, studied top 4 (Nov 2026)
+- FORMAT: one-take talking head to camera, by a window/home, hoodie/cap, NO fancy editing. Small white topic label box top-left ("How to make your reels go viral") + burned word captions centre-low. 55-78 s long.
+- HOOK = direct question to the viewer's pain: "Do you wanna know why your reels don't go viral?" then the blunt answer in 1 line.
+- Biggest hit = side-by-side DEMO: "how I would present it vs how you would" (acts out the bad version, funny) -> one tip -> "follow, I'll teach more".
+- Proof inserts: screenshots of his own numbers circled in orange (1M views/565 follows vs 90k/867).
+- Story hook: "Today is a sad day. I'm selling the Lamborghini" (emotion + money + change).
+- Energy rule: "talk like you're mad at the camera" (intense, not scared).
+- Follow CTA with a REASON ("because I'll be teaching you a lot more").
+- Volume: 10 videos in 30 min, unscripted/unedited, up to 20 posts/day mostly as TRIAL REELS; more posts = more feedback.
+
+## 28. "Beginning to end" match-cut montage (ref byimraaan Dc_2Y1qI0ZH, 1.5M likes, 11 s, 40 shots ~0.3 s, shape match cuts, flashes, THE END)
+- Built for Nibras: pulled ALL account media (766 items) via INSTAGRAM_GET_IG_USER_MEDIA with children{}, CLIP (openai/clip-vit-base-patch32) tagged frames into stages site/workshop/install/frame/window/door/facade/living + Laplacian sharpness; curated 38 shots; per-shot clips 6-10 frames, slow last shots; Remotion Montage.tsx adds centered window-frame motif that kicks on each cut, chapter word + 01/08 counter, white flash per chapter, "النهاية …وبداية بيتك" end. Tick SFX on every cut, riser, impact. Files: scratchpad all/ (tags.json, sel.json), reels/nibras_beginning_to_end.mp4.
+
+## 29. PRIVATE media library (user: "الصور خاصة، لا تطلع من هنا") — NEVER upload the photos anywhere (no GitHub, no artifact, no external host).
+At the start of EVERY Instagram/content session, restore it locally:
+1. Composio workbench: INSTAGRAM_GET_IG_USER_MEDIA (ig_user_id 29109653882037517, paginate `after`, fields id,permalink,timestamp,media_type,media_url,children{media_url,media_type}) -> flatten to [{id,type,url,ts}] (id = shortcode or shortcode_i for carousel children; skip ts >= 2026-11-20 = our own new reels) -> upload_local_file -> curl -L to ~/nibras-media/allmedia.json.
+2. `python3 ~/tools/nibras_media_restore.py ~/nibras-media/allmedia.json` (downloads originals, builds lib_src/<stage>__<id>.jpg from media/tags.json). Add `--clean` to rerun OWLv2+LaMa clutter removal (~1 h on 4 cores; run in background).
+3. Stage tags (CLIP) + best montage picks: media/tags.json, sel.json, shots.json in this skill folder (IDs only, no images).

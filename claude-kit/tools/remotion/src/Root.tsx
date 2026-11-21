@@ -9,6 +9,8 @@ import {Colors} from './Colors';
 import {Doors} from './Doors';
 import {DoorsEN, DUR_EN} from './DoorsEN';
 import {ToolsReel, DUR_TOOLS} from './ToolsReel';
+import {Fold, DUR_FOLD} from './Fold';
+import {Montage, DUR_MONT} from './Montage';
 export const Root: React.FC = () => (<>
   <Composition id="Kinetic" component={Kinetic} durationInFrames={90} fps={30} width={1080} height={1920} defaultProps={{line1: 'تحسبه جدار زجاج ثابت؟', line2: 'شوف'}} />
   <Composition id="Hook" component={Hook} durationInFrames={75} fps={30} width={1080} height={1920} defaultProps={{line1: 'تحسبه جدار زجاج ثابت؟', line2: 'شوف', top: 430}} />
@@ -22,4 +24,6 @@ export const Root: React.FC = () => (<>
   <Composition id="Doors" component={Doors} durationInFrames={540} fps={30} width={1080} height={1920} />
   <Composition id="DoorsEN" component={DoorsEN} durationInFrames={DUR_EN} fps={30} width={1080} height={1920} />
   <Composition id="ToolsReel" component={ToolsReel} durationInFrames={DUR_TOOLS} fps={30} width={1080} height={1920} />
+  <Composition id="Fold" component={Fold} durationInFrames={DUR_FOLD} fps={30} width={1080} height={1920} />
+  <Composition id="Montage" component={Montage} durationInFrames={DUR_MONT} fps={30} width={1080} height={1920} />
 </>);
