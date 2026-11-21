@@ -178,3 +178,10 @@ Schwartz awareness: problem-unaware → lead with the pain (heat, dust, noise); 
 - venv ~/tools/tts-venv (torch 2.6 cpu). Lines via stdin: `printf "line1\nline2\n" | ~/tools/tts-venv/bin/python ~/tools/cbtts.py REF.wav outprefix 0.55` -> outprefix_N.wav (~10s/line CPU).
 - REF = user's recording, enhanced (Resemble-Enhance) + pitch -2st -> Saudi accent, not recognisable. exaggeration 0.5-0.6, cfg 0.4.
 - Ref reel damianodesu DeWEsi0ygip: voice+music+SFX all AI; story narration problem->solution, 3D glossy mascot (orange ball with eyes), new visual every line.
+
+## 21. Arabic voice ranking (tested 2026-11-21)
+1. SILMA TTS (silma-ai, Apache-2.0, F5-TTS 150M, tashkeel): BEST free so far — `printf "l1\nl2\n" | ~/tools/silma-venv/bin/python ~/tools/silma.py REF24k.wav "ref transcript" outprefix` (~8 s ref).
+2. Chatterbox multilingual (~/tools/cbtts.py) — ok, mispronounces some words.
+3. Audar-TTS-V1 Flash (Arabic-first, Gulf) installed in ~/tools/audar-venv + ~/skills-src/Audar-TTS-V1 but BLOCKED: codec neuphonic/neucodec is gated on HF; user declined giving an HF token. Don't ask again unless user brings it up.
+4. Paid best: ElevenLabs v3 (skill installed, needs key). Never Piper/edge-tts (user: robotic).
+## 22. pro-motion (jack-reson8, MIT) — the motion-graphics method: audio first, real refs, 3 style frames, one protagonist, designed transitions. Project ~/films/nibras; render: `CHROME=<headless shell> node tools/render-fast.js film.html out/x.mp4 --dur N --audio music/track.mp3` (patched --no-sandbox).

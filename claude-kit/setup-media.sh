@@ -24,3 +24,7 @@ D=~/tools/models/DeepFilterNet3; mkdir -p $D/checkpoints; [ -f $D/checkpoints/mo
 [ -x ~/tools/tts-venv/bin/python ] || { python3 -m venv ~/tools/tts-venv && ~/tools/tts-venv/bin/pip install -q torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu && ~/tools/tts-venv/bin/pip install -q --no-deps chatterbox-tts==0.1.7 && ~/tools/tts-venv/bin/pip install -q "numpy>=2" librosa==0.11.0 s3tokenizer transformers==5.2.0 diffusers==0.29.0 "resemble-perth>=1.0.0" conformer==0.3.2 safetensors==0.5.3 pyloudnorm omegaconf soundfile; } || true
 bash "$KD"/video-tools/setup-video.sh || true
 pip install -q "numpy>=2.1" || true
+# --- pro-motion runtime deps + SILMA Arabic TTS ---
+sed -i "s#puppeteer.launch({ headless: 'new', #puppeteer.launch({ headless: 'new', args: ['--no-sandbox'], #" ~/.claude/skills/pro-motion/scripts/render-fast.js 2>/dev/null || true
+[ -d ~/films/nibras/tools/node_modules/puppeteer ] || CHROME=$(ls -d /opt/pw-browsers/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell 2>/dev/null | head -1) bash ~/.claude/skills/pro-motion/scripts/setup.sh ~/films/nibras --yes || true
+[ -x ~/tools/silma-venv/bin/python ] || { python3 -m venv ~/tools/silma-venv && ~/tools/silma-venv/bin/pip install -q torch torchaudio --index-url https://download.pytorch.org/whl/cpu && ~/tools/silma-venv/bin/pip install -q silma-tts && ~/tools/silma-venv/bin/pip install -q --force-reinstall --no-deps torchvision torchaudio torchcodec --index-url https://download.pytorch.org/whl/cpu; } || true
