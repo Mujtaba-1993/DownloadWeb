@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+import json,sys,os
+q=[w.lower() for w in sys.argv[1:]];d=json.load(open(os.path.expanduser("~/skills-src/agentic-awesome-skills/skills_index.json")))
+r=sorted(((sum((i["id"]+" "+i["description"]).lower().count(w) for w in q),i["id"],i["description"][:110]) for i in d),reverse=True)
+[print(f"{x[1]} | {x[2]}") for x in r[:25] if x[0]]
