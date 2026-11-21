@@ -932,6 +932,37 @@ def resolve(e,tl,now):
     if loss: return 'loss',loss
     if (now.date()-d0).days>HORIZON[e['kind']]: return 'loss',now.date().isoformat()
     return None
+# --- Claude's own paper account (owner, 2026-11-21: "study trading from zero and start trading yourself"). It is not a
+# new signal: it is a written playbook applied to the tool's own paper trades, so it needs no extra run. Rules (BOOK):
+# take only setup types whose studied success rate is at least minprior, risk a fixed share of the account per trade,
+# cap each position, cap the open positions and the new positions per day (losses come in clusters), never add after a loss.
+BOOK=dict(v=1,start='2026-11-21',cap=10000.0,risk=0.01,maxpos=0.10,flat=0.05,maxopen=10,perday=3,minprior=55)
+def claude_book(mine,cats):
+    pr=lambda e:(cats.get(e['cat']) or {}).get('prior') or 0
+    E=[e for e in mine if e.get('first','')>=BOOK['start'] and 'pt' in e and pr(e)>=BOOK['minprior'] and (cats.get(e['cat']) or {}).get('on',True)]
+    ev=[]
+    for e in E:
+        pt=e['pt']
+        if pt['status']=='pending' or pt.get('entry') is None: continue
+        ev.append((e['first'],1,-pr(e),e))
+        if pt['status']=='closed': ev.append((pt['exit'],0,0,e))
+    ev.sort(key=lambda x:x[:3]);eq=BOOK['cap'];op={};day={};closed=[];skipped=0;curve=[[BOOK['start'],eq]]
+    for dt,typ,_,e in ev:
+        k=e['id'];pt=e['pt']
+        if typ==0:
+            if k in op:
+                sz=op.pop(k);pnl=sz*pt['ret']/100;eq+=pnl;curve.append([dt,round(eq,2)])
+                closed.append(dict(s=e['s'],kind=e['kind'],cat=e['cat'],size=round(sz),ret=pt['ret'],pnl=round(pnl,2),entry=pt['entry'],d=e['first'],exit=dt))
+        elif len(op)>=BOOK['maxopen'] or day.get(dt,0)>=BOOK['perday']: skipped+=1
+        else:
+            S=pt.get('S');op[k]=min(BOOK['maxpos']*eq,BOOK['risk']*eq/S if isinstance(S,float) and S>0 else BOOK['flat']*eq);day[dt]=day.get(dt,0)+1
+    byid={e['id']:e for e in E};opn=[]
+    for k,sz in op.items():
+        e=byid[k];pt=e['pt'];opn.append(dict(s=e['s'],kind=e['kind'],cat=e['cat'],size=round(sz),ret=pt.get('ret',0),pnl=round(sz*pt.get('ret',0)/100,2),entry=pt['entry'],d=e['first'],tgt=e.get('tgt'),stop=e.get('stop'),prior=pr(e)))
+    un=sum(x['pnl'] for x in opn);w=sum(1 for x in closed if x['pnl']>0)
+    pend=[dict(s=e['s'],kind=e['kind'],cat=e['cat'],entry=e['entry'],tgt=e.get('tgt'),stop=e.get('stop'),prior=pr(e),d=e['first']) for e in sorted(E,key=lambda e:-pr(e)) if e['pt']['status']=='pending']
+    return dict(rules=BOOK,equity=round(eq,2),unreal=round(un,2),total=round(eq+un,2),ret=round((eq+un)/BOOK['cap']*100-100,2),open=opn,closed=closed[-30:][::-1],n=len(closed),wins=w,skipped=skipped,pending=pend,curve=curve[-200:],
+        types=sorted([[c,v['prior']] for c,v in cats.items() if (v.get('prior') or 0)>=BOOK['minprior']],key=lambda x:-x[1]))
 def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=(),ptr=(),ins=(),mjs=(),lps=()):
     now=ny_now();today=now.date().isoformat()
     try: log=json.load(open(LOGF,encoding='utf8'))
@@ -1008,7 +1039,7 @@ def selflearn(fake,fake4,ccand,tails,labs,pats=(),gps=(),dps=(),scs=(),tls=(),pt
         if 'cat' in c and c.get('pr') is not None: c['adj']=max(1,min(99,c['pr']+cats[c['cat']]['adj']-cats[c['cat']]['prior']))
     ok=lambda x:'cat' not in x or cats[x['cat']]['on']
     recent=sorted([e for e in mine if e['status']!='open'],key=lambda e:e['res'],reverse=True)[:25]
-    perf=dict(cats=cats,paper=pp,labs=labs,total=len(mine),recent=[dict(s=e['s'],kind=e['kind'],d=e['d'],res=e['res'],status=e['status'],entry=e['entry'],tgt=e['tgt']) for e in recent],
+    perf=dict(book=claude_book(mine,cats),cats=cats,paper=pp,labs=labs,total=len(mine),recent=[dict(s=e['s'],kind=e['kind'],d=e['d'],res=e['res'],status=e['status'],entry=e['entry'],tgt=e['tgt']) for e in recent],
         today=[dict(s=e['s'],kind=e['kind'],status=e['status']) for e in done],since=min([e['first'] for e in mine],default=today))
     return [f for f in fake if ok(f)],[f for f in fake4 if ok(f)],[c for c in ccand if ok(c)],[p for p in pats if ok(p)],[g for g in gps if ok(g)],perf,[x for x in dps if ok(x)],[x for x in scs if ok(x)]
 # --- Continuous learning: every run rebuilds the full history of signals and their outcomes, refits each scoring

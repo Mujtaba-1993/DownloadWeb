@@ -34,3 +34,10 @@ From github.com/Jakeschincariol/day-trader-skill (MIT, commit 3d0f4ef), copied i
 - `trader-broker` only prepares order tickets. No broker is connected (the owner trades in the Sahm app); never place an order.
 - `trader-analyst` and the SEC part of `trader-news` need a contact e-mail in `SEC_USER_AGENT`. Do not put the owner's e-mail there; he can set it himself.
 - Launch line (added 2026-11-21, `launch()` and `LP_STATS` in `radar.py`, `renderLP()` in `template.html`, shown inside the Mujtaba tab): line through the bottoms that started a big rise (8 daily ranges); buy when the price returns to it. Study: 11,651 returns, 51.0% worked, 48.2% when the market is below its 200-day. Labelled as unproven.
+
+## Claude's paper account (tab "تداول Claude" in the radar)
+
+The owner asked (2026-11-21) that Claude learn trading from zero and trade by itself. No real money and no broker: it is a virtual $10,000 account computed from the tool's own paper trades by `claude_book()` and the `BOOK` rules in `radar.py`, shown by `renderBook()` in `template.html`. It needs no extra scheduled run.
+
+- Rules v1: only setup types whose studied rate is 55% or more and that the tool has not paused; risk 1% of the account per trade (5% of the account when there is no stop); at most 10% per position, 10 open positions and 3 new positions a day; no adding after a loss.
+- The tab also lists the lessons learned and the schools to study next (momentum, post-earnings drift, trend following, short-term reversal, Wyckoff and volume, macro news, money management). When the owner asks to continue: study one school, test it on the data first, then change `BOOK` and the lessons list, and bump `BOOK['v']`.
