@@ -383,16 +383,22 @@ def _mjline(o,h,l,c,e):
         key=(sum(1 for x in Bk if x[2]),nt)
         if best is None or key>best[0]: best=(key,dict(m=m,b=b,a=a,rng=rng,Bk=Bk,T=[(x,p) for x,p in P if abs(p-(b+m*x))<=tol]))
     return best and best[1]
-def mujtaba(s,Dd):
-    now=ny_now()
-    if Dd and ny_date(Dd[-1][0])==now.date() and (now.hour,now.minute)<MK['close']: Dd=Dd[:-1]
+def mujtaba(s,Dd,fx=False,tf='d'):
+    # fx: a currency pair (bars start at their timestamp; the bar still forming is dropped). tf: 'd', 'h4' or 'h1'.
+    if fx:
+        import time
+        if Dd and time.time()-Dd[-1][0]<{'h1':3600,'h4':14400,'d':86400}[tf]: Dd=Dd[:-1]
+    else:
+        now=ny_now()
+        if Dd and ny_date(Dd[-1][0])==now.date() and (now.hour,now.minute)<MK['close']: Dd=Dd[:-1]
     W=MJ['W'];Dd=Dd[-(W+30):];n=len(Dd)
-    if n<W+10 or Dd[-1][4]<5: return []
-    o=[x[1] for x in Dd];h=[x[2] for x in Dd];l=[x[3] for x in Dd];c=[x[4] for x in Dd];v=[x[5] for x in Dd];r=lambda x:round(x,2);r1=lambda x:round(x,1)
+    if n<W+10 or (not fx and Dd[-1][4]<5): return []
+    o=[x[1] for x in Dd];h=[x[2] for x in Dd];l=[x[3] for x in Dd];c=[x[4] for x in Dd];v=[x[5] for x in Dd];r=(lambda x:float(f'{x:.5g}')) if fx else (lambda x:round(x,2));r1=lambda x:round(x,1)
+    when=lambda ts:d.datetime.fromtimestamp(ts,d.timezone(d.timedelta(hours=3))).strftime('%Y-%m-%d %H:%M') if fx else ny_date(ts).isoformat()
     def pack(L,state,e=None):
         a=L['a'];rng=L['rng'];ln=lambda x:L['b']+L['m']*(x-a);a0=max(a,n-170);T=sorted({x for x,p in L['T']})
         strong=[x for x in L['Bk'] if x[2]]
-        d=dict(s=s,state=state,cur=r(c[-1]),line=r(ln(n-1)),next=r(ln(n)),dist=r1((c[-1]/ln(n-1)-1)*100),touches=len(T),strong=len(strong),weak=len(L['Bk'])-len(strong),moves=[round(x[1]*100) for x in strong],
+        d=dict(s=s,tf=tf,state=state,cur=r(c[-1]),line=r(ln(n-1)),next=r(ln(n)),dist=r1((c[-1]/ln(n-1)-1)*100),touches=len(T),strong=len(strong),weak=len(L['Bk'])-len(strong),moves=[round(x[1]*100) for x in strong],
             geo=dict(bars=[[r(o[k]),r(h[k]),r(l[k]),r(c[k])] for k in range(a0,n)],line=[[0,r(ln(a0))],[n-1-a0+5,r(ln(n+4))]],T=[[x+a-a0,r(p)] for x,p in L['T'] if x+a>=a0],B=[[x[0]+a-a0,round(x[1]*100),1 if x[2] else 0] for x in L['Bk'] if x[0]+a>=a0],e=None if e is None else e-a0))
         return d
     for e in range(n-1,n-2-MJ['fresh'],-1):     # a break in the last sessions
@@ -405,13 +411,47 @@ def mujtaba(s,Dd):
         fails=[t_ for ok,t_ in ((F['ex']<1.5,'الإغلاق بعيد جداً فوق الخط'),(F['cr']<2.5,'شمعة الكسر كبيرة جداً'),(F['gap']<1,'فجوة افتتاح كبيرة'),(F['vr']<2.5,'حجم التداول انفجاري'),(F['up5']<4,'صعود حاد في 5 أيام قبل الكسر'),(F['tight']<7,'المنطقة قبل الكسر واسعة'),(F['depth']>=1,'السعر لم ينزل تحت الخط كفاية'),(F['depth']<6,'السعر كان بعيداً جداً تحت الخط')) if not ok]
         ref=o[e+1] if e+1<n else c[e];R=rng/c[e];tgt=ref*(1+2*R);stop=ref*(1-2*R)
         if e+1<n and (max(h[e+1:])>=tgt or min(l[e+1:])<=stop): continue
-        x=pack(L,'buy',e);x.update(date=ny_date(Dd[e][0]).isoformat(),age=n-1-e,ref=r(ref),tgt=r(tgt),stop=r(stop),move=r1(200*R),calm=not fails,fails=fails,f={k:r1(q) for k,q in F.items()})
+        x=pack(L,'buy',e);x.update(date=when(Dd[e][0]),age=n-1-e,ref=r(ref),tgt=r(tgt),stop=r(stop),move=round(200*R,2),calm=not fails,fails=fails,f={k:r1(q) for k,q in F.items()})
         return [x]
     L=_mjline(o,h,l,c,n)                         # still under the line: wait for the break
     if not L: return []
     x=pack(L,'wait')
     if x['strong']<MJ['strong'] or x['dist']<-MJ['near'] or x['dist']>=0: return []
     return [x]
+# --- Mujtaba's theory on currencies: the same line and break rules on 28 pairs, on the day, 4-hour and 1-hour charts.
+# Studied 2026-11-21 (hourly data covers about two years): no timeframe beats a coin flip by a reliable margin, see MJ_FX.
+FX_PAIRS='EURUSD GBPUSD USDJPY USDCHF AUDUSD NZDUSD USDCAD EURGBP EURJPY EURCHF EURAUD EURNZD EURCAD GBPJPY GBPCHF GBPAUD GBPNZD GBPCAD AUDJPY AUDCHF AUDNZD AUDCAD NZDJPY NZDCHF NZDCAD CADJPY CADCHF CHFJPY'.split()
+MJ_FX=dict(d=dict(n=909,win=50.6,calm=dict(n=502,win=52.0),wild=dict(n=407,win=48.9),since=1999),h4=dict(n=398,win=50.8,calm=dict(n=287,win=50.9),wild=dict(n=111,win=50.5),since=2025),h1=dict(n=1637,win=48.7,calm=dict(n=1210,win=48.3),wild=dict(n=427,win=50.1),since=2024))
+MJ_TF=dict(h4=dict(n=1578,win=50.5,calm=dict(n=961,win=49.5)),h1=dict(n=8116,win=48.7,calm=dict(n=3796,win=48.9)))   # S&P 500 stocks on the intraday charts, 2025-2026
+def _fxbars(p,iv,days):
+    import time
+    for _ in range(3):
+        try:
+            now=int(time.time());u=f"https://query1.finance.yahoo.com/v8/finance/chart/{p}=X?period1={now-days*86400}&period2={now}&interval={iv}"
+            r=json.load(urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'Mozilla/5.0'}),timeout=40))['chart']['result'][0];q=r['indicators']['quote'][0]
+            return [(a,o,h,l,c,0) for a,o,h,l,c in zip(r['timestamp'],q['open'],q['high'],q['low'],q['close']) if o and h and l and c and h>l]
+        except Exception: pass
+    return None
+def forex():
+    def one(p):
+        nm=p[:3]+'/'+p[3:];out=[];D1=_fxbars(p,'1d',500);H1=_fxbars(p,'1h',75)
+        if D1: out+=mujtaba(nm,D1,True,'d')
+        if H1:
+            out+=mujtaba(nm,H1,True,'h1');W={}
+            for a,o,h,l,c,v in H1:
+                k=a//14400
+                if k in W: x=W[k];W[k]=(x[0],x[1],max(x[2],h),min(x[3],l),c,0)
+                else: W[k]=(k*14400,o,h,l,c,0)
+            out+=mujtaba(nm,[W[k] for k in sorted(W)],True,'h4')
+        if H1:   # Yahoo's daily currency close can differ from the last traded price: show the latest hourly close
+            px=H1[-1][4]
+            for x in out:
+                if x['tf']=='d': x['cur']=float(f'{px:.5g}');x['dist']=round((px/x['line']-1)*100,1)
+            out=[x for x in out if not(x['state']=='wait' and x['dist']>=0)]
+        return out,bool(D1 and H1)
+    with cf.ThreadPoolExecutor(8) as ex: res=list(ex.map(one,FX_PAIRS))
+    L=[x for r in res for x in r[0]];L.sort(key=lambda x:(x['state']!='buy',not x.get('calm',True),-x['dist']))
+    return dict(list=L,stats=MJ_FX,ok=sum(1 for r in res if r[1]),n=len(FX_PAIRS),at=d.datetime.now(d.timezone(d.timedelta(hours=3))).strftime('%Y-%m-%d %H:%M'))
 # --- Pattern trap: a narrowing pattern (falling wedge or a triangle) closes below its lower line and within 5 sessions
 # closes back inside. On US stocks since 1980 the next break was upward 63% of the time (see PT_STATS). The other
 # shapes (channels, rectangles, rising wedge, broadening) do not show this and are not listed.
@@ -1176,7 +1216,10 @@ def run_market(mid,base):
     M=dict(charts=charts,fake=fake,fake4=fake4,gaps=gps,dips=dps,dstats=DIP_STATS[mid],schools=scs,sstats=SCH_STATS[mid],dcmp=DIP_CMP[mid],gstats=GAP_STATS[mid],gcmp=GAP_CMP[mid],audit=AUDIT[mid],tl=tls,tlstats=TL_STATS,pt=ptr,ptstats=PT_STATS,pton=perf['cats'].get('pt',{}).get('on',True),tlon=perf['cats'].get('tl',{}).get('on',True),pb=pbs,pbstats=PB_STATS[mid],pbtf=PB_TF[mid],pats=pats,pstats=PAT_STATS[mid],pall=PAT_ALL[mid],h4=MK['h4'],model=MODEL['info'],cmodel=CMODEL['info'],perf=perf,ct=dict(st=cst,cand=ccand,n=len(cev)),names=names,stocks=okn)
     mkt=(INSD or {}).get('mkt')
     for x in mjs: x['grade']=None if x['state']!='buy' else 'C' if not x['calm'] else 'A' if (mkt is not None and mkt<0) else 'B'
-    mjs.sort(key=lambda x:(x['state']!='buy',{'A':0,'B':1,'C':2}.get(x.get('grade'),3),-x['dist']));M['mj']=dict(list=mjs,stats=MJ_STATS,mkt=mkt)
+    mjs.sort(key=lambda x:(x['state']!='buy',{'A':0,'B':1,'C':2}.get(x.get('grade'),3),-x['dist']));M['mj']=dict(list=mjs,stats=MJ_STATS,mkt=mkt,tf=MJ_TF)
+    if mid=='us':
+        try: M['fx']=forex();print(P+'FOREX',M['fx']['ok'],'of',M['fx']['n'],'pairs;',sum(1 for x in M['fx']['list'] if x['state']=='buy'),'breaks',sum(1 for x in M['fx']['list'] if x['state']=='wait'),'waiting')
+        except Exception as e: print(P+'FOREX_ERROR',str(e)[:160])
     M['ins']=INSD;M['insstats']=INS_STATS;M['insgrade']=INS_GRADE;M['inscouncil']=INS_COUNCIL
     print(P+'INSIDERS',json.dumps(M['ins'] and dict(mkt=M['ins']['mkt'],on=M['ins']['on'],seen=M['ins']['seen'],list=[{k:v for k,v in x.items() if k!='geo'} for x in M['ins']['list']]),ensure_ascii=False))
     M['trades']=build_trades(M)
@@ -1330,6 +1373,10 @@ def intraday(out,mid):
     D[mid]['trades']=build_trades(D[mid])
     for m in MARKETS:   # study tables of the pullback tab, also for data saved before that tab existed
         if D.get(m): D[m]['pbstats']=PB_STATS[m];D[m]['pbtf']=PB_TF[m];D[m].setdefault('pb',[]);D[m]['audit']=AUDIT[m]
+    if mid=='us':
+        try: D[mid]['fx']=forex()
+        except Exception: pass
+    if D[mid].get('mj'): D[mid]['mj']['stats']=MJ_STATS;D[mid]['mj']['tf']=MJ_TF
     render(D,out)
     print('INTRADAY',mid,okn,'stocks',len(pats),'live signals',json.dumps({k:len(D[mid].get(k,[])) for k in ('dips','schools','gaps','fake','fake4')}))
     print('NEW',json.dumps([{k:v for k,v in x.items() if k not in ('chart','geo')} for x in new]))

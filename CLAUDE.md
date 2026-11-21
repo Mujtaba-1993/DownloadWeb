@@ -25,3 +25,4 @@ The owner's own pattern, added 2026-11-21: a falling line on the small bounces; 
 - Study (42,814 breaks, lines drawn from the past only): all breaks win 51.7%, calm breaks 53.4%, calm breaks with the S&P 500 below its 200-day average 56.6%, wild breaks 48.0%. A line that worked before does not raise the odds of its next break.
 - Grades on the page: A = calm break and market below its 200-day, B = calm break and market above it, C = wild break (do not enter).
 - The tab is not written to the performance log yet.
+- Timeframes and currencies (studied 2026-11-21): on the 1-hour and 4-hour charts the theory is a coin flip for stocks (48.7% and 50.5%) and for 28 currency pairs (48.7% and 50.8%); currencies on the day chart 50.6%, calm breaks 52.0%. The tab "الفوركس" (`forex()` in `radar.py`, `renderFX()` in `template.html`) lists the pairs on the three timeframes and is labelled as unproven.

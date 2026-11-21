@@ -92,7 +92,7 @@ details.how{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}de
 <div class="rfb"><button class="btn" id="rf">↻ تحديث</button><span class="note" id="rfn" style="margin:0"></span></div>
 </header>
 
-<nav class="tabs" role="tablist"><button data-go="tl">الفخاخ<span class="cnt" id="n-tl"></span></button><button data-go="mj">نظرية مجتبى<span class="cnt" id="n-mj"></span></button><button data-go="ins">شراء المدراء<span class="cnt" id="n-ins"></span></button><button data-go="trades">الإشارات المدروسة<span class="cnt" id="n-trades"></span></button><button data-go="journal">سجلي<span class="cnt" id="n-journal"></span></button><button data-go="ev">الأدلة والأداء</button></nav>
+<nav class="tabs" role="tablist"><button data-go="tl">الفخاخ<span class="cnt" id="n-tl"></span></button><button data-go="mj">نظرية مجتبى<span class="cnt" id="n-mj"></span></button><button data-go="fx">الفوركس<span class="cnt" id="n-fx"></span></button><button data-go="ins">شراء المدراء<span class="cnt" id="n-ins"></span></button><button data-go="trades">الإشارات المدروسة<span class="cnt" id="n-trades"></span></button><button data-go="journal">سجلي<span class="cnt" id="n-journal"></span></button><button data-go="ev">الأدلة والأداء</button></nav>
 
 <div class="risk bar" id="riskbar"><label>رأس المال<input id="cap" inputmode="decimal" autocomplete="off"></label><label>المخاطرة لكل صفقة %<input id="rsk" inputmode="decimal" autocomplete="off"></label><div class="out" id="rout"></div></div>
 
@@ -127,7 +127,16 @@ details.how{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}de
 <li><b>الكسر هادئ</b>، أي لا يوجد أي واحد من هذه: شمعة الكسر أكبر من حركتين يوميتين ونصف، إغلاق أعلى من الخط بحركة ونصف، فجوة افتتاح بحركة يومية كاملة، حجم تداول مرتين ونصف المعتاد، صعود 4 حركات في 5 أيام قبل الكسر، منطقة واسعة قبل الكسر (7 حركات في 10 أيام)، أو سعر لم ينزل تحت الخط حركة واحدة على الأقل أو نزل تحته 6 حركات.</li>
 <li>الأفضل أن يكون مؤشر S&P 500 تحت متوسط 200 يوم.</li><li>الهدف والوقف المقاسان في الدراسة: حركتان يوميتان للأعلى أو للأسفل من سعر الدخول.</li></ol>
 <h3>نتيجة الدراسة</h3><div class="tb"><table id="mjs"></table></div>
+<h3>نفس النظرية على فريمات أصغر (أسهم S&P 500، 2025–2026)</h3><div class="tb"><table id="mjtf"></table></div>
 <p class="note" id="mjn"></p></section>
+</div>
+<div class="tab" data-tab="fx" hidden>
+<section class="panel"><div class="ph"><h2>الفوركس: نظرية مجتبى على العملات <span class="chip wk">قيد القياس · لا ميزة مثبتة</span></h2><span class="note" id="fxcount" style="margin:0"></span></div>
+<p class="lead">نفس الخط ونفس شروط الكسر على 28 زوج عملات، على شارت اليوم و4 ساعات والساعة. الأوقات بتوقيت الرياض. في الدراسة لم يتفوق أي فريم على رمي العملة بفارق موثوق، فاعتبر هذا القسم للمتابعة والقياس.</p>
+<div class="tgbar"><span>الفريم:</span><div class="seg" id="fxtf"></div></div>
+<h3>كسرت الخط الآن</h3><div id="fxb"></div>
+<h3>تحت الخط وتنتظر الكسر</h3><div id="fxw"></div></section>
+<section class="panel"><div class="ph"><h2>نتيجة الدراسة على العملات</h2></div><div class="tb"><table id="fxs"></table></div><p class="note" id="fxn"></p></section>
 </div>
 <div class="tab" data-tab="ins" hidden>
 <section class="panel"><div class="ph"><h2>شراء المدراء <span class="chip wk">قيد القياس · لا مال حقيقي</span></h2><span class="note" id="inscount" style="margin:0"></span></div>
@@ -438,7 +447,20 @@ ${x.fails.length?`<p class="note" style="margin:0;color:var(--dn)">كسر غير
  const mb=$('mjmore');mb.hidden=Wt.length<=MJSHOW;mb.textContent=`اعرض الباقي (${Wt.length-MJSHOW})`;
  const row=(nm,o,hl)=>`<tr${hl?' class="hl"':''}><td>${nm}</td><td class="n">${num(o.n)}</td><td class="n">${o.win}%</td><td class="n">${o.avg==null?'—':sg(o.avg)}</td></tr>`;
  $('mjs').innerHTML='<tr><th>الحالة</th><th>عدد الكسرات</th><th>نجح</th><th>متوسط الربح بعد 20 جلسة</th></tr>'+row('كل الكسرات',S)+row('كسر هادئ',S.calm)+row('كسر عنيف (أي شرط مخالف)',S.wild)+row('A: كسر هادئ والسوق تحت متوسط 200 يوم',S.A,1)+row('B: كسر هادئ والسوق فوق متوسطه',S.B)+row('الكسر التالي لخط أعطى نقطتين قويتين',S.third)+row('الكسر التالي لخط لم يعطِ أي نقطة قوية',S.none);
+ if(J.tf&&$('mjtf'))$('mjtf').innerHTML='<tr><th>الفريم</th><th>كل الكسرات</th><th>نجح</th><th>كسر هادئ</th><th>نجح</th></tr>'+`<tr><td>يوم (منذ 1996)</td><td class="n">${num(S.n)}</td><td class="n">${S.win}%</td><td class="n">${num(S.calm.n)}</td><td class="n">${S.calm.win}%</td></tr>`+[['h4','4 ساعات'],['h1','ساعة']].map(k=>`<tr><td>${k[1]}</td><td class="n">${num(J.tf[k[0]].n)}</td><td class="n">${J.tf[k[0]].win}%</td><td class="n">${num(J.tf[k[0]].calm.n)}</td><td class="n">${J.tf[k[0]].calm.win}%</td></tr>`).join('');
  $('mjn').textContent=`"نجح" = صعد حركتين يوميتين قبل أن ينزل مثلهما خلال 60 جلسة؛ الشراء العشوائي يعطي نحو ${S.random}%. الدراسة على نحو 4,800 سهم أمريكي وأزواج فوركس، والخط مرسوم من الماضي فقط. حركة قوية بعد الكسر (3 حركات يومية فأكثر) تحصل في ${S.strongmove}% من الكسرات. نجاح الخط سابقاً لا يرفع فرصة الكسر التالي. الأرقام قبل العمولة، والشركات المشطوبة غير محسوبة. هذا القسم لا يُسجَّل بعد في سجل الأداء. السوق الآن ${dn?'تحت':'فوق'} متوسط 200 يوم، فالكسر الهادئ اليوم درجته ${dn?'A':'B'}.`}
+let FXTF='d';const FXN={d:'يوم',h4:'4 ساعات',h1:'ساعة'};
+function renderFX(){const F=D.fx;if(!$('fxb'))return;if(!F){$('fxb').innerHTML='<p class="none">بيانات العملات لم تُحمَّل بعد. تظهر مع التحديث القادم.</p>';$('fxw').innerHTML='';return}
+ const L=F.list||[],nb=L.filter(x=>x.state=='buy').length;$('n-fx').textContent=nb||'';$('fxcount').textContent=`${F.ok} من ${F.n} زوجاً · آخر فحص ${F.at}`;
+ $('fxtf').innerHTML=Object.keys(FXN).map(k=>`<button data-fxtf="${k}" class="${k==FXTF?'on':''}">${FXN[k]} (${L.filter(x=>x.tf==k).length})</button>`).join('');
+ const B=L.filter(x=>x.tf==FXTF&&x.state=='buy'),W=L.filter(x=>x.tf==FXTF&&x.state=='wait'),mv=x=>x.moves.length?x.moves.map(m=>'+'+m+'%').join('، '):'—';
+ $('fxb').innerHTML=B.length?B.map(x=>`<article class="mjc"><header><b>${x.s}</b><span class="chip ${x.calm?'g-A':'g-C'}">${x.calm?'كسر هادئ':'كسر عنيف'}</span><span class="note" style="margin:0">كسر ${x.date}</span></header>
+<div class="mjf"><span>الدخول <b>${x.ref}</b></span><span>الهدف <b>${x.tgt}</b></span><span>الوقف <b>${x.stop}</b></span><span>المسافة لكل منهما <b>${x.move}%</b></span><span>السعر الآن <b>${x.cur}</b></span><span>الخط على <b>${x.touches}</b> ارتدادات</span><span>نقاط شراء قوية سابقة <b>${x.strong}</b></span></div>
+${x.fails.length?`<p class="note" style="margin:0;color:var(--dn)">${x.fails.join('، ')}.</p>`:''}${mjChart(x)}</article>`).join(''):`<p class="none">لا يوجد زوج كسر خطه الآن على فريم ${FXN[FXTF]}.</p>`;
+ $('fxw').innerHTML=W.length?W.map(x=>`<article class="mjc"><header><b>${x.s}</b><span class="note" style="margin:0">ادخل عند إغلاق شمعة ${FXN[FXTF]} فوق <b style="color:var(--warn);font-family:var(--m)">${x.next}</b></span></header>
+<div class="mjf"><span>السعر الآن <b>${x.cur}</b></span><span>بُعده عن الخط <b>${x.dist}%</b></span><span>الخط على <b>${x.touches}</b> ارتدادات</span><span>نقاط شراء قوية سابقة <b>${x.strong}</b> (${mv(x)})</span>${x.weak?`<span>كسرات ضعيفة <b>${x.weak}</b></span>`:''}</div>${mjChart(x)}</article>`).join(''):`<p class="none">لا يوجد زوج قريب من خطه على فريم ${FXN[FXTF]}.</p>`;
+ const S=F.stats;$('fxs').innerHTML='<tr><th>الفريم</th><th>الفترة</th><th>كل الكسرات</th><th>نجح</th><th>كسر هادئ</th><th>نجح</th><th>كسر عنيف نجح</th></tr>'+Object.keys(FXN).map(k=>`<tr><td>${FXN[k]}</td><td class="n">${S[k].since}–2026</td><td class="n">${num(S[k].n)}</td><td class="n">${S[k].win}%</td><td class="n">${num(S[k].calm.n)}</td><td class="n">${S[k].calm.win}%</td><td class="n">${S[k].wild.win}%</td></tr>`).join('');
+ $('fxn').textContent='"نجح" = صعد حركتين من حركات الشمعة قبل أن ينزل مثلهما خلال 60 شمعة. في العملات رمي العملة يعطي 50%، فكل الأرقام قريبة منه. بيانات الساعة تغطي نحو سنتين فقط، وعدد الحالات على 4 ساعات قليل. الهدف والوقف المعروضان هما قياس الدراسة (حركتان)، والأرقام قبل فرق السعر والعمولة.'}
 function renderIns(){const I=D.ins,S=D.insstats;if(!S)return;const r1=v=>Math.round(v*10)/10;
  INT=I&&I.on&&I.deep!==false?(I.list||[]).map(t=>({...t,kind:'ins',entry:t.cur,risk:r1((1-t.stop/t.cur)*100),share:Math.min(3,I.list.length),lab:['الهدف','الدخول','خسارة مفترضة'],tgt:Math.round(t.cur*(1+INTG/100)*100)/100,tgp:((D.insgrade||{})[t.grade=='A'?'A':'B']||S).tg.find(r=>r[0]==INTG)?.[1]})):[];
  const shown=INT.slice(0,INSHOW);
@@ -462,7 +484,7 @@ function renderIns(){const I=D.ins,S=D.insstats;if(!S)return;const r1=v=>Math.ro
  $('insverdict').innerHTML=`<b>الخلاصة:</b> تقليد المدراء وحده لا يكفي. ينجح حين يشترون وسط الخوف: السوق تحت متوسطه والسهم مضروب. حين السوق فوق متوسطه كانت النتيجة ${S.above.ex}% عن السوق. التحفظ: من 2022 ضعفت الميزة (فوق السوق +1.2% فقط)، و43% من الحالات التاريخية بلا أسعار اليوم لأن شركاتها شُطبت، وهذا يرفع الأرقام.`;
  $('insper').innerHTML='<tr><th>الفترة</th><th>الحالات</th><th>أغلقت بربح</th><th>متوسط الصفقة</th><th>فوق السوق</th><th>تفوّق</th></tr>'+S.per.map(r=>`<tr><td>${r[0]}</td><td class="n">${num(r[1])}</td><td class="n">${r[2]}%</td><td class="n pos">+${r[3]}%</td><td class="n">+${r[4]}%</td><td class="n">${r[5]}%</td></tr>`).join('');
  $('instests').innerHTML='<li><b>القاعدة:</b> شراء معلن من داخل الشركة بـ 50 ألف دولار أو أكثر في آخر 14 يوماً. سعر السهم 5 دولارات أو أكثر، وتداوله اليومي 5 ملايين دولار أو أكثر. الدخول افتتاح الجلسة التالية للإعلان، ويبقى السهم معروضاً 5 جلسات. الخروج إغلاق الجلسة 60.</li><li>فُحص 14 شرطاً في السهم والسوق. حجم الشراء، ومنصب المشتري، وحجم التداول لم تفرّق. حالة السوق وبُعد السهم عن قمته هما اللذان فرّقا، في ما قبل 2018 وما بعدها.</li><li>كل سهم يظهر هنا يُسجَّل في سجل الاقتراحات الحي والمحفظة التجريبية (هدف +15%، خروج بعد 60 جلسة)، فتقيّم الخانة نفسها مع الوقت. تجد نتائجها في «الأدلة والأداء».</li><li>المصدر: openinsider.com، المبني على إعلانات هيئة الأوراق الأمريكية.</li>'}
-function renderTrades(){renderIns();renderTL();renderMJ();TL=D.trades||[];$('n-trades').textContent=TL.length||'';const cur=MKT=='us'?'$':'ر.س';
+function renderTrades(){renderIns();renderTL();renderMJ();renderFX();TL=D.trades||[];$('n-trades').textContent=TL.length||'';const cur=MKT=='us'?'$':'ر.س';
  const vis=TL.map((t,i)=>[t,i]).filter(([t])=>UNFOLD||!t.fold),folded=TL.filter(t=>t.fold),cl=(TL.find(t=>t.cluster)||{}).cluster||0,shown=vis.slice(0,SHOW);
  const foldRow=folded.length&&!UNFOLD?`<div class="fold"><span><b>${folded.length} صفقة مشابهة مطويّة</b> · كلها نفس الرهان على ارتداد السوق بعد الهبوط. الثلاث المعروضة تتقاسم مخاطرة صفقة واحدة.</span><button class="btn x" id="unfold">عرضها</button></div>`:'';
  const stale=BUILT_MS&&Date.now()-BUILT_MS>20*3600e3;
@@ -571,6 +593,7 @@ document.addEventListener('click',async e=>{
  const b=e.target.closest('button');if(b&&b.id=='unfold'){UNFOLD=true;renderTrades();return}
  if(b&&b.dataset.copy){const tx=ticket(TL[+b.dataset.copy]);try{await navigator.clipboard.writeText(tx);b.textContent='نُسخ ✓'}catch(err){b.textContent=tx}return}
  if(b&&b.dataset.copytl){const t=TLT[+b.dataset.copytl],z=size(t),tx=`${tick(t.s)} · شراء محدد · لا تدفع أكثر من ${t.lim}${z?' · الكمية '+z.n:''} · الهدف ${t.tgt} · الوقف ${t.stop}`;try{await navigator.clipboard.writeText(tx);b.textContent='نُسخ ✓'}catch(err){b.textContent=tx}return}
+ if(b&&b.dataset.fxtf){FXTF=b.dataset.fxtf;renderFX();return}
  if(b&&b.dataset.tg){INTG=+b.dataset.tg;try{localStorage.setItem('rr-instg',INTG)}catch(e){}$('cpc').value=INTG;renderIns();return}
  if(b&&b.dataset.copyins){const t=INT[+b.dataset.copyins],z=size(t),tx=`${t.s} · شراء محدد · لا تدفع أكثر من ${t.lim}${z?' · الكمية '+z.n:''} · الهدف ${t.tgt} · بلا وقف · خروج بعد ${t.left} جلسة`;try{await navigator.clipboard.writeText(tx);b.textContent='نُسخ ✓'}catch(err){b.textContent=tx}return}
  if(b&&b.dataset.enterins)b.dataset.enter='in'+b.dataset.enterins;
