@@ -142,3 +142,39 @@ Schwartz awareness: problem-unaware → lead with the pain (heat, dust, noise); 
   fp16=False)`, frames resized to multiples of 32; ~0.7 s per mid-frame at 352x640) → real smooth slow-motion for payoff shots.
   Piper TTS Arabic voice `~/tools/piper/ar_JO-kareem-medium.onnx` (`echo "نص" | python3 -m piper -m <onnx> -f out.wav`) for
   voice-over drafts (Levantine accent; check the voice licence before paid ads; a real Saudi voice from the owner is better).
+
+## 16. Lesson from JuCheng Precision CNC reel DdTGTnJiqOX (130k likes, 1,053 comments) — "Sell me this pen" B2B meme
+- Format: letterboxed 9:16 (black bars), fixed title on top "How would YOU sell me this pen?" in yellow, small white captions under.
+  First 20 s: the famous Wolf of Wall Street scene (each character fails to sell the pen). Then the company rep is **composited into the
+  seminar audience** (cut-out over the movie background), holds real product samples one by one: "We don't sell pens — we offer CNC
+  machining, 3D printing, sheet metal, injection molding… send your parts for a free quote."
+- Why it works: famous meme = instant recognition, the punchline is the brand reframing the question, real samples = proof,
+  caption invites "How would you sell this pen?" → comments.
+- Al Nibras version: "ما نبيع أقلام… نفصّل شبابيك وأبواب ألمنيوم" — owner holds a profile cut, a handle, a double-glass corner, a
+  rubber gasket, ends with "المعاينة مجانية، واتساب". Needs: the scene clip (user-supplied, copyright risk is theirs) + a 15 s phone
+  clip of the owner against a plain wall holding samples; cut-out with rembg/MediaPipe and composite over the audience shot.
+
+## 17. Motion design lesson (ref: navkapoor reel DehAXjXv0Dy) — user said old 3D looked "beginner"
+- ONE hero object drives every transition (their swinging ball; ours: pen strikes the word, window sash wipes-reveals the word, frame morphs window->door, door opens to light that floods to the end card).
+- Cream bg #EEE8DD + black bold sans (IBM Plex Arabic) mixed with gold italic serif (Amiri Italic) for the key word. Small @handle top corner. Lots of whitespace.
+- Text reveals are clip-masked by the moving object, not just fade/pop. Exits = slide up + blur.
+- Dark "spotlight" moment mid-reel, then flood back to light.
+- End: dot-timeline list (red glowing dots) + black pill CTA + bouncing arrow.
+- A sound effect on EVERY move. No TTS voice (user hates Piper voice).
+- Template: ~/tools/remotion/src/Pen2.tsx (fonts in public/: Plex.woff2, AmiriIt.woff2, Tajawal-Bold.ttf).
+
+## 18. Sound lesson (ref: riki.bosso DfDEoqdRZm1, 16k likes) — user loved the sound
+- It is ORIGINAL audio, not a trending track: calm deep ad-style voiceover (one flowing sentence over the visuals) + warm cinematic beat ~100 BPM (energy in 120-500Hz) + a SFX on each visual hit.
+- Voice: Microsoft Edge neural ar-SA-HamedNeural (rate -6%, pitch -8Hz) via scratchpad tts.py (certifi.where patched to /root/.ccr/ca-bundle.crt + proxy=HTTPS_PROXY). NEVER Piper ar_JO (user: "معفن").
+- Music: Mixkit free music in ~/tools/music (440.mp3 closest to that sound). Music 0.10 under film dialogue, 0.26 under VO.
+- Retime motion to the voice (Pen2.tsx useF() time-warp), not the voice to the motion.
+
+## 19. Voice clarity tools (installed, isolated venv ~/tools/voice-venv — never pip these into system python, they downgrade numpy)
+- Resemble-Enhance (ResembleAI, best): `~/tools/voice-venv/bin/python ~/tools/renhance.py in.wav out.wav` (~1 min / 12s on CPU). Weights fetched from HF into package model_repo (deepspeed stubbed).
+- DeepFilterNet3 (noise only): `~/tools/voice-venv/bin/python ~/tools/dfn.py in48k_mono.wav out.wav`, weights ~/tools/models/DeepFilterNet3 (from HF fal/DeepFilterNet3; github raw is 403).
+- Anonymize the user's voice: after enhancing, asetrate*0.8909 + atempo 1.1225 (-2 semitones, shifts formants too).
+
+## 20. AI voice: Chatterbox Multilingual (ResembleAI, MIT, GitHub resemble-ai/chatterbox) — Arabic OK, commercial OK
+- venv ~/tools/tts-venv (torch 2.6 cpu). Lines via stdin: `printf "line1\nline2\n" | ~/tools/tts-venv/bin/python ~/tools/cbtts.py REF.wav outprefix 0.55` -> outprefix_N.wav (~10s/line CPU).
+- REF = user's recording, enhanced (Resemble-Enhance) + pitch -2st -> Saudi accent, not recognisable. exaggeration 0.5-0.6, cfg 0.4.
+- Ref reel damianodesu DeWEsi0ygip: voice+music+SFX all AI; story narration problem->solution, 3D glossy mascot (orange ball with eyes), new visual every line.
