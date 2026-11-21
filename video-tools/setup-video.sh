@@ -24,7 +24,7 @@ pip install -q -r ~/skills-src/OpenMontage/requirements.txt || true
 pip install -q mediapipe youtube-transcript-api || true
 PUPPETEER_SKIP_DOWNLOAD=1 npm install -g --silent @mermaid-js/mermaid-cli || true
 cd ~/skills-src && [ -d BMTS-Lite/.git ] || { git init -q BMTS-Lite && git -C BMTS-Lite fetch -q --depth 1 https://github.com/sharbvane/BMTS-Lite.git d0b7c1fd5b96fb72d1378950fde8a5673a0813d1 && git -C BMTS-Lite checkout -q FETCH_HEAD; } || true
-(cd ~/skills-src/BMTS-Lite && uv venv -q -p 3.11 .venv && uv pip install -q -p .venv/bin/python -r requirements-runtime.txt) || true
+(cd ~/skills-src/BMTS-Lite && { [ -x .venv/bin/python ] || uv venv -q -p 3.11 .venv; } && uv pip install -q -p .venv/bin/python -r requirements-runtime.txt) || true
 AAS=4a52ab5ef117bdce2c6ba8d87dd64df0c840dfea; SK="sfxmint remotion-captions creative-psychology-hooks emotional-arc-designer comment-to-dm-cta"
 cd ~/skills-src && [ -d agentic-awesome-skills/.git ] || { git init -q agentic-awesome-skills && cd agentic-awesome-skills && \
   git sparse-checkout set --no-cone /skills_index.json $(for s in $SK; do echo /skills/$s/; done) && \
