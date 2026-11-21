@@ -26,3 +26,10 @@ The owner's own pattern, added 2026-11-21: a falling line on the small bounces; 
 - Grades on the page: A = calm break and market below its 200-day, B = calm break and market above it, C = wild break (do not enter).
 - The tab is not written to the performance log yet.
 - Timeframes and currencies (studied 2026-11-21): on the 1-hour and 4-hour charts the theory is a coin flip for stocks (48.7% and 50.5%) and for 28 currency pairs (48.7% and 50.8%); currencies on the day chart 50.6%, calm breaks 52.0%. The tab "الفوركس" (`forex()` in `radar.py`, `renderFX()` in `template.html`) lists the pairs on the three timeframes and is labelled as unproven.
+
+## Day-trader skills (installed 2026-11-21)
+
+From github.com/Jakeschincariol/day-trader-skill (MIT, commit 3d0f4ef), copied into `.claude/skills/trader-*`: scanner, news, entry, exit, budget, risk, timemachine, alerts, analyst, pelosi, broker. They read free public data (Yahoo, Nasdaq Trader, SEC EDGAR, House Clerk) and write their files under `trader/`.
+
+- `trader-broker` only prepares order tickets. No broker is connected (the owner trades in the Sahm app); never place an order.
+- `trader-analyst` and the SEC part of `trader-news` need a contact e-mail in `SEC_USER_AGENT`. Do not put the owner's e-mail there; he can set it himself.
