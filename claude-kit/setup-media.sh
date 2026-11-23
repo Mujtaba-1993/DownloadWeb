@@ -47,3 +47,9 @@ gskill kaomei/stickman-video-director 7e6dd4241a73abc1e97341136c36cbff73c22458 /
 gskill lemomo-ai/lemo-opuscar 8ca0dd805e214bcc1d30714cd5b9d21cc02a454b /tmp/g-lemo plugin/skills/lemo-opuscar || true
 rm -rf /tmp/g-rr /tmp/g-vy /tmp/g-csp /tmp/g-her /tmp/g-stk /tmp/g-lemo
 mkdir -p ~/films/nibras/code && cp "$KD"/films/nibras-code/* ~/films/nibras/code/ 2>/dev/null || true
+
+# --- voice/music separation (Demucs htdemucs, MIT, run from source) + Gemini TTS batch tool, added 2026-11-23 ---
+mkdir -p ~/tools/sep && cp -r "$KD"/tools/sep/* ~/tools/sep/ && cp "$KD"/tools/gemini_tts_batch.py ~/tools/ 2>/dev/null || true
+[ -d ~/tools/sep/demucs ] || git clone -q --depth 1 https://github.com/facebookresearch/demucs.git ~/tools/sep/demucs || true
+[ -d ~/tools/sep/julius ] || git clone -q --depth 1 https://github.com/adefossez/julius.git ~/tools/sep/julius || true
+[ -s ~/tools/sep/htdemucs.th ] || curl -sfL -o ~/tools/sep/htdemucs.th https://dl.fbaipublicfiles.com/demucs/hybrid_transformer/955717e8-8726e21a.th || true
