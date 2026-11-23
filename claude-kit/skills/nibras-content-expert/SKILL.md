@@ -212,3 +212,49 @@ At the start of EVERY Instagram/content session, restore it locally:
 1. Composio workbench: INSTAGRAM_GET_IG_USER_MEDIA (ig_user_id 29109653882037517, paginate `after`, fields id,permalink,timestamp,media_type,media_url,children{media_url,media_type}) -> flatten to [{id,type,url,ts}] (id = shortcode or shortcode_i for carousel children; skip ts >= 2026-11-20 = our own new reels) -> upload_local_file -> curl -L to ~/nibras-media/allmedia.json.
 2. `python3 ~/tools/nibras_media_restore.py ~/nibras-media/allmedia.json` (downloads originals, builds lib_src/<stage>__<id>.jpg from media/tags.json). Add `--clean` to rerun OWLv2+LaMa clutter removal (~1 h on 4 cores; run in background).
 3. Stage tags (CLIP) + best montage picks: media/tags.json, sel.json, shots.json in this skill folder (IDs only, no images).
+
+## 30. Read the retention graph to find the broken part (ref robertmckeaveney DfrEJGFTZ7J, 1.1M plays, 28 s)
+Diagnose every posted reel from its retention curve BEFORE changing anything else; fix only the part the curve blames.
+- **Cliff in the first 1-3 s, then flat low** = HOOK failed -> (1) spark a question, (2) stack visual + verbal + on-screen text + audio hooks together, (3) copy a proven viral hook format.
+- **Steady slide through the middle** = BUILDUP failed -> (1) strengthen the question instead of drifting from it, (2) don't drag it out (cut length), (3) re-hook every few seconds.
+- **Holds, then drops before the end** = PAYOFF failed -> (1) actually answer the hook's question, (2) educate, entertain or MOVE them, (3) put the payoff at the very end (answering early = they leave).
+- **Healthy curve** = small early dip then nearly flat to the last second: hook asked a question, buildup strengthened it, payoff answered it.
+- Use in ig-audit / post-mortems: name the failing part per reel (hook / buildup / payoff) and carry that one fix into the next script.
+
+## 31. Five different "edit with Claude" looks (ref moujtabakhalifa DePlqptCIWg, 371k plays) — pick the look by content type, don't reuse one look
+1. **HyperFrames (HeyGen)**: clean motion graphics, titles/numbers/moving screens -> tech/company ads.
+2. **Onetake** (feitangyuan/onetake): whole video is ONE shot, no cuts, each scene grows out of the previous -> holding attention start to end. Non-commercial licence: do NOT use for Nibras ads.
+3. **Collage B-roll**: magazine cut-and-paste cutouts assembling on screen -> documentary/history.
+4. **Claude Animation**: brush-drawn cartoon characters acting the idea -> story explained as a cartoon.
+5. **Lemo-Opuscar** (lemomo-ai/lemo-opuscar, MIT): library of film styles drawn entirely in code (canvas/WebGL frame by frame + TTS + sample music), no footage, no video model -> cinematic. User calls it "الطريقة الأخيرة". Heavy: ~30-60 min agent work per film; keep films short.
+- Built 2026-11-23 with method 5: "Water test" blueprint film (15.6 s): hook = water jets on the drawn window + "رشّينا هالشباك بالماء… بقوة" from frame 0 -> "تتوقع كم قطرة دخلت؟" -> section view (gasket / drain channel / weep hole, camera tracks the water) -> big 0 + orange stamp "اجتاز الاختبار" -> title-block end card. Source ~/films/nibras/bp (film.js canvas, audio.py numpy score+foley, Kokoro af_heart VO), rendered with ~/films/nibras/tools/render-fast.js at 24 fps. Installing Lemo's own packages (plugin install / npm install) was blocked by the session's permission classifier, so only its STYLE.md + DIRECTOR.md were used as guidance; reuse this pipeline for other Lemo styles.
+- User preference (2026-11-23): the END CARD (name/logo/WhatsApp) has NO voice-over; music + SFX only.
+- Film 2 with method 5 (2026-11-23): "Thermal camera" (Lemo style thermal-camera), ~/films/nibras/th, 16.4 s @30fps: scan line visible->heat from frame 0 "لو تشوف بيتك بكاميرا حرارية…", tracker jumps to the hot corner + isotherm, close-up on hot air leaking round an old frame, install scan line, locked before/after same scale + green verdict, silent end card. Illustrative readings (capped below the 48.6°C outdoor air).
+- User feedback (2026-11-23) on the thermal film: rejected it — "فديو بالالوان هذي كيف بيجذب المتابع" (dark purple/iron false-colour palette is unattractive). Avoid dark, garish or scientific false-colour looks; the blueprint film (blue/white + orange stamp) was liked. Prefer bright, warm, clean, inviting palettes close to the brand.
+
+## 32. Tools added 2026-11-23 (from GitHub, MIT)
+- `nibras-advisors` (our panel): 4 seats on every video before delivery. First run on the water-test film: hook 5.6, psychology 6, visual 6.5, customer 6 -> all "عدّل". Consensus fixes applied in v2: strong spray from frame 0 + full first subtitle, solid "صفر / ولا قطرة" instead of an outline ellipse (it read as ٥), stamp centred inside IG safe zone, whole-word fades (letter-by-letter clipping broke Arabic letter shapes), longer end card (3+ s) with "صوّر شباكك وأرسله لنا واتساب", darker pill #C2410C for contrast. Open asks for the owner: a real 2-3 s clip of the 2022 water test at the start (honesty: animation alone can't claim "رشّينا"), and a Saudi-dialect voice.
+- `hooks` (opus-pro/reel-runbook): frame-by-frame reel review + hook bank.
+- `directing-stickman-videos` (kaomei/stickman-video-director, ref reel DfreVR8q7Dy): topic -> script -> VO -> scenes -> captions -> thumbnail + 5 titles. Its Code Engine (B1-B7) needs `npm ci` (@napi-rs/canvas, sharp), which this session's permission classifier blocked; use its style references (B2 colourful hand-drawn suits the bright-palette preference) with our own canvas pipeline, or run it on the owner's machine. Lesson from the reel: one prompt -> finished faceless explainer; stick-figure stories are cheap to make daily.
+- `creative-ideation` (NousResearch/hermes-agent): 22 named ideation methods; rule "refuse the first three ideas, they are slop".
+- `viral-short-form-ideas` (vyralcontent/content-skills): pillars x formats matrix, mining comments/Reddit/autocomplete/competitor outliers, evergreen vs trend balance. Use these two before proposing new video ideas.
+- Idea vote 2026-11-23 (seats 1,2,4): dust storm = #1 for all three (hook 7, psych 8, customer "هذا احنا"). Then: mistake/regret stick-figure (customer would message), sand-grain interview (hook "دخلت كل بيوت الخبر… إلا واحد"). Bricks = last (toy ad, no stakes). Agreed build: dusty sill like the viewer's -> 2 s where dust gets in (gasket/drain) with the sand grain as a character -> clean Nibras sill; NO "test"/"zero dust" claim on animation (gasket reduces, doesn't stop all); CTA "لقيت غبار على الشباك بعد العاصفة؟ صوّر شباكك وأرسله على الواتساب ونقولك وين يدخل الغبار والمطر"; best: last 2 s = real phone clip of a finger wiping a Nibras sill in a real Dammam home. Avoid 49°C claims in November.
+
+## 33. Chosen production stack (owner 2026-11-23: "هذا احسن خيار الي المفروض نروح معه") — ref AlgoPicks Df5ISBSn1UR (0 -> 40.4K followers, 3M views in <3 weeks, no camera)
+Their reels: bright blue/teal 3D "how it works" explainers (ships, rockets, gear mechanisms) + word-by-word captions with yellow highlight boxes, one idea per scene, ElevenLabs VO. Stack (all open source except the voice):
+1. HyperFrames (heygen-com/hyperframes): each scene written as a web page, rendered to video. Skill docs: /root/skills-src/OpenMontage/.agents/skills/hyperframes*.
+2. Blender: 3D objects (for us: window profiles, sashes, gaskets, villa) animated in code. Fallback: three.js in our canvas renderer.
+3. earshot (Leonxlnx/earshot, MIT): agent "ears", checks every SFX lands on its cut (`earshot critique film.mp4`, `earshot sheet`). Base install = pip, models ~1.1 GB on first listen.
+4. Openverse (api.openverse.org, reachable here, no key): CC-licensed sound effects; credit each in CREDITS.
+5. ElevenLabs voice (paid key) -> also solves the "Saudi-dialect voice" ask.
+Status here: npm/pip/plugin installs are blocked by this session's permission classifier; owner must allow installs (Bash permission rule) or run on own machine. Apply to Nibras: 3D bright explainers of window mechanisms (dust storm idea #1 as the first one).
+
+## 34. Idea engine (GitHub skills installed 2026-11-23; owner: "ادوات تساعدك تجيب افكار جديده وتفكر بروحك وتبدع")
+Before proposing ANY new video idea, run this chain instead of brainstorming from memory:
+1. `topics` (opus-pro/reel-runbook): mine fresh topics (Shorts outliers by views/subs, comments, Google Trends, Wikipedia) and score each concept before a hook is written.
+2. `viral-short-form-ideas` (vyralcontent): pillars x formats matrix (Nibras pillars: proof/tests, buying mistakes, Eastern-Province weather (dust/rain/humidity/heat by season), real projects, behind the scenes).
+3. `creative-ideation` (NousResearch): pick ONE named method (defamiliarization, SCAMPER, oblique strategies, TRIZ, premortem...), throw away the first 3 ideas as slop, keep at least one buildable-now idea.
+4. `ideation` (Samin12/content-skill-pack): desire mapping + competitive gaps + shock score per idea.
+5. `viral-hooks` / `viral-instagram-reels` (vyralcontent): hook check per idea (60-second hook test: no sharp hook in 3 tries = cut the idea).
+6. `nibras-advisors` idea-vote mode (seats 1,2,4) picks the winner. Then build.
+Keep credits low: run steps 1-5 inline, only step 6 uses sub-agents.

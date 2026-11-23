@@ -32,3 +32,18 @@ sed -i "s#puppeteer.launch({ headless: 'new', #puppeteer.launch({ headless: 'new
 [ -x ~/tools/kokoro-venv/bin/python ] || { python3 -m venv ~/tools/kokoro-venv && ~/tools/kokoro-venv/bin/pip install -q kokoro-onnx soundfile; } || true
 mkdir -p ~/tools/models/kokoro && for f in kokoro-v1.0.onnx voices-v1.0.bin; do [ -s ~/tools/models/kokoro/$f ] || curl -sfL -o ~/tools/models/kokoro/$f https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/$f; done || true
 mkdir -p ~/tools/motion-libs/lib && (cd ~/tools/motion-libs && { [ -f package.json ] || npm init -y >/dev/null; } && npm i --silent p5 p5.brush matter-js roughjs pixi.js pixi-filters animejs thinking-orbs && cp node_modules/p5/lib/p5.min.js node_modules/matter-js/build/matter.min.js node_modules/roughjs/bundled/rough.js node_modules/animejs/dist/bundles/anime.umd.min.js node_modules/pixi.js/dist/pixi.min.js node_modules/p5.brush/dist/p5.brush.js lib/) || true
+
+# --- GitHub skills added 2026-11-23: idea engine, reel review, stickman, film styles (all MIT, pinned) ---
+gskill() { # gskill <repo> <commit> <dir> <path-in-repo>...
+  r=$1; c=$2; d=$3; shift 3; rm -rf "$d"; git init -q "$d" && git -C "$d" sparse-checkout set --no-cone $(printf '/%s/ ' "$@") \
+    && git -C "$d" fetch -q --depth 1 --filter=blob:none "https://github.com/$r.git" "$c" \
+    && git -C "$d" checkout -q FETCH_HEAD && for p in "$@"; do n=$(basename "$p"); rm -rf ~/.claude/skills/$n; cp -r "$d/$p" ~/.claude/skills/$n; done
+}
+gskill opus-pro/reel-runbook 68b9003c2b0d62ef8a52179ad4f05e6170c68601 /tmp/g-rr skills/hooks skills/topics || true
+gskill vyralcontent/content-skills 349e495d97029a3e6303a7510e3f39c73f36d8fe /tmp/g-vy skills/viral-short-form-ideas skills/viral-hooks skills/viral-instagram-reels || true
+gskill Samin12/content-skill-pack d8359683a062023e28c5864a74aefe07970d5cdb /tmp/g-csp skills/ideation || true
+gskill NousResearch/hermes-agent 45665879083359efe1fc5134ddd2f5dffd804139 /tmp/g-her optional-skills/creative/creative-ideation || true
+gskill kaomei/stickman-video-director 7e6dd4241a73abc1e97341136c36cbff73c22458 /tmp/g-stk skills/directing-stickman-videos || true
+gskill lemomo-ai/lemo-opuscar 8ca0dd805e214bcc1d30714cd5b9d21cc02a454b /tmp/g-lemo plugin/skills/lemo-opuscar || true
+rm -rf /tmp/g-rr /tmp/g-vy /tmp/g-csp /tmp/g-her /tmp/g-stk /tmp/g-lemo
+mkdir -p ~/films/nibras/code && cp "$KD"/films/nibras-code/* ~/films/nibras/code/ 2>/dev/null || true
