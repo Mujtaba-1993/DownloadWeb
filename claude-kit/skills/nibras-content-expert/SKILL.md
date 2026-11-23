@@ -258,3 +258,27 @@ Before proposing ANY new video idea, run this chain instead of brainstorming fro
 5. `viral-hooks` / `viral-instagram-reels` (vyralcontent): hook check per idea (60-second hook test: no sharp hook in 3 tries = cut the idea).
 6. `nibras-advisors` idea-vote mode (seats 1,2,4) picks the winner. Then build.
 Keep credits low: run steps 1-5 inline, only step 6 uses sub-agents.
+
+## 35. ASMR format (niche gap): "ركّب السماعة… واسمع" — black intro w/ headphones icon, 5 close-ups 1.7 s (lock/slide/handle/seal/latch) each with ONE crisp SFX + one Amiri word, live waveform bar; finale: synthesized street noise (pink+brown noise + horn sines) while a door closes -> hard cut to silence, waveform flatlines gold, "…وسكتت. هذا صوت العزل". No loudnorm (keep the silence contrast). Remotion Asmr.tsx. Clips found by CLIP over 7 frames/video (vtags.json).
+
+## 36. POST-MORTEM 2026-11-22 (13 reels posted in 6 h on 11-21) — LEARN THIS
+- Results: 10–139 views each, avg watch 1.3–7.6 s, ~0 shares/saves. Posting many reels the same hour splits reach and drags the baseline. RULE: max 1 main reel/day (extras only as Trial Reels, spaced hours apart).
+- User verdicts: motion graphics/AI voice/ASMR = "بايخ". Graphic intros (black screen, film clip, headphones card) lose people in 1-3 s.
+- What works on THIS account: REAL raw footage of real work with a person + a test/proof + curiosity (water hose test = 93,304 views; raw door reels ~1.4k). Old water reel was 71 s raw one-take.
+- New default recipe: payoff-first hook (open on the most striking real moment, e.g. water pouring on glass), real original sound, João-style white label "اختبار حقيقي • بدون مونتاج" + bold word-pop captions, 15-20 s, end loops back to the opening shot, CTA keyword. Built: Remotion Water.tsx -> reels/water_test_v2.mp4 (source CftKcC6M53J, delogo the old burned caption at y≈1590).
+
+## 37. "4K aesthetic edit" (ref pulsixfx De4LVktuZz_, 261k likes): title typed letter-by-letter on a starfield, then one stunning photo per music BEAT (librosa beat_track) with punch-in 1.16->1.0, white flash, shake every 4th, vignette, tiny "NIBRAS 4K" watermark, end logo. Use portrait finished-work photos (w>=1080, h>=1.15w) so the cover crop is mild. Remotion K4.tsx + k4.json -> reels/nibras_4k.mp4. Tell user to swap in a trending sound in-app.
+- v2 of the 4K edit (user hated the flat slideshow v1): ~/tools/k4_3d_render.py — Depth-Anything-V2-Small depth per photo -> per-frame depth dolly/parallax remap, 3D starfield (900 stars flying to camera) title with letters typed per beat + glow + flicker, zoom-through drop at beat 10, cinematic grade (gamma 1.25, contrast), soft bloom, orange light leak, chroma split + flash on cuts, hi-hat micro-pulses, grain, vignette. Lesson: "exactly like the original" = copy its STRUCTURE (5.4 s title, drop, 18 shots ~0.8 s each) AND its motion (every shot moves in 3D) — never static photos.
+- 2026-11-22: user dropped the 4K aesthetic-edit idea entirely ('فكرة فاشلة'). Don't propose it again.
+
+## 38. Hard lessons from the client (2026-11-22). Read before every job
+1. Realism first: code-drawn 3D or motion graphics were rejected every time ("هابط"). Never offer them as "professional".
+2. Real footage of real work wins (water test 93K). Popular niche reels are raw phone footage: hands, machines, installation, reveal.
+3. Never crop or zoom media. Never ship uncleaned media: no reflections, dirt or clutter. Check every segment at full scale.
+4. No "pick a number" or vote formats. No AI "finished room" shots, because people can tell. Cutting shows aluminium shavings, not iron or sparks.
+5. Before building, say in one line whether the reference can really be matched, and what it costs. Spend credits only after the client approves.
+6. Don't test drafts silently for long stretches. One preview, then deliver. Don't waste the client's time.
+7. The client is busy and pays: short Gulf Arabic replies, no long option menus.
+8. Cut-out low-res photos (≈640px) on flat colour backgrounds were rejected as rubbish (2026-11-22). Don't build premium ads from library photos; ask for fresh high-res shots first.
+9. WINNING FORMULA (client called it "legendary", 2026-11-22): the client's own raw door footage, cleaned and stabilised, uncropped, retimed ≤3% to the full length of a viral podcast clip (709K likes), speaker's lines as subtitles, product line on top, logo and number over the last 3s with no extra card. Deliver a silent file so the audio is added in-app. The champagne tilt-door version with Al-Huzaimi audio was disliked.
+10. Sequencing rule (client, 2026-11-22): details first, the full exterior shot of the house LAST, with the final line.

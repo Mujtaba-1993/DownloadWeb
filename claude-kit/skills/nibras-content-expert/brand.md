@@ -18,3 +18,9 @@
 - Voices: English Kokoro af_heart + Arabic subtitles (user favourite) / SILMA Arabic. Never Piper/edge.
 ## Open-source effects (installed ~/tools/motion-libs, browser builds in lib/)
 p5 + p5.brush (textured brush strokes), Matter.js (physics drops/bounces), Rough.js (hand-drawn sketch look), PixiJS + pixi-filters (glow/displacement/CRT), Anime.js (timelines), thinking-orbs (dotted particle orbs, ESM/React — usable in Remotion).
+
+## HARD RULE (user complained 3 times): NEVER crop/zoom photos to fill 9:16. Always show the WHOLE photo (fit inside ~1040x1560) on a blurred, darkened copy of itself. Any motion zoom <= 3-4%. Check a still for "too close" before any full render.
+- NO more 'pick a number / vote' formats (user annoyed, 2026-11-22). Also avoid 'personality' numbered lists.
+- HARD RULE (user, 2026-11-22): ALWAYS clean every clip/photo before use: remove reflections, dirt, mess/clutter (autoclean OWLv2+LaMa for photos; delogo/inpaint + crop-free cleanup for video). Never ship uncleaned media.
+- No AI 'finished room' hero shots: viewers spot them as AI (user, 2026-11-22). End on plain black logo card.
+- Cutting shows ALUMINIUM shavings (silver slivers), never iron filings or sparks (user, 2026-11-22).
