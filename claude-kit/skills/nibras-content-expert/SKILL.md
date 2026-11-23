@@ -282,3 +282,10 @@ Keep credits low: run steps 1-5 inline, only step 6 uses sub-agents.
 8. Cut-out low-res photos (≈640px) on flat colour backgrounds were rejected as rubbish (2026-11-22). Don't build premium ads from library photos; ask for fresh high-res shots first.
 9. WINNING FORMULA (client called it "legendary", 2026-11-22): the client's own raw door footage, cleaned and stabilised, uncropped, retimed ≤3% to the full length of a viral podcast clip (709K likes), speaker's lines as subtitles, product line on top, logo and number over the last 3s with no extra card. Deliver a silent file so the audio is added in-app. The champagne tilt-door version with Al-Huzaimi audio was disliked.
 10. Sequencing rule (client, 2026-11-22): details first, the full exterior shot of the house LAST, with the final line.
+
+## 39. VOICE = Gemini TTS (client approved 2026-11-23: "ممتاز… نستخدمهم في أي فديو")
+- Tool: `python3 ~/tools/gemini_tts.py "النص" out.mp3 [Charon|Orus|Kore] ["style prompt"]` (free Gemini key, injected by the session proxy; nothing to set).
+- Default style prompt: «اقرأ بلهجة سعودية نجدية طبيعية، بنبرة واثقة ودافية مثل معلّق إعلان، بدون مبالغة:». Voices: Charon (deep male, default), Orus (confident male), Kore (female). Model gemini-2.5-flash-preview-tts; outputs 24 kHz PCM -> mp3.
+- Write scripts in Saudi colloquial; numbers as words; short lines.
+- Credential lives in the Default environment > Network secrets: host generativelanguage.googleapis.com, header name exactly `x-goog-api-key` (no colon or spaces), prefix EMPTY. A Bearer/Authorization secret does NOT work for TTS (401, or the OpenAI-compatible endpoint returns no audio).
+- Samples: ~/.claude/skills/nibras-content-expert/voices/gemini_{Charon,Orus,Kore}.mp3. Free edge-tts voices (saudi_tts.py) were rejected ("العربي مضروب"); don't use them.
