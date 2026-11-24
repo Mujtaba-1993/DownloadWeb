@@ -1282,6 +1282,13 @@ def run_market(mid,base):
     INSD=insiders() if mid=='us' else None
     mkt=(INSD or {}).get('mkt')
     for x in mjs: x['grade']=None if x['state']!='buy' else 'C' if not x['calm'] else 'A' if (mkt is not None and mkt<0) else 'B'
+    try:   # stocks outside the index (most insider buys): fetch their bars too, so their suggestions are entered and graded
+        xtra=sorted({e['s'] for e in json.load(open(LOGF,encoding='utf8')) if e.get('mk','us')==mid and e['s'] not in tails and (e['status']=='open' or (e.get('pt') or {}).get('status')!='closed')}|{x['s'] for x in (INSD or {}).get('list') or [] if x['s'] not in tails})[:80]
+        with cf.ThreadPoolExecutor(8) as ex: got=list(ex.map(lambda s_:_ydaily(s_,260),xtra))
+        for s_,Bx in zip(xtra,got):
+            if Bx: tails[s_]=[(ny_date(x[0]).isoformat(),x[2],x[3],x[4],x[1]) for x in Bx[-150:]]
+        print(P+'EXTRA',len(xtra),'symbols outside the index;',sum(1 for b in got if b),'downloaded')
+    except Exception as e: print(P+'EXTRA_ERROR',str(e)[:120])
     fake,fake4,ccand,pats,gps,perf,dps,scs=selflearn(fake,fake4,ccand,tails,labs,pats,gps,dps,scs,tls,ptr,(INSD or {}).get('list') or [],mjs,lps)
     validity(fake,fake4,ccand,pats,gps,dps,scs)
     tls=[x for x in tls if perf['cats'].get('tl',{}).get('on',True)];tls.sort(key=lambda x:(x['age'],-x['touches']))
