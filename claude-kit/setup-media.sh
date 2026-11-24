@@ -45,6 +45,8 @@ gskill Samin12/content-skill-pack d8359683a062023e28c5864a74aefe07970d5cdb /tmp/
 gskill NousResearch/hermes-agent 45665879083359efe1fc5134ddd2f5dffd804139 /tmp/g-her optional-skills/creative/creative-ideation || true
 gskill kaomei/stickman-video-director 7e6dd4241a73abc1e97341136c36cbff73c22458 /tmp/g-stk skills/directing-stickman-videos || true
 gskill lemomo-ai/lemo-opuscar 8ca0dd805e214bcc1d30714cd5b9d21cc02a454b /tmp/g-lemo plugin/skills/lemo-opuscar || true
+gskill obra/superpowers 22f0b463e7a5e579904dd6211a520321035526f7 /tmp/g-sp skills/brainstorming || true
+gskill product-on-purpose/thinking-framework-skills 6ab95db2d6469e4b65f3eb3ed265e46a6a1e69a8 /tmp/g-tf skills/think-scamper skills/think-far-analogy-ideation skills/think-assumption-reversal skills/think-morphological-analysis skills/think-brainwriting skills/think-role-storming skills/think-question-burst skills/think-frame-creation skills/think-random-frameworks skills/think-problem-restatement skills/think-abstraction-laddering skills/think-framework-advisor skills/think-contradiction-resolution skills/think-premortem skills/think-red-team-light || true
 rm -rf /tmp/g-rr /tmp/g-vy /tmp/g-csp /tmp/g-her /tmp/g-stk /tmp/g-lemo
 mkdir -p ~/films/nibras/code && cp "$KD"/films/nibras-code/* ~/films/nibras/code/ 2>/dev/null || true
 
