@@ -41,6 +41,9 @@ gskill() { # gskill <repo> <commit> <dir> <path-in-repo>...
 }
 gskill opus-pro/reel-runbook 68b9003c2b0d62ef8a52179ad4f05e6170c68601 /tmp/g-rr skills/hooks skills/topics || true
 gskill vyralcontent/content-skills 349e495d97029a3e6303a7510e3f39c73f36d8fe /tmp/g-vy skills/viral-short-form-ideas skills/viral-hooks skills/viral-instagram-reels || true
+gskill coreyhaines31/marketingskills 8fd2fcade2fd6629026e9dfe6d133b55b36968b9 /tmp/g-mk skills/ad-creative || true
+gskill OpenClaudia/openclaudia-skills 03557e315375f709d71eaf59c00094a21292f660 /tmp/g-oc skills/video-ad-analysis || true
+gskill rampstackco/claude-skills 9d281db6e7a5c4a0084ba89c91633a07f5f7e42b /tmp/g-rs skills/ads-creative-development || true
 gskill Samin12/content-skill-pack d8359683a062023e28c5864a74aefe07970d5cdb /tmp/g-csp skills/ideation || true
 gskill NousResearch/hermes-agent 45665879083359efe1fc5134ddd2f5dffd804139 /tmp/g-her optional-skills/creative/creative-ideation || true
 gskill kaomei/stickman-video-director 7e6dd4241a73abc1e97341136c36cbff73c22458 /tmp/g-stk skills/directing-stickman-videos || true
