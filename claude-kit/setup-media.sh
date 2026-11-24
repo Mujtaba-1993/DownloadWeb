@@ -44,6 +44,10 @@ gskill vyralcontent/content-skills 349e495d97029a3e6303a7510e3f39c73f36d8fe /tmp
 gskill coreyhaines31/marketingskills 8fd2fcade2fd6629026e9dfe6d133b55b36968b9 /tmp/g-mk skills/ad-creative || true
 gskill OpenClaudia/openclaudia-skills 03557e315375f709d71eaf59c00094a21292f660 /tmp/g-oc skills/video-ad-analysis || true
 gskill rampstackco/claude-skills 9d281db6e7a5c4a0084ba89c91633a07f5f7e42b /tmp/g-rs skills/ads-creative-development || true
+gskill superamped/ai-marketing-skills 5d01d5428862c4d2c2ffb86338088886c6b0f97f /tmp/g-sa skills/research/competitor-content-analysis || true
+gskill slaw469/claude-content-system 0080a802f5f68db558f5cd09e4ab4dc734799d9a /tmp/g-sl skills/content-ideation || true
+gskill Melvynx/video-agent-skills f4542923f7f796a1fa0e544cbfc1109d5eec87d8 /tmp/g-mx skills/outliers || true
+gskill alirezarezvani/claude-code-skill-factory ba18b31703542d9d7eda5f9ba94f0df65a59dddf /tmp/g-ar generated-skills/content-trend-researcher || true
 gskill Samin12/content-skill-pack d8359683a062023e28c5864a74aefe07970d5cdb /tmp/g-csp skills/ideation || true
 gskill NousResearch/hermes-agent 45665879083359efe1fc5134ddd2f5dffd804139 /tmp/g-her optional-skills/creative/creative-ideation || true
 gskill kaomei/stickman-video-director 7e6dd4241a73abc1e97341136c36cbff73c22458 /tmp/g-stk skills/directing-stickman-videos || true
