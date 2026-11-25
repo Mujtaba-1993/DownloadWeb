@@ -341,35 +341,6 @@ def tlines(s,Dd):
     return [dict(s=s,date=ny_date(Dd[i][0]).isoformat(),bdate=ny_date(Dd[i0][0]).isoformat(),ref=r(ref),cur=r(cur),chg=round((cur/ref-1)*100,1),stop=r(stop),tgt=r(tgt),rew=round(TL['rr']*risk*100,1),risk=round(risk*100,1),
         touches=len(L['T']),clr=round(clr*100,1),span=i-L['xa'],below=i-i0,depth=round((1-ext/ln(i0))*100,1),age=n-1-i,left=TL['maxd']-(n-1-i),vl=TL['fresh']-(n-1-i),vu='s',
         geo=dict(bars=[[r(o[k]),r(h[k]),r(l[k]),r(c[k])] for k in range(a0,n)],line=[[xs-a0,r(ln(xs))],[n-1-a0,r(ln(n-1))]],T=[[x-a0,r(p)] for x,p in L['T'] if x>=a0],brk=[i0-a0,r(ext)],ret=i-a0))]
-# --- Gap, patient entry (the owner's idea, 2026-11-24): do not buy the down-gap signal at once; place the order at the
-# usual further fall under the signal price (dd50 of the gap size, about -7.7%) and wait up to 20 sessions. Studied on
-# 54,648 signals of US stocks since 2007: buying at once averaged +1.5% a trade; waiting filled 55% of the signals and
-# averaged +5.3% a trade (+2.9% per signal against +1.5%), better in all four periods. The signals that never came down
-# (45%) are missed, and those were the best ones bought at once (+10.0%).
-GAPW=dict(maxd=20)
-GAPW_STATS=dict(n=54648,now=dict(avg=1.5,hit=53,med=3.9,worst=-33,per=1.5),w=dict(fill=55,avg=5.3,hit=32,med=4.2,worst=-38,per=2.9),miss=dict(share=45,avg=10.0,hit=85),
-    per=[['2007–2012',2.4,5.6],['2012–2019',1.8,12.6],['2019–2023',2.2,4.4],['2023–2026',-0.3,0.8]],alt=[[5.0,65,4.2,2.76],[7.7,55,5.3,2.90],[10.0,48,6.1,2.93],[13.6,38,7.7,2.96]])
-def gapwait(log,tails):
-    out=[]
-    for e in log:
-        if e['kind']!='gap' or e.get('mk','us')!=MK['id'] or e['s'] not in tails: continue
-        b=e['cat'].split('|')[1];st=GAP_STATS[MK['id']].get(b)
-        bars=[x for x in tails[e['s']] if x[0]>e['d']]          # sessions after the confirmation day: (date, high, low, close, open)
-        if not st or not bars: continue
-        L=round(e['entry']*(1+st['dd50']/100),2);tg=e['tgt'];fill=None;state=None;end=None
-        for k,x in enumerate(bars):
-            if fill is None:
-                if k<GAPW['maxd'] and x[2]<=L: fill=(k,x[0],min(L,x[4]))
-                elif x[1]>=tg: state='missed';end=x[0];break
-                elif k>=GAPW['maxd']: state='expired';end=x[0];break
-            if fill is not None:
-                if x[1]>=tg and not(k==fill[0] and fill[2]>=tg): state='won';end=x[0];break
-                if k-fill[0]>=GAPW['maxd']: state='timeout';end=x[0];break
-        if state is None: state='in' if fill else 'wait'
-        cur=bars[-1][3];px=tg if state=='won' else next((x[3] for x in bars if x[0]==end),cur) if state=='timeout' else cur
-        out.append(dict(s=e['s'],sig=e['d'],b=b,ref=e['entry'],lim=L,tgt=tg,cur=round(cur,2),state=state,fd=fill and fill[1],fp=fill and round(fill[2],2),end=end,age=len(bars),
-            toL=round((cur/L-1)*100,1),up=round((tg/L-1)*100,1),ret=None if fill is None else round((px/fill[2]-1)*100,1)))
-    return out
 # --- Mujtaba's theory (the owner's own pattern): a falling line drawn on the small bounces of the last 220 sessions;
 # every daily close above it, after the price sat below it, is a buy point. Studied on about 4,800 US stocks and FX
 # pairs (lines drawn from the past only, 42,814 breaks). What separates the breaks that worked: the break is calm
@@ -1347,8 +1318,6 @@ def run_market(mid,base):
     if mid=='us':
         try: M['fx']=forex();print(P+'FOREX',M['fx']['ok'],'of',M['fx']['n'],'pairs;',sum(1 for x in M['fx']['list'] if x['state']=='buy'),'breaks',sum(1 for x in M['fx']['list'] if x['state']=='wait'),'waiting')
         except Exception as e: print(P+'FOREX_ERROR',str(e)[:160])
-    try: M['gapw']=dict(list=gapwait(json.load(open(LOGF,encoding='utf8')),tails),stats=GAPW_STATS)
-    except Exception as e: print(P+'GAPW_ERROR',str(e)[:120])
     M['ins']=INSD;M['insstats']=INS_STATS;M['insgrade']=INS_GRADE;M['inscouncil']=INS_COUNCIL
     print(P+'INSIDERS',json.dumps(M['ins'] and dict(mkt=M['ins']['mkt'],on=M['ins']['on'],seen=M['ins']['seen'],list=[{k:v for k,v in x.items() if k!='geo'} for x in M['ins']['list']]),ensure_ascii=False))
     M['trades']=build_trades(M)
@@ -1470,19 +1439,6 @@ def live_prices(M,px):
         if c['s'] in px:
             cur=px[c['s']][0];c['cur']=round(cur,2);c['chg']=round((cur/c['sig']-1)*100,1);c['mx']=round(max(c.get('mx',0),cur,hi_after(c['s'],c['date'])),2)
     if M.get('ct'): M['ct']['cand']=[c for c in M['ct']['cand'] if not(c.get('tgt') and c['mx']>=c['tgt'])]
-def gap_live(M,px):
-    # light refresh of the patient gap entries: latest price, new fills and reached targets since the last full run
-    for x in (M.get('gapw') or {}).get('list',[]):
-        if x['s'] not in px or x['state'] not in ('wait','in'): continue
-        cur,days=px[x['s']]
-        if x['state']=='wait':
-            f=next((k for k in sorted(days) if k>x['sig'] and days[k][1]<=x['lim']),None)
-            if f: x.update(state='in',fd=f,fp=x['lim'])
-        if x['state']=='in':
-            hit=next((k for k in sorted(days) if k>x['fd'] and days[k][0]>=x['tgt']),None)
-            if hit: x.update(state='won',end=hit,ret=round((x['tgt']/x['fp']-1)*100,1))
-            else: x['ret']=round((cur/x['fp']-1)*100,1)
-        x['cur']=round(cur,2);x['toL']=round((cur/x['lim']-1)*100,1)
 def intraday(out,mid):
     # Light refresh while a market is open: the 1-hour and 4-hour pattern signals of that market are rescanned and
     # every listed suggestion gets its latest price (see live_prices). Models, studies, paper trades and new daily
@@ -1496,7 +1452,7 @@ def intraday(out,mid):
     okn=sum(1 for r in res if r)
     if okn<MK['minok']: sys.exit(f'ERROR: only {okn} of {len(S)} stocks downloaded; page left unchanged')
     pats=[p for r in res if r for p in r[1]]
-    PX={s:(r[0][1],r[2]) for s,r in zip(S,res) if r};live_prices(D[mid],PX);gap_live(D[mid],PX)
+    live_prices(D[mid],{s:(r[0][1],r[2]) for s,r in zip(S,res) if r});D[mid].pop('gapw',None)
     try: log=json.load(open(LOGF,encoding='utf8'))
     except Exception: log=[]
     have={e['id'] for e in log};today=ny_now().date().isoformat();cats=D[mid]['perf']['cats'];new=[]
