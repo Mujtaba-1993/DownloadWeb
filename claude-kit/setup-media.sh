@@ -48,6 +48,8 @@ gskill superamped/ai-marketing-skills 5d01d5428862c4d2c2ffb86338088886c6b0f97f /
 gskill slaw469/claude-content-system 0080a802f5f68db558f5cd09e4ab4dc734799d9a /tmp/g-sl skills/content-ideation || true
 gskill Melvynx/video-agent-skills f4542923f7f796a1fa0e544cbfc1109d5eec87d8 /tmp/g-mx skills/outliers || true
 gskill alirezarezvani/claude-code-skill-factory ba18b31703542d9d7eda5f9ba94f0df65a59dddf /tmp/g-ar generated-skills/content-trend-researcher || true
+gskill bradautomates/claude-video 03ceb42f7fa2c4439aca01752118044baabffb8f /tmp/g-cv skills/watch || true
+mkdir -p ~/.config/watch && printf 'WATCH_ENGINE="local"\nWATCH_DETAIL="balanced"\nWATCH_WHISPER_BACKEND="none"\nSETUP_COMPLETE="true"\n' > ~/.config/watch/.env || true
 gskill Samin12/content-skill-pack d8359683a062023e28c5864a74aefe07970d5cdb /tmp/g-csp skills/ideation || true
 gskill NousResearch/hermes-agent 45665879083359efe1fc5134ddd2f5dffd804139 /tmp/g-her optional-skills/creative/creative-ideation || true
 gskill kaomei/stickman-video-director 7e6dd4241a73abc1e97341136c36cbff73c22458 /tmp/g-stk skills/directing-stickman-videos || true
