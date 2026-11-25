@@ -1470,6 +1470,19 @@ def live_prices(M,px):
         if c['s'] in px:
             cur=px[c['s']][0];c['cur']=round(cur,2);c['chg']=round((cur/c['sig']-1)*100,1);c['mx']=round(max(c.get('mx',0),cur,hi_after(c['s'],c['date'])),2)
     if M.get('ct'): M['ct']['cand']=[c for c in M['ct']['cand'] if not(c.get('tgt') and c['mx']>=c['tgt'])]
+def gap_live(M,px):
+    # light refresh of the patient gap entries: latest price, new fills and reached targets since the last full run
+    for x in (M.get('gapw') or {}).get('list',[]):
+        if x['s'] not in px or x['state'] not in ('wait','in'): continue
+        cur,days=px[x['s']]
+        if x['state']=='wait':
+            f=next((k for k in sorted(days) if k>x['sig'] and days[k][1]<=x['lim']),None)
+            if f: x.update(state='in',fd=f,fp=x['lim'])
+        if x['state']=='in':
+            hit=next((k for k in sorted(days) if k>x['fd'] and days[k][0]>=x['tgt']),None)
+            if hit: x.update(state='won',end=hit,ret=round((x['tgt']/x['fp']-1)*100,1))
+            else: x['ret']=round((cur/x['fp']-1)*100,1)
+        x['cur']=round(cur,2);x['toL']=round((cur/x['lim']-1)*100,1)
 def intraday(out,mid):
     # Light refresh while a market is open: the 1-hour and 4-hour pattern signals of that market are rescanned and
     # every listed suggestion gets its latest price (see live_prices). Models, studies, paper trades and new daily
@@ -1483,7 +1496,7 @@ def intraday(out,mid):
     okn=sum(1 for r in res if r)
     if okn<MK['minok']: sys.exit(f'ERROR: only {okn} of {len(S)} stocks downloaded; page left unchanged')
     pats=[p for r in res if r for p in r[1]]
-    live_prices(D[mid],{s:(r[0][1],r[2]) for s,r in zip(S,res) if r})
+    PX={s:(r[0][1],r[2]) for s,r in zip(S,res) if r};live_prices(D[mid],PX);gap_live(D[mid],PX)
     try: log=json.load(open(LOGF,encoding='utf8'))
     except Exception: log=[]
     have={e['id'] for e in log};today=ny_now().date().isoformat();cats=D[mid]['perf']['cats'];new=[]

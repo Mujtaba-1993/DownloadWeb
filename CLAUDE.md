@@ -52,3 +52,5 @@ The owner's idea (2026-11-24): for the down-gap signal, do not buy at once; plac
 
 - Study on 54,648 signals (US stocks of $5 or more, since 2007): buying at once averages +1.5% a trade; waiting fills 55% of the signals and averages +5.3% a trade (+2.9% per signal against +1.5%), better in all four periods, weakest since 2023 (+0.8% against -0.3%). The 45% that never come down are missed, and they were the best ones bought at once (+10.0%).
 - The tab lists ONLY the stocks that already fell to the entry price (owner, 2026-11-24: «بس اطلع لي الاسهم الي نزلت ٧.٧٪»). Do not show the stocks still waiting to come down.
+- The light `--intraday` run also refreshes this tab (`gap_live()`): latest price, new fills, reached targets.
+- What happens after the fill (30,078 filled trades): the lowest point is typically 13.2% under the entry and a quarter of the trades fall 25% or more; trades whose second-day close is 3 to 7% under the entry average -1.5% (46% end in profit), 7% or more under average -6.7%, above the entry average +9.2%. The owner entered SMCI by this rule on 2026-11-24.
