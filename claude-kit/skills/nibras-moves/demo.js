@@ -1,0 +1,33 @@
+const W = 1080, H = 1920, FPS = 30, g = document.getElementById('c').getContext('2d');
+const CUTF = [32, 56, 88, 120, 151, 182, 214, 245, 276, 308], NF = 339, DUR = NF / FPS; window.DUR = DUR;
+const { E, cl, ar } = MV, INK = '#141414', GOLD = '#ffd34d', CREAM = '#f1ece0', NAVY = '#1f2a44', BRONZE = '#5b4634';
+const T = (n, p, s, x, y, z, c, w) => MV.textIn(g, n, cl(p), s, x, y, z, c, w), M = (s, z) => MV.measure(g, s, z);
+const pal = (bg, fg, ac, dim) => ({ bg, fg, ac, dim });
+// each panel draws on a 1080x1920 board; p = 0..1 across its own time
+const PANELS = [
+  { bg: INK, d(p) { T('stretchX', p * 2.4, 'شبّاك', 540, 800, 250, CREAM); const k = cl(p * 2.4 - 1); if (k > 0) { const m = M('٥ متر؟', 170); MV.DECO.pill[1](g, k, 540, 1090, m.w, m.h, GOLD); T('pop', k, '٥ متر؟', 540, 1090, 170, INK); } } },
+  { bg: GOLD, d(p) { MV.DATA.counter[1](g, cl(p * 1.8), 540, 820, 520, pal(GOLD, INK, INK, INK), { from: 1, to: 4 }); T('up', p * 2.5 - .8, 'ضلف', 540, 1190, 200, INK); } },
+  { bg: CREAM, d(p) { T('maskRight', p * 3, 'كل ضلفة', 540, 640, 130, INK); MV.DATA.odometer[1](g, cl(p * 1.7), 540, 900, 330, pal(CREAM, INK, GOLD, '#ccc'), { from: 180, to: 270 }); T('fade', p * 3 - 1, 'سم', 540, 1150, 120, BRONZE); MV.UI.ruler[1](g, cl(p * 2 - .5), 540, 1330, 120, pal(CREAM, INK, INK, '#ccc'), { t: 'ارتفاع' }); } },
+  { bg: NAVY, d(p) { T('right', p * 3, 'تنسحب', 540, 780, 230, CREAM); const k = cl(p * 2.5 - 1), m = M('بيد وحدة', 150); g.save(); MV.DECO.highlight[1](g, k, 540, 1070, m.w, m.h, GOLD); g.restore(); MV.text(g, 'بيد وحدة', 540, 1070, 150, k > .5 ? INK : CREAM); } },
+  { bg: INK, d(p) { T('wordsUp', p * 2.2, 'مسكة طولها', 540, 760, 150, CREAM); const k = cl(p * 2.4 - 1); T('punch', k * 2, 'متر كامل', 540, 1020, 190, GOLD); if (k > 0) { const m = M('متر كامل', 190); g.save(); MV.DECO.circle[1](g, k, 540, 1020, m.w, m.h, CREAM); g.restore(); } } },
+  { bg: GOLD, d(p) { MV.DATA.checklist[1](g, cl(p * 1.3), 420, 900, 150, pal(GOLD, INK, BRONZE, INK), { items: ['شبابيك', 'أبواب', 'واجهات'] }); } },
+  { bg: CREAM, d(p) { const k = cl(p * 2.2); g.save(); MV.DATA.stampC[1](g, k, 540, 880, 300, pal(CREAM, INK, GOLD, '#ccc'), { t: 'النبراس' }); g.restore(); T('up', p * 2.5 - 1, 'للألمنيوم', 540, 1330, 120, INK); MV.DECO.stars[1](g, cl(p * 2 - .8), 540, 880, 640, 560, GOLD); } },
+  { bg: NAVY, d(p) { MV.DATA.rings[1](g, (p * 1.6) % 1, 540, 760, 150, pal(NAVY, CREAM, GOLD, '#445')); T('drop', p * 2.2, 'الدمام', 540, 1130, 230, CREAM); } },
+  { bg: INK, d(p) { MV.UI.typeBox[1](g, cl(p * 1.5), 540, 860, 130, pal(INK, CREAM, GOLD, '#333'), { t: '0594774046' }); T('fade', p * 4, 'واتساب', 540, 620, 130, GOLD); MV.UI.send[1](g, cl(p * 1.6 - .3), 540, 1130, 90, pal(INK, CREAM, GOLD, '#333')); MV.UI.click[1](g, cl(p * 1.6 - .35), 560, 1150, 60, pal(INK, CREAM, CREAM, '#333')); } },
+];
+const TRS = ['cut', 'blockL', 'wipeU', 'pushL', 'iris', 'stripes', 'ink', 'doors', 'blockU'];
+function board(i, p, f) { const P = PANELS[i]; g.fillStyle = P.bg; g.fillRect(0, 0, W, H); const light = P.bg === GOLD || P.bg === CREAM, fg = light ? INK : CREAM; g.save(); P.d(p); g.restore();
+  MV.UI.plus[1](g, 1, 0, 0, 1, pal(P.bg, fg, GOLD, light ? 'rgba(0,0,0,.25)' : 'rgba(255,255,255,.25)'), { W, H }); g.save(); MV.UI.index[1](g, 1, 190, 1560, 70, pal(P.bg, fg, GOLD, light ? 'rgba(0,0,0,.14)' : 'rgba(255,255,255,.14)'), { t: '0' + (i + 1) }); g.restore(); }
+function ticker(f) { const TY = 236, TH = 58, unit = 'النبراس للألمنيوم   •   واتساب 0594774046   •   '; g.save(); g.fillStyle = 'rgba(22,22,22,.55)'; g.fillRect(0, TY, W, TH); g.beginPath(); g.rect(0, TY, W, TH); g.clip(); g.font = '600 30px Cai'; g.direction = 'rtl'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = 'rgba(255,255,255,.92)'; const Pw = g.measureText(unit).width, kk = Math.max(1, Math.round(120 * DUR / Pw)), off = (f / NF) * kk * Pw; for (let x = (off % Pw) - Pw; x < W + Pw; x += Pw) g.fillText(unit, x, TY + TH / 2 + 2); g.restore(); }
+function grid(k) { const sc = 3 - 2 * E.io(k); g.save(); g.translate(W / 2, H / 2); g.scale(sc, sc); g.translate(-W / 2, -H / 2); const tx = (1 - E.io(k)); g.translate(tx * 360 * 0, 0); for (let i = 0; i < 9; i++) { const cx = 2 - i % 3, cy = Math.floor(i / 3); g.save(); g.translate(cx * 360, cy * 640); g.scale(1 / 3, 1 / 3); g.beginPath(); g.rect(0, 0, W, H); g.clip(); board(i, 1, 0); g.restore(); g.strokeStyle = INK; g.lineWidth = 4; g.strokeRect(cx * 360, cy * 640, 360, 640); } g.restore(); }
+function render(t) { const f = Math.min(NF - 1, Math.max(0, Math.round(t * FPS))); g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.filter = 'none';
+  if (window.COVER) { grid(1); g.fillStyle = 'rgba(20,20,20,.82)'; g.beginPath(); g.roundRect(120, 800, 840, 320, 40); g.fill(); MV.text(g, 'شبّاك ٥ متر', 540, 900, 110, GOLD); MV.text(g, 'بيد وحدة؟', 540, 1030, 96, CREAM); return; }
+  const seg = CUTF.filter(cu => f >= cu).length, s0 = seg ? CUTF[seg - 1] : 0, s1 = seg < CUTF.length ? CUTF[seg] : NF;
+  if (seg < 9) { const p = (f - s0) / (s1 - s0), cur = () => board(seg, p, f); if (seg > 0 && f - s0 < 7) { const prev = () => board(seg - 1, 1, f); MV.TR[TRS[seg]][1](g, (f - s0) / 7, prev, cur, W, H, seg % 2 ? GOLD : INK); } else cur(); }
+  else { const lf = f - CUTF[8], k = cl(lf / 16); if (k < 1) { g.fillStyle = INK; g.fillRect(0, 0, W, H); } g.save(); const sc = 3 - 2 * E.io(k), ox = (1 - E.io(k)) * (-360), oy = (1 - E.io(k)) * (640); g.translate(0, 0); g.restore(); g.save(); g.translate(W / 2 + (-360) * (1 - E.io(k)) * 3 * 0, H / 2); g.translate(-W / 2, -H / 2); gridZ(k); g.restore();
+    const a2 = cl((lf - 16) / 8); if (a2 > 0) { g.save(); g.globalAlpha = a2; g.fillStyle = 'rgba(20,20,20,.86)'; g.beginPath(); g.roundRect(110, 820, 860, 300, 40); g.fill(); g.restore(); T('pop', a2, 'النبراس للألمنيوم', 540, 910, 92, GOLD); T('up', a2 * 1.5 - .4, 'واتساب 0594774046', 540, 1030, 62, CREAM, 700); } }
+  ticker(f); }
+// zoom out from the last board (bottom-left cell) to the full 3x3 grid
+function gridZ(k) { const e = E.io(k), sc = 3 - 2 * e, fx = 180, fy = 1600; g.save(); g.translate(W / 2, H / 2); g.scale(sc, sc); g.translate(-lerp2(fx, W / 2, e), -lerp2(fy, H / 2, e)); for (let i = 0; i < 9; i++) { const cx = 2 - i % 3, cy = Math.floor(i / 3); g.save(); g.translate(cx * 360, cy * 640); g.scale(1 / 3, 1 / 3); g.beginPath(); g.rect(0, 0, W, H); g.clip(); board(i, 1, 0); g.restore(); g.strokeStyle = INK; g.lineWidth = 4; g.strokeRect(cx * 360, cy * 640, 360, 640); } g.restore(); }
+const lerp2 = (a, b, k) => a + (b - a) * k;
+window.render = render; window.READY = Promise.all([document.fonts.load('800 60px Cai', 'ا'), document.fonts.load('700 30px Cai', 'ا'), document.fonts.load('600 30px Cai', 'ا')]).then(() => render(0));
